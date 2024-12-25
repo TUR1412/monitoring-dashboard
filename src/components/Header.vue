@@ -47,22 +47,24 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #34495e;
-  color: #ecf0f1;
+  background-color: var(--dark-purple);
+  color: var(--text-color);
   padding: 10px 20px;
 }
 
 .header-actions button {
   background: none;
   border: none;
-  color: #ecf0f1;
+  color: var(--text-color);
   cursor: pointer;
   font-size: 1em;
   margin-left: 10px;
+  display: flex;
+  align-items: center;
 }
 
 .header-actions button:hover {
-  color: #1abc9c;
+  color: var(--neon-blue);
 }
 
 .header i {

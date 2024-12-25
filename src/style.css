@@ -7,38 +7,100 @@
   box-sizing: border-box;
 }
 
+/* 定义赛博朋克色彩变量 */
+:root {
+  /* 基本颜色 */
+  --background-color: #1e1e1e; /* 深色背景 */
+  --text-color: #a0aec0;       /* 浅灰色文本 */
+  
+  /* 霓虹色 */
+  --neon-pink: #ff6ec7;
+  --neon-blue: #1f8ef1;
+  --neon-red: #ff073a;
+  --neon-yellow: #ffdd57;
+  --neon-green: #00ff99;
+
+  /* 辅助颜色 */
+  --dark-purple: #2c3e50;
+  --gray-400: #a0aec0;
+  --gray-600: #4a5568;
+  --gray-700: #718096;
+  --gray-800: #2d3748;
+
+  /* 额外颜色变量以提高对比度 */
+  --light-background: #f5f5f5; /* 浅色背景 */
+  --light-text: #333333;       /* 深色文本 */
+
+  /* 卡片背景和文本颜色 */
+  --card-background-color: var(--dark-purple);
+  --card-text-color: var(--text-color);
+
+  /* 标题和段落颜色 */
+  --heading-color: var(--text-color);
+  --paragraph-color: var(--text-color);
+}
+
+/* 主题相关变量 */
+.light {
+  /* 浅色主题 */
+  --background-color: var(--light-background);
+  --text-color: var(--light-text);
+  --card-background-color: #ffffff; /* 浅色主题下卡片背景为白色 */
+  --card-text-color: var(--light-text);
+  --heading-color: #1a237e; /* 深蓝色标题 */
+  --paragraph-color: #333333; /* 深色段落 */
+}
+
+.dark {
+  /* 深色主题 */
+  --background-color: #1e1e1e;
+  --text-color: #a0aec0;
+  --card-background-color: var(--dark-purple);
+  --card-text-color: var(--text-color);
+  --heading-color: var(--text-color);
+  --paragraph-color: var(--text-color);
+}
+
+/* 根据系统偏好设置自动应用主题 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-color: #1e1e1e;
+    --text-color: #a0aec0;
+    --card-background-color: var(--dark-purple);
+    --card-text-color: var(--text-color);
+    --heading-color: var(--text-color);
+    --paragraph-color: var(--text-color);
+  }
+}
+
+/* 链接样式 */
+a {
+  font-weight: 500;
+  color: var(--neon-pink);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: var(--neon-blue);
+}
+
 /* 设置 html 和 body 的高度为 100%，并移除默认的外边距和内边距 */
 html,
 body {
   height: 100%;
   margin: 0;
   padding: 0;
-}
-
-/* 定义根变量 */
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: 'Orbitron', sans-serif, Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
   color-scheme: light dark;
-  color: var(--text-color, #333333);
-  background-color: var(--background-color, #f0f2f5);
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* 链接样式 */
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: none;
-}
-a:hover {
-  color: #535bf2;
 }
 
 /* 确保 #app 容器占满整个视口高度，并使用 Flexbox 布局 */
@@ -56,8 +118,14 @@ h1,
 h2,
 h3,
 h4 {
-  color: #333;
+  color: var(--heading-color);
   margin: 0;
+  font-family: 'Orbitron', sans-serif;
+}
+
+/* 段落样式 */
+p {
+  color: var(--paragraph-color);
 }
 
 /* 按钮样式 */
@@ -67,53 +135,38 @@ button {
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  color: #ffffff;
+  font-family: 'Orbitron', sans-serif, inherit;
+  background-color: var(--neon-pink);
+  color: #1a1a1a;
   cursor: pointer;
-  transition: border-color 0.25s, background-color 0.25s;
+  transition: border-color 0.25s, background-color 0.25s, box-shadow 0.25s;
+  box-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-blue);
 }
+
 button:hover {
-  border-color: #646cff;
-  background-color: #333333;
+  border-color: var(--neon-blue);
+  background-color: var(--neon-blue);
+  box-shadow: 0 0 15px var(--neon-pink), 0 0 25px var(--neon-blue);
 }
+
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 4px auto var(--neon-pink);
 }
 
 /* 卡片样式 */
 .card {
   padding: 2em;
-  background-color: #ffffff;
-  border: 1px solid #dcdfe6;
+  background-color: var(--card-background-color);
+  color: var(--card-text-color);
+  border: 1px solid #555555;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(255, 110, 199, 0.5), 0 0 20px rgba(31, 142, 241, 0.5);
+  transition: box-shadow 0.3s;
 }
 
-/* 主题相关变量 */
-@media (prefers-color-scheme: light) {
-  :root {
-    --background-color: #ffffff;
-    --text-color: #213547;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-    color: #333333;
-  }
-}
-
-.light {
-  --background-color: #f5f5f5;
-  --text-color: #333333;
-}
-
-.dark {
-  --background-color: #1e1e1e;
-  --text-color: #ffffff;
+.card:hover {
+  box-shadow: 0 4px 12px rgba(255, 110, 199, 0.7), 0 0 30px rgba(31, 142, 241, 0.7);
 }
 
 /* 全局图片样式 */
@@ -126,4 +179,24 @@ img {
 /* 移除 #app 内部元素可能的默认外边距 */
 #app > * {
   margin: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    margin-top: 10px;
+  }
+
+  .content {
+    flex-direction: column;
+  }
+
+  main {
+    padding: 10px;
+  }
 }

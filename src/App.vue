@@ -10,16 +10,5 @@ export default {
 </script>
 
 <style>
-/* 全局样式 */
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #f0f2f5;
-}
-
-h1, h2, h3 {
-  color: #333;
-}
-
-/* 其他全局样式 */
+/* src/App.vue 的样式已经在全局 style.css 中定义，此处无需额外样式 */
 </style>

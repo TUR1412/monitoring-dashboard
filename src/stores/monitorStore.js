@@ -3,6 +3,17 @@ import { defineStore } from 'pinia'
 
 export const useMonitorStore = defineStore('monitor', {
   state: () => ({
+    // 用户管理
+    users: [
+      { id: 1, username: 'admin', role: 'admin' },
+      { id: 2, username: 'user1', role: 'user' },
+      { id: 3, username: 'user2', role: 'user' }
+    ],
+    user: JSON.parse(localStorage.getItem('user')) || null, // 当前登录用户
+
+    // 主题状态
+    theme: localStorage.getItem('theme') || 'light', // 默认主题为亮色主题
+
     // 系统资源
     cpuUsage: [
       { time: '00:00', usage: 20 },
@@ -44,10 +55,10 @@ export const useMonitorStore = defineStore('monitor', {
       renderTime: 1.5 // 单位：秒
     },
     errorReports: [
-      'Error: Unable to fetch data from server.',
-      'Warning: High memory usage detected.',
-      'Error: Disk space running low.',
-      'Info: System maintenance scheduled at midnight.'
+      '错误: 无法从服务器获取数据。',
+      '警告: 检测到高内存使用率。',
+      '错误: 磁盘空间不足。',
+      '信息: 系统维护计划在午夜开始。'
     ],
     userBehavior: {
       labels: ['浏览页面', '点击按钮', '提交表单', '滚动页面'],
@@ -61,21 +72,58 @@ export const useMonitorStore = defineStore('monitor', {
       { id: 5, level: 'error', message: '无法连接到数据库。', timestamp: '2024-04-27 12:15:00' }
     ],
     alerts: [
-      { id: 1, level: 'warning', message: '内存使用率超过80%。', timestamp: '2024-04-27 10:15:00' },
-      { id: 2, level: 'error', message: '无法连接到数据库。', timestamp: '2024-04-27 10:20:00' },
-      { id: 3, level: 'info', message: '系统维护将在今晚12点开始。', timestamp: '2024-04-27 09:00:00' }
+      { 
+        id: 1, 
+        level: 'warning', 
+        title: '高内存使用率', 
+        message: '内存使用率超过80%。', 
+        timestamp: Date.now() - 2 * 60 * 60 * 1000, // 2小时前
+        source: '系统监控', 
+        acknowledged: false, 
+        muted: false, 
+        archived: false 
+      },
+      { 
+        id: 2, 
+        level: 'error', 
+        title: '数据库连接失败', 
+        message: '无法连接到数据库。', 
+        timestamp: Date.now() - 1 * 60 * 60 * 1000, // 1小时前
+        source: '数据库服务', 
+        acknowledged: false, 
+        muted: false, 
+        archived: false 
+      },
+      { 
+        id: 3, 
+        level: 'info', 
+        title: '系统维护通知', 
+        message: '系统维护将在今晚12点开始。', 
+        timestamp: Date.now() - 25 * 60 * 60 * 1000, // 25小时前
+        source: '系统通知', 
+        acknowledged: true, 
+        muted: false, 
+        archived: false 
+      },
+      // 可以添加更多动态生成的警报
     ],
-    // 用户管理
-    users: [
-      { id: 1, username: 'admin', role: 'admin' },
-      { id: 2, username: 'user1', role: 'user' },
-      { id: 3, username: 'user2', role: 'user' }
+    securityLogs: [
+      { id: 1, level: 'high', source: '防火墙', message: '检测到异常登录尝试。', timestamp: '2024-04-27 10:30:00' },
+      { id: 2, level: 'medium', source: '入侵检测系统', message: '发现可疑流量模式。', timestamp: '2024-04-27 11:15:00' },
+      { id: 3, level: 'low', source: '安全审计', message: '定期安全扫描完成。', timestamp: '2024-04-27 09:00:00' },
+      { id: 4, level: 'critical', source: '防病毒软件', message: '检测到恶意软件。', timestamp: '2024-04-27 12:45:00' }
     ],
+    auditLogs: [
+      { id: 1, username: 'admin', action: 'login', message: '管理员登录成功。', timestamp: '2024-04-27 08:00:00', details: { ip: '192.168.1.10', location: '办公室' } },
+      { id: 2, username: 'user1', action: 'create', message: '创建了新用户。', timestamp: '2024-04-27 09:30:00', details: { userId: 4, username: 'user4' } },
+      { id: 3, username: 'user2', action: 'update', message: '更新了系统设置。', timestamp: '2024-04-27 10:45:00', details: { setting: '网络配置', oldValue: 'DHCP', newValue: '静态' } },
+      { id: 4, username: 'admin', action: 'delete', message: '删除了用户。', timestamp: '2024-04-27 11:00:00', details: { userId: 3, username: 'user2' } },
+      { id: 5, username: 'user1', action: 'logout', message: '用户登出。', timestamp: '2024-04-27 12:15:00', details: { ip: '192.168.1.11', location: '远程' } }
+    ],
+
     // 通用状态
     loading: false,
-    error: null,
-    user: JSON.parse(localStorage.getItem('user')) || null, // 从本地存储获取用户信息
-    theme: localStorage.getItem('theme') || 'light' // 新增主题状态，默认亮色主题
+    error: null
   }),
   actions: {
     // 数据获取动作（使用静态数据，无需异步操作）
@@ -159,6 +207,37 @@ export const useMonitorStore = defineStore('monitor', {
         this.loading = false
       }
     },
+    fetchAlerts() {
+      this.loading = true
+      try {
+        // 数据已静态初始化，无需操作
+      } catch (err) {
+        this.error = '无法获取警报数据。'
+      } finally {
+        this.loading = false
+      }
+    },
+    fetchSecurityLogs() {
+      this.loading = true
+      try {
+        // 数据已静态初始化，无需操作
+      } catch (err) {
+        this.error = '无法获取安全日志数据。'
+      } finally {
+        this.loading = false
+      }
+    },
+    fetchAuditLogs() {
+      this.loading = true
+      try {
+        // 数据已静态初始化，无需操作
+      } catch (err) {
+        this.error = '无法获取审计日志数据。'
+      } finally {
+        this.loading = false
+      }
+    },
+
     // 登录动作（模拟登录）
     async login(username, password) {
       this.loading = true
@@ -168,7 +247,7 @@ export const useMonitorStore = defineStore('monitor', {
         await new Promise((resolve) => setTimeout(resolve, 1000))
         // 使用静态凭证进行验证
         if (username === 'admin' && password === 'password') {
-          this.user = { name: 'Admin User', role: 'admin' }
+          this.user = { name: '管理员用户', role: 'admin' }
           // 存储用户信息到本地存储（实际项目中应存储令牌）
           localStorage.setItem('authToken', 'mock-token')
           localStorage.setItem('user', JSON.stringify(this.user))
@@ -182,16 +261,21 @@ export const useMonitorStore = defineStore('monitor', {
         this.loading = false
       }
     },
+
+    // 退出登录
     logout() {
       this.user = null
       localStorage.removeItem('authToken')
       localStorage.removeItem('user')
     },
+
     // 主题切换动作
     toggleTheme() {
       this.theme = this.theme === 'light' ? 'dark' : 'light'
       localStorage.setItem('theme', this.theme) // 持久化主题选择
+      this.applyTheme() // 应用主题类到 <body>
     },
+
     // 初始化主题，根据本地存储或系统偏好设置
     initializeTheme() {
       const savedTheme = localStorage.getItem('theme')
@@ -203,20 +287,46 @@ export const useMonitorStore = defineStore('monitor', {
         this.theme = prefersDark ? 'dark' : 'light'
         localStorage.setItem('theme', this.theme)
       }
+      this.applyTheme() // 应用主题类到 <body>
     },
+
+    // 应用主题类到 <body>
+    applyTheme() {
+      document.body.classList.remove('light', 'dark')
+      document.body.classList.add(this.theme)
+    },
+
     // 用户管理动作
     addUser(newUser) {
       this.users.push({ id: Date.now(), ...newUser })
+      // 在实际项目中，应同步添加到后端
     },
     editUser(updatedUser) {
       const index = this.users.findIndex(user => user.id === updatedUser.id)
       if (index !== -1) {
         this.users[index] = { ...this.users[index], ...updatedUser }
+        // 在实际项目中，应同步更新到后端
       }
     },
     deleteUser(id) {
       this.users = this.users.filter(user => user.id !== id)
       // 在实际项目中，应同步删除到后端
+    },
+
+    // 警报管理动作
+    acknowledgeAlert(alertId) {
+      const alert = this.alerts.find(a => a.id === alertId)
+      if (alert) {
+        alert.acknowledged = true
+        // 在实际项目中，应同步更新到后端
+      }
+    },
+    muteAlert(alertId) {
+      const alert = this.alerts.find(a => a.id === alertId)
+      if (alert) {
+        alert.muted = !alert.muted
+        // 在实际项目中，应同步更新到后端
+      }
     }
   }
 })

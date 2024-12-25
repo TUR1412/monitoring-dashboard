@@ -1,6 +1,6 @@
 <!-- src/layouts/MainLayout.vue -->
 <template>
-  <div :class="['main-layout', theme]">
+  <div class="main-layout">
     <Header />
     <div class="content">
       <Sidebar />
@@ -30,9 +30,10 @@ export default {
     const store = useMonitorStore()
     const theme = computed(() => store.theme)
 
-    onMounted(() => {
-      store.initializeTheme()
-    })
+    // 已在 main.js 中初始化主题，无需在此再次调用
+    // onMounted(() => {
+    //   store.initializeTheme()
+    // })
 
     return {
       theme
@@ -42,18 +43,15 @@ export default {
 </script>
 
 <style scoped>
-.main-layout.light {
-  --background-color: #f5f5f5;
-  --text-color: #333333;
-}
-
-.main-layout.dark {
-  --background-color: #1e1e1e;
-  --text-color: #ffffff;
+.main-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
 .content {
   display: flex;
+  flex: 1;
 }
 
 main {

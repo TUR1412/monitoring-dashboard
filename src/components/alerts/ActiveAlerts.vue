@@ -2,11 +2,12 @@
 <template>
   <div class="alerts-container">
     <div class="alerts-header">
-      <h2 class="text-xl font-bold mb-4">活动警报</h2>
+      <h2 class="text-xl font-cyberpunk mb-4">活动警报</h2>
       <div class="alert-filters">
-        <select v-model="severityFilter" class="filter-select">
+        <select v-model="levelFilter" class="filter-select">
           <option value="">全部严重程度</option>
           <option value="critical">严重</option>
+          <option value="error">错误</option>
           <option value="warning">警告</option>
           <option value="info">信息</option>
         </select>
@@ -18,12 +19,18 @@
       </div>
     </div>
 
+    <!-- 调试信息：显示过滤后的警报数量 -->
+    <div class="debug-info">
+      <p class="text-neon-pink">过滤后的警报数量: {{ filteredAlerts.length }}</p>
+      <pre class="text-sm text-gray-400">{{ filteredAlerts }}</pre> <!-- 仅用于调试，生产环境请移除 -->
+    </div>
+
     <div class="alerts-list" v-if="filteredAlerts.length">
       <div v-for="alert in filteredAlerts" 
            :key="alert.id" 
-           :class="['alert-item', `severity-${alert.severity}`]">
+           :class="['alert-item', `severity-${alert.level}`]">
         <div class="alert-icon">
-          <i :class="getAlertIcon(alert.severity)"></i>
+          <i :class="getAlertIcon(alert.level)"></i>
         </div>
         <div class="alert-content">
           <h3 class="alert-title">{{ alert.title }}</h3>
@@ -62,28 +69,33 @@ export default {
   
   setup() {
     const store = useMonitorStore()
-    const severityFilter = ref('')
+    const levelFilter = ref('')
     const timeFilter = ref('24h')
-    
+
+    // 计算过滤后的警报列表
     const filteredAlerts = computed(() => {
       return store.alerts.filter(alert => {
-        const matchesSeverity = !severityFilter.value || alert.severity === severityFilter.value
+        const matchesLevel = !levelFilter.value || alert.level === levelFilter.value
         const matchesTime = isWithinTimeFilter(alert.timestamp)
-        return matchesSeverity && matchesTime && !alert.archived
+        return matchesLevel && matchesTime && !alert.archived
       })
     })
 
-    const getAlertIcon = (severity) => {
+    // 获取警报图标类名
+    const getAlertIcon = (level) => {
       const icons = {
-        critical: 'fas fa-exclamation-circle text-red-600',
-        warning: 'fas fa-exclamation-triangle text-yellow-500',
-        info: 'fas fa-info-circle text-blue-500'
+        critical: 'fas fa-exclamation-circle text-neon-red',
+        error: 'fas fa-times-circle text-neon-red',
+        warning: 'fas fa-exclamation-triangle text-neon-yellow',
+        info: 'fas fa-info-circle text-neon-blue'
       }
-      return icons[severity] || icons.info
+      return icons[level] || icons.info
     }
 
+    // 格式化时间戳
     const formatTime = (timestamp) => {
-      return new Date(timestamp).toLocaleString('zh-CN', {
+      const date = typeof timestamp === 'number' ? new Date(timestamp) : new Date(timestamp)
+      return date.toLocaleString('zh-CN', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
@@ -92,38 +104,40 @@ export default {
       })
     }
 
+    // 判断警报是否在过滤的时间范围内
     const isWithinTimeFilter = (timestamp) => {
       const now = Date.now()
+      let alertTime
+      if (typeof timestamp === 'number') {
+        alertTime = timestamp
+      } else {
+        alertTime = new Date(timestamp).getTime()
+      }
       const timeFilters = {
         '1h': 60 * 60 * 1000,
         '24h': 24 * 60 * 60 * 1000,
         '7d': 7 * 24 * 60 * 60 * 1000
       }
-      return now - timestamp <= timeFilters[timeFilter.value]
+      return now - alertTime <= timeFilters[timeFilter.value]
     }
 
-    const acknowledgeAlert = async (alertId) => {
-      try {
-        await store.acknowledgeAlert(alertId)
-      } catch (error) {
-        console.error('确认警报失败:', error)
-      }
+    // 确认警报
+    const acknowledgeAlert = (alertId) => {
+      store.acknowledgeAlert(alertId)
     }
 
-    const muteAlert = async (alertId) => {
-      try {
-        await store.muteAlert(alertId)
-      } catch (error) {
-        console.error('静音警报失败:', error)
-      }
+    // 静音警报
+    const muteAlert = (alertId) => {
+      store.muteAlert(alertId)
     }
 
-    onMounted(async () => {
-      await store.fetchAlerts()
+    // 在组件挂载时获取警报数据
+    onMounted(() => {
+      store.fetchAlerts()
     })
 
     return {
-      severityFilter,
+      levelFilter,
       timeFilter,
       filteredAlerts,
       getAlertIcon,
@@ -138,7 +152,8 @@ export default {
 <style scoped>
 .alerts-container {
   padding: 1.25rem;
-  background-color: var(--background-color, #f8f9fa);
+  background-color: var(--background-color, #1e1e1e);
+  color: var(--text-color, #ffffff);
 }
 
 .alerts-header {
@@ -148,12 +163,24 @@ export default {
   margin-bottom: 1.5rem;
 }
 
-.filter-select {
+.alert-filters select {
   padding: 0.5rem;
-  border: 1px solid #ddd;
+  border: 1px solid #555;
   border-radius: 0.375rem;
   margin-left: 0.75rem;
-  background-color: white;
+  background-color: #2c2c2c;
+  color: #ffffff;
+}
+
+.alert-filters select option {
+  background-color: #2c2c2c;
+  color: #ffffff;
+}
+
+.debug-info {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #ff6ec7;
 }
 
 .alerts-list {
@@ -167,26 +194,37 @@ export default {
   align-items: flex-start;
   padding: 1rem;
   border-radius: 0.5rem;
-  background-color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: #2c3e50;
+  box-shadow: 0 0 10px #ff6ec7, 0 0 20px #1f8ef1, 0 0 30px #17c0eb;
   border-left: 4px solid transparent;
+  transition: transform 0.3s;
+}
+
+.alert-item:hover {
+  transform: translateY(-5px);
 }
 
 .severity-critical {
-  border-left-color: #dc3545;
+  border-left-color: #ff073a;
+}
+
+.severity-error {
+  border-left-color: #ff073a;
 }
 
 .severity-warning {
-  border-left-color: #ffc107;
+  border-left-color: #ffdd57;
 }
 
 .severity-info {
-  border-left-color: #17a2b8;
+  border-left-color: #17c0eb;
 }
 
 .alert-icon {
   padding: 0.5rem;
   font-size: 1.25rem;
+  color: #ff6ec7;
+  text-shadow: 0 0 10px #ff6ec7, 0 0 20px #1f8ef1;
 }
 
 .alert-content {
@@ -196,12 +234,14 @@ export default {
 
 .alert-title {
   font-size: 1.125rem;
+  font-family: 'Orbitron', sans-serif;
   font-weight: 600;
   margin-bottom: 0.25rem;
+  color: #ffffff;
 }
 
 .alert-message {
-  color: #4a5568;
+  color: #17c0eb;
   margin-bottom: 0.5rem;
 }
 
@@ -209,7 +249,7 @@ export default {
   display: flex;
   gap: 1rem;
   font-size: 0.875rem;
-  color: #718096;
+  color: #a0aec0;
 }
 
 .alert-actions {
@@ -223,11 +263,13 @@ export default {
   border-radius: 0.375rem;
   font-weight: 500;
   transition: all 0.2s;
+  border: none;
 }
 
 .btn-acknowledge {
-  background-color: #28a745;
-  color: white;
+  background-color: #00ff99;
+  color: #1a1a1a;
+  box-shadow: 0 0 10px #00ff99, 0 0 20px #ff6ec7;
 }
 
 .btn-acknowledge:disabled {
@@ -236,8 +278,13 @@ export default {
 }
 
 .btn-mute {
-  background-color: #6c757d;
-  color: white;
+  background-color: #ff6ec7;
+  color: #1a1a1a;
+  box-shadow: 0 0 10px #ff6ec7, 0 0 20px #1f8ef1;
+}
+
+.btn-mute:hover {
+  background-color: #1f8ef1;
 }
 
 .btn-muted {
@@ -247,7 +294,7 @@ export default {
 .no-alerts {
   text-align: center;
   padding: 2rem;
-  color: #718096;
+  color: #ff6ec7;
 }
 
 @media (max-width: 640px) {
@@ -256,15 +303,27 @@ export default {
     align-items: stretch;
     gap: 1rem;
   }
-  
+
   .alert-filters {
     display: flex;
     gap: 0.5rem;
   }
-  
+
   .filter-select {
     flex: 1;
     margin-left: 0;
+    background-color: #2c2c2c;
+    color: #ffffff;
+  }
+
+  .alert-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .alert-actions {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 }
 </style>
