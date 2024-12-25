@@ -1,54 +1,69 @@
 <!-- src/components/Sidebar.vue -->
 <template>
   <aside class="sidebar">
-    <SidebarItem
-      to="/dashboard"
-      label="仪表盘"
-      icon="fas fa-tachometer-alt"
-      :exact="true"
-    />
-    <SidebarItem
-      to="/dashboard/system-resources"
-      label="系统资源"
-      icon="fas fa-server"
-      :children="systemResourcesChildren"
-    />
-    <SidebarItem
-      to="/dashboard/user-management"
-      label="用户管理" 
-      icon="fas fa-users"
-      :children="userManagementChildren"
-    />
-    <SidebarItem
-      to="/dashboard/system-alerts"
-      label="系统警报"
-      icon="fas fa-exclamation-triangle"
-      :children="systemAlertsChildren"
-    />
-    <SidebarItem
-      to="/dashboard/logs"
-      label="日志"
-      icon="fas fa-file-alt"
-      :children="logsChildren"
-    />
-    <SidebarItem
-      to="/dashboard/user-experience"
-      label="用户体验"
-      icon="fas fa-smile"
-      :children="userExperienceChildren"
-    />
-    <SidebarItem
-      to="/dashboard/security"
-      label="安全中心"
-      icon="fas fa-shield-alt"
-      :children="securityChildren"
-    />
-    <SidebarItem
-      to="/dashboard/analytics"
-      label="数据分析"
-      icon="fas fa-chart-line"
-      :children="analyticsChildren"
-    />
+    <!-- Logo 部分 -->
+    <div class="logo">
+      <img src="@/assets/logo.jpg" alt="Logo" />
+      <h2>监控</h2>
+    </div>
+    
+    <!-- 导航项 -->
+    <nav class="navigation">
+      <SidebarItem
+        to="/dashboard"
+        label="仪表盘"
+        icon="fas fa-tachometer-alt"
+        :exact="true"
+      />
+      <SidebarItem
+        to="/dashboard/system-resources"
+        label="系统资源"
+        icon="fas fa-server"
+        :children="systemResourcesChildren"
+      />
+      <SidebarItem
+        to="/dashboard/user-management"
+        label="用户管理" 
+        icon="fas fa-users"
+        :children="userManagementChildren"
+      />
+      <SidebarItem
+        to="/dashboard/system-alerts"
+        label="系统警报"
+        icon="fas fa-exclamation-triangle"
+        :children="systemAlertsChildren"
+      />
+      <SidebarItem
+        to="/dashboard/logs"
+        label="日志"
+        icon="fas fa-file-alt"
+        :children="logsChildren"
+      />
+      <SidebarItem
+        to="/dashboard/user-experience"
+        label="用户体验"
+        icon="fas fa-smile"
+        :children="userExperienceChildren"
+      />
+      <SidebarItem
+        to="/dashboard/security"
+        label="安全中心"
+        icon="fas fa-shield-alt"
+        :children="securityChildren"
+      />
+      <SidebarItem
+        to="/dashboard/analytics"
+        label="数据分析"
+        icon="fas fa-chart-line"
+        :children="analyticsChildren"
+      />
+    </nav>
+    
+    <!-- 退出按钮 -->
+    <button class="button-neon logout-button">
+      <i class="fas fa-sign-out-alt button-icon"></i>
+      退出
+    </button>
   </aside>
 </template>
 
@@ -106,11 +121,112 @@ export default {
 
 <style scoped>
 .sidebar {
-  width: 250px;
-  background-color: #2c3e50;
-  color: #ecf0f1;
+  width: 220px;
+  background-color: var(--dark-purple);
+  color: var(--text-color);
   height: 100vh;
-  padding-top: 20px;
+  padding: 15px;
   overflow-y: auto;
+  border-right: 1px solid var(--neon-blue);
+  box-shadow: 2px 0 10px rgba(31, 142, 241, 0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: width 0.3s, background-color 0.3s;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.logo img {
+  width: 35px;
+  height: 35px;
+  margin-right: 8px;
+  border-radius: 4px;
+  border: 2px solid var(--neon-pink);
+  box-shadow: 0 0 8px var(--neon-pink), 0 0 16px var(--neon-blue);
+}
+
+.logo h2 {
+  font-size: 1rem;
+  color: var(--text-color);
+  text-shadow: 0 0 3px var(--neon-pink), 0 0 6px var(--neon-blue);
+}
+
+.navigation {
+  flex-grow: 1;
+}
+
+.navigation ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.navigation ul li {
+  margin-bottom: 12px;
+}
+
+.navigation ul li a {
+  display: flex;
+  align-items: center;
+  color: var(--text-color);
+  text-decoration: none;
+  font-size: 0.95rem;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.3s, box-shadow 0.3s, color 0.3s;
+}
+
+.navigation ul li a:hover,
+.navigation ul li a.router-link-active {
+  background-color: rgba(31, 142, 241, 0.15);
+  box-shadow: 0 0 8px var(--neon-blue), 0 0 16px var(--neon-pink);
+}
+
+.navigation ul li a i {
+  margin-right: 8px;
+  color: var(--neon-blue);
+  transition: color 0.3s;
+}
+
+.navigation ul li a:hover i,
+.navigation ul li a.router-link-active i {
+  color: var(--neon-pink);
+}
+
+/* 退出按钮样式 */
+.logout-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--neon-red);
+  color: var(--background-color);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 0;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--neon-red), 0 0 16px var(--neon-blue);
+  transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
+}
+
+.logout-button:hover {
+  background-color: var(--neon-blue);
+  box-shadow: 0 0 12px var(--neon-red), 0 0 24px var(--neon-blue);
+  transform: scale(1.02);
+}
+
+.logout-button:active {
+  transform: scale(0.98);
+  box-shadow: 0 0 4px var(--neon-red), 0 0 8px var(--neon-blue);
+}
+
+.logout-button i {
+  margin-right: 6px;
 }
 </style>

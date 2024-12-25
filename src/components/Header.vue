@@ -3,10 +3,10 @@
   <header class="header">
     <h1>监控仪表盘</h1>
     <div class="header-actions">
-      <button @click="toggleTheme">
-        <i :class="themeIcon"></i> 切换主题
+      <button class="button-neon" @click="toggleTheme">
+        <i :class="themeIcon" class="button-icon"></i> 切换主题
       </button>
-      <button @click="logout">退出</button>
+      <button class="button-neon" @click="logout">退出</button>
     </div>
   </header>
 </template>
@@ -50,21 +50,13 @@ export default {
   background-color: var(--dark-purple);
   color: var(--text-color);
   padding: 10px 20px;
+  border-bottom: 2px solid var(--neon-pink);
+  box-shadow: 0 2px 8px rgba(255, 110, 199, 0.3), 0 0 20px rgba(31, 142, 241, 0.3);
+  position: relative;
 }
 
 .header-actions button {
-  background: none;
-  border: none;
-  color: var(--text-color);
-  cursor: pointer;
-  font-size: 1em;
-  margin-left: 10px;
-  display: flex;
-  align-items: center;
-}
-
-.header-actions button:hover {
-  color: var(--neon-blue);
+  /* 使用 button-neon 类，无需额外样式 */
 }
 
 .header i {

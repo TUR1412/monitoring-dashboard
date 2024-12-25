@@ -259,7 +259,7 @@ router.beforeEach((to, from, next) => {
 
 // 全局后置钩子
 router.afterEach((to, from) => {
-  // 可以在这里添加页面标题更新等逻辑
+  // 更新页面标题
   document.title = to.name ? `${to.name} - 监控面板` : '监控面板'
 })
 

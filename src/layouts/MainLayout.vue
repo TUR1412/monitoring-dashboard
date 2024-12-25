@@ -17,7 +17,7 @@ import Header from '@/components/Header.vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Footer from '@/components/Footer.vue'
 import { useMonitorStore } from '@/stores/monitorStore'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 
 export default {
   name: 'MainLayout',
@@ -30,10 +30,11 @@ export default {
     const store = useMonitorStore()
     const theme = computed(() => store.theme)
 
-    // 已在 main.js 中初始化主题，无需在此再次调用
-    // onMounted(() => {
-    //   store.initializeTheme()
-    // })
+    // 监控主题变化，并确保主题类应用到根元素
+    watch(theme, (newTheme) => {
+      document.documentElement.classList.remove('light', 'dark')
+      document.documentElement.classList.add(newTheme)
+    })
 
     return {
       theme
@@ -59,5 +60,17 @@ main {
   padding: 20px;
   background-color: var(--background-color);
   color: var(--text-color);
+  overflow-y: auto;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .content {
+    flex-direction: column;
+  }
+
+  main {
+    padding: 10px;
+  }
 }
 </style>

@@ -1,80 +1,58 @@
 <!-- src/views/Analytics.vue -->
 <template>
-    <div class="analytics">
-      <h1 class="text-2xl font-bold mb-4">数据分析</h1>
-      <div class="analytics-content">
-        <nav class="analytics-nav">
-          <router-link 
-            to="/dashboard/analytics/traffic" 
-            class="nav-link"
-            :class="{ 'active-link': isActive('traffic') }"
+  <div class="analytics">
+    <h1 class="text-2xl font-bold mb-4">数据分析</h1>
+    <div class="analytics-content">
+      <!-- 使用数组循环渲染导航链接 -->
+      <nav class="flex gap-4 border-b border-gray-200 mb-6">
+        <router-link 
+          v-for="route in navRoutes" 
+          :key="route.path"
+          :to="route.path"
+          v-slot="{ isActive }"
+          custom
+        >
+          <a 
+            class="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors duration-200"
+            :class="{ 'text-blue-600 border-b-2 border-blue-600 font-medium': isActive }"
           >
-            流量分析
-          </router-link>
-          <router-link 
-            to="/dashboard/analytics/performance" 
-            class="nav-link"
-            :class="{ 'active-link': isActive('performance') }"
-          >
-            性能分析
-          </router-link>
-          <router-link 
-            to="/dashboard/analytics/reports" 
-            class="nav-link"
-            :class="{ 'active-link': isActive('reports') }"
-          >
-            报告生成
-          </router-link>
-        </nav>
-        <router-view />
-      </div>
+            {{ route.name }}
+          </a>
+        </router-link>
+      </nav>
+      
+      <!-- 使用 Suspense 包装异步组件 -->
+      <Suspense>
+        <template #default>
+          <router-view v-slot="{ Component }">
+            <keep-alive>
+              <component :is="Component" />
+            </keep-alive>
+          </router-view>
+        </template>
+        <template #fallback>
+          <div class="flex justify-center items-center h-64">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+          </div>
+        </template>
+      </Suspense>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    name: 'Analytics',
-    methods: {
-      // 判断当前路由是否激活
-      isActive(routeName) {
-        return this.$route.path.includes(routeName)
-      }
-    }
+  </div>
+</template>
+
+<script setup>
+const navRoutes = [
+  {
+    path: '/dashboard/analytics/traffic',
+    name: '流量分析'
+  },
+  {
+    path: '/dashboard/analytics/performance', 
+    name: '性能分析'
+  },
+  {
+    path: '/dashboard/analytics/reports',
+    name: '报告生成'
   }
-  </script>
-  
-  <style scoped>
-  .analytics {
-    padding: 20px;
-  }
-  
-  .analytics-content {
-    margin-top: 20px;
-  }
-  
-  .analytics-nav {
-    margin-bottom: 20px;
-    padding: 10px 0;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    gap: 20px;
-  }
-  
-  .nav-link {
-    padding: 5px 10px;
-    text-decoration: none;
-    color: #666;
-    border-radius: 4px;
-    transition: background-color 0.3s, color 0.3s;
-  }
-  
-  .nav-link:hover {
-    background-color: #f0f0f0;
-  }
-  
-  .active-link {
-    color: #42b983;
-    border-bottom: 2px solid #42b983;
-  }
-  </style>
-  
+]
+</script>

@@ -1,4 +1,4 @@
-// src/components/UserManagement/UserForm.vue
+<!-- src/components/UserManagement/UserForm.vue -->
 <template>
   <div class="user-form">
     <h2>{{ title }}</h2>
@@ -12,6 +12,7 @@
           :class="{ 'error-input': v$.form.username.$error }"
           @blur="v$.form.username.$touch()"
           required
+          placeholder="输入用户名"
         />
         <span v-if="v$.form.username.$error" class="error-text">
           {{ v$.form.username.$errors[0].$message }}
@@ -35,7 +36,7 @@
         </span>
       </div>
 
-      <button type="submit" :disabled="loading || v$.$invalid">
+      <button type="submit" class="button-neon" :disabled="loading || v$.$invalid">
         {{ loading ? '处理中...' : submitText }}
       </button>
 
@@ -126,10 +127,19 @@ export default {
 <style scoped>
 .user-form {
   padding: 20px;
-  background-color: var(--background-color);
+  background-color: var(--card-background-color);
   color: var(--text-color);
   max-width: 500px;
   margin: 0 auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(31, 142, 241, 0.7), 0 0 20px var(--neon-pink);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: var(--highlight-color);
+  text-shadow: 0 0 5px var(--highlight-color), 0 0 10px var(--neon-blue);
 }
 
 .form {
@@ -152,58 +162,64 @@ label {
 input,
 select {
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  background-color: var(--background-color);
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  background-color: var(--card-background-color);
   color: var(--text-color);
-  transition: border-color 0.2s;
+  box-sizing: border-box;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input::placeholder,
+select::placeholder {
+  color: var(--paragraph-color);
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 0 2px rgba(31, 142, 241, 0.5);
 }
 
 .error-input {
-  border-color: #f56c6c;
+  border-color: var(--neon-red);
+  box-shadow: 0 0 5px var(--neon-red);
 }
 
 .error-text {
-  color: #f56c6c;
+  color: var(--neon-red);
   font-size: 0.875rem;
 }
 
+/* 移除局部按钮样式，使用全局 .button-neon 类 */
 button {
-  padding: 0.75rem;
-  background-color: #409eff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  /* 移除局部样式 */
 }
 
-button:hover:not(:disabled) {
-  background-color: #3071d3;
-}
-
-button:disabled {
-  background-color: #a0cfff;
-  cursor: not-allowed;
+/* 确保全局按钮样式应用 */
+:deep(.button-neon) {
+  /* 无需添加样式，依赖全局样式 */
 }
 
 .success,
 .error {
   margin-top: 1rem;
-  padding: 0.5rem;
-  border-radius: 4px;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
   text-align: center;
 }
 
 .success {
-  background-color: #f0f9eb;
-  color: #67c23a;
+  background-color: rgba(56, 162, 89, 0.1);
+  color: var(--neon-green);
+  border-left: 4px solid var(--neon-green);
 }
 
 .error {
-  background-color: #fef0f0;
-  color: #f56c6c;
+  background-color: rgba(255, 7, 58, 0.1);
+  color: var(--neon-red);
+  border-left: 4px solid var(--neon-red);
 }
 </style>

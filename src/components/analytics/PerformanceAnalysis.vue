@@ -1,114 +1,133 @@
-<!-- src/components/analytics/PerformanceAnalysis.vue -->
 <template>
-    <div class="performance-analysis">
-      <h2 class="text-2xl font-bold mb-4">性能分析</h2>
+  <div class="performance-analysis p-6">
+    <h2 class="text-2xl font-bold mb-4">性能分析</h2>
+
+    <ErrorDisplay 
+      v-if="error" 
+      :message="error" 
+      @retry="loadData"
+    />
+
+    <template v-else>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="metric-card bg-white p-4 rounded-lg shadow">
-          <h3 class="text-lg font-semibold mb-2">响应时间</h3>
-          <p class="text-3xl">{{ responseTime }}ms</p>
-          <p class="text-sm text-gray-500">
-            {{ responseTrend > 0 ? '+' : '' }}{{ responseTrend }}% 变化
-          </p>
-        </div>
-        <div class="metric-card bg-white p-4 rounded-lg shadow">
-          <h3 class="text-lg font-semibold mb-2">错误率</h3>
-          <p class="text-3xl">{{ errorRate }}%</p>
-          <p class="text-sm text-gray-500">
-            {{ errorTrend > 0 ? '+' : '' }}{{ errorTrend }}% 变化
-          </p>
-        </div>
-        <div class="metric-card bg-white p-4 rounded-lg shadow">
-          <h3 class="text-lg font-semibold mb-2">资源使用率</h3>
-          <p class="text-3xl">{{ resourceUsage }}%</p>
-          <p class="text-sm text-gray-500">
-            {{ resourceTrend > 0 ? '+' : '' }}{{ resourceTrend }}% 变化
-          </p>
-        </div>
+        <MetricCard
+          v-for="metric in metrics"
+          :key="metric.id"
+          :title="metric.title"
+          :value="metric.value"
+          :unit="metric.unit"
+          :trend="metric.trend"
+        />
       </div>
+
       <div class="performance-chart bg-white p-4 rounded-lg shadow">
         <h3 class="text-lg font-semibold mb-4">性能指标趋势</h3>
-        <!-- 这里可以嵌入图表组件 -->
-        <ChartComponent :data="chartData" />
+        <PerformanceChart type="line" :data="chartData" />
       </div>
-    </div>
-  </template>
-  
-  <script>
-  import { ref, computed, onMounted } from 'vue'
-  import ChartComponent from '@/components/charts/ChartComponent.vue'
-  
-  export default {
-    name: 'PerformanceAnalysis',
-    components: {
-      ChartComponent
+    </template>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
+import { usePerformanceStore } from '@/stores/performance'
+import PerformanceChart from '@/components/charts/PerformanceChart.vue'
+import MetricCard from '@/components/common/MetricCard.vue'
+import ErrorDisplay from '@/components/common/ErrorDisplay.vue'
+
+const store = usePerformanceStore()
+const error = ref(null)
+
+// 直接使用 storeToRefs 来解构数据
+const { 
+  currentMetrics,
+  chartLabels,
+  responseTimeData,
+  errorRateData,
+  resourceUsageData 
+} = storeToRefs(store)
+
+// 性能指标卡片数据
+const metrics = computed(() => {
+  const current = currentMetrics.value || {}  // 防止 currentMetrics 为 undefined
+  return [
+    {
+      id: 'response',
+      title: '响应时间',
+      value: current.responseTime ?? 0,
+      unit: 'ms',
+      trend: current.responseTrend ?? 0
     },
-    setup() {
-      const responseTime = ref(245) // 响应时间
-      const responseTrend = ref(-5.2) // 响应时间趋势
-      const errorRate = ref(0.8) // 错误率
-      const errorTrend = ref(-12.5) // 错误率趋势
-      const resourceUsage = ref(68) // 资源使用率
-      const resourceTrend = ref(3.1) // 资源使用率趋势
-  
-      // 模拟图表数据
-      const chartData = computed(() => ({
-        labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
-        datasets: [
-          {
-            label: '响应时间 (ms)',
-            data: [250, 240, 245, 230, 220, 225],
-            backgroundColor: 'rgba(255, 99, 132, 0.5)',
-            borderColor: 'rgb(255, 99, 132)',
-            borderWidth: 1
-          },
-          {
-            label: '错误率 (%)',
-            data: [1.0, 0.9, 0.8, 0.7, 0.6, 0.8],
-            backgroundColor: 'rgba(54, 162, 235, 0.5)',
-            borderColor: 'rgb(54, 162, 235)',
-            borderWidth: 1
-          },
-          {
-            label: '资源使用率 (%)',
-            data: [65, 67, 68, 70, 72, 68],
-            backgroundColor: 'rgba(75, 192, 192, 0.5)',
-            borderColor: 'rgb(75, 192, 192)',
-            borderWidth: 1
-          }
-        ]
-      }))
-  
-      onMounted(() => {
-        // 这里可以添加实际的数据获取逻辑
-      })
-  
-      return {
-        responseTime,
-        responseTrend,
-        errorRate,
-        errorTrend,
-        resourceUsage,
-        resourceTrend,
-        chartData
-      }
+    {
+      id: 'error',
+      title: '错误率',
+      value: current.errorRate ?? 0,
+      unit: '%',
+      trend: current.errorTrend ?? 0
+    },
+    {
+      id: 'resource',
+      title: '资源使用率',
+      value: current.resourceUsage ?? 0,
+      unit: '%',
+      trend: current.resourceTrend ?? 0
     }
+  ]
+})
+
+// 图表数据
+const chartData = computed(() => {
+  const labels = chartLabels.value || []
+  const responseData = responseTimeData.value || []
+  const errorRate = errorRateData.value || []
+  const resourceUsage = resourceUsageData.value || []
+
+  return {
+    labels,
+    datasets: [
+      {
+        label: '响应时间 (ms)',
+        data: responseData,
+        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        borderColor: 'rgb(255, 99, 132)',
+        borderWidth: 1
+      },
+      {
+        label: '错误率 (%)',
+        data: errorRate,
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        borderColor: 'rgb(54, 162, 235)',
+        borderWidth: 1
+      },
+      {
+        label: '资源使用率 (%)',
+        data: resourceUsage,
+        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        borderColor: 'rgb(75, 192, 192)',
+        borderWidth: 1
+      }
+    ]
   }
-  </script>
-  
-  <style scoped>
-  .performance-analysis {
-    padding: 20px;
+})
+
+// 加载数据
+const loadData = async () => {
+  try {
+    await store.fetchPerformanceData()
+  } catch (e) {
+    error.value = '加载性能数据失败，请重试'
+    console.error('Performance data loading error:', e)
   }
-  
-  .metric-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-  
-  .performance-chart {
-    margin-top: 20px;
-  }
-  </style>
-  
+}
+
+onMounted(() => {
+  loadData()
+})
+</script>
+
+<style scoped>
+.performance-analysis {
+  @apply p-6;
+}
+</style>

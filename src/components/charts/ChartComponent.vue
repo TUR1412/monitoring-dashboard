@@ -1,4 +1,3 @@
-<!-- src/components/charts/ChartComponent.vue -->
 <template>
   <div class="chart-container">
     <canvas ref="canvas"></canvas>
@@ -16,17 +15,29 @@ export default {
   props: {
     type: {
       type: String,
-      required: true
+      required: true,
+      validator(value) {
+        const validTypes = ['bar', 'line', 'pie', 'doughnut', 'radar', 'polarArea', 'bubble', 'scatter']
+        if (!validTypes.includes(value)) {
+          console.warn(`Invalid chart type: "${value}". Supported types are: ${validTypes.join(', ')}`)
+          return false
+        }
+        return true
+      }
     },
     data: {
       type: Object,
-      required: true
+      required: true,
+      validator(value) {
+        // 验证数据结构是否符合 Chart.js 的要求
+        return value && Array.isArray(value.labels) && Array.isArray(value.datasets);
+      }
     },
     options: {
       type: Object,
       default: () => ({
         responsive: true,
-        maintainAspectRatio: true // 保持图表的纵横比
+        maintainAspectRatio: true
       })
     }
   },
@@ -35,14 +46,32 @@ export default {
     let chartInstance = null
 
     const renderChart = () => {
+      console.log('Rendering chart with type:', props.type)
+      console.log('Chart data:', props.data)
+
+      if (!props.data || !props.data.labels || !props.data.datasets) {
+        console.error('Invalid chart data:', props.data)
+        return
+      }
+
+      if (!props.type) {
+        console.error('Chart type is undefined')
+        return
+      }
+
       if (chartInstance) {
         chartInstance.destroy()
       }
-      chartInstance = new Chart(canvas.value, {
-        type: props.type,
-        data: props.data,
-        options: props.options
-      })
+
+      try {
+        chartInstance = new Chart(canvas.value, {
+          type: props.type,
+          data: props.data,
+          options: props.options
+        })
+      } catch (error) {
+        console.error('Error rendering chart:', error)
+      }
     }
 
     onMounted(() => {
@@ -74,7 +103,7 @@ export default {
 .chart-container {
   position: relative;
   width: 100%;
-  height: 100%; /* 让容器高度占满父元素 */
+  height: 100%;
 }
 
 canvas {

@@ -1,134 +1,185 @@
 <!-- src/components/alerts/AlertSettings.vue -->
 <template>
-    <div class="alert-settings">
-      <h2 class="text-2xl font-cyberpunk mb-4">警报设置</h2>
-      
-      <!-- 通知偏好设置 -->
-      <div class="settings-section mb-8">
-        <h3 class="text-xl font-semibold mb-4">通知偏好设置</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- 电子邮件通知 -->
-          <div class="notification-channel">
-            <h4 class="text-lg font-medium mb-2">电子邮件通知</h4>
-            <div class="space-y-2">
-              <label class="flex items-center">
-                <input type="checkbox" class="form-checkbox" v-model="settings.email.enabled">
-                <span class="ml-2">启用电子邮件通知</span>
-              </label>
-              <div v-if="settings.email.enabled" class="ml-6 space-y-2">
+  <div class="alert-settings glassmorphism fade-in p-6">
+    <h2 class="text-2xl mb-6 animate-text-shimmer">警报设置</h2>
+    
+    <!-- 通知偏好设置 -->
+    <div class="card mb-8 glow-background">
+      <h3 class="text-xl mb-4">通知偏好设置</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- 电子邮件通知 -->
+        <div class="notification-group">
+          <h4 class="text-lg mb-3">电子邮件通知</h4>
+          <div class="space-y-3">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input 
+                type="checkbox" 
+                v-model="settings.email.enabled"
+                class="form-checkbox"
+              >
+              <span>启用电子邮件通知</span>
+            </label>
+            <transition name="fade">
+              <div v-if="settings.email.enabled" class="space-y-2">
                 <input 
                   type="email" 
                   v-model="settings.email.address"
                   placeholder="电子邮件地址"
-                  class="w-full p-2 border rounded cyberpunk-input"
+                  :class="{'neon-border': isEmailValid}"
+                  @input="validateEmail"
                 >
+                <p v-if="!isEmailValid && settings.email.address" 
+                   class="text-sm text-red-500">
+                  请输入有效的电子邮件地址
+                </p>
               </div>
-            </div>
+            </transition>
           </div>
-  
-          <!-- Slack 通知 -->
-          <div class="notification-channel">
-            <h4 class="text-lg font-medium mb-2">Slack 通知</h4>
-            <div class="space-y-2">
-              <label class="flex items-center">
-                <input type="checkbox" class="form-checkbox" v-model="settings.slack.enabled">
-                <span class="ml-2">启用 Slack 通知</span>
-              </label>
-              <div v-if="settings.slack.enabled" class="ml-6 space-y-2">
+        </div>
+
+        <!-- Slack 通知 -->
+        <div class="notification-group">
+          <h4 class="text-lg mb-3">Slack 通知</h4>
+          <div class="space-y-3">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input 
+                type="checkbox" 
+                v-model="settings.slack.enabled"
+                class="form-checkbox"
+              >
+              <span>启用 Slack 通知</span>
+            </label>
+            <transition name="fade">
+              <div v-if="settings.slack.enabled" class="space-y-2">
                 <input 
                   type="text" 
                   v-model="settings.slack.webhook"
                   placeholder="Webhook URL"
-                  class="w-full p-2 border rounded cyberpunk-input"
+                  :class="{'neon-border': isWebhookValid}"
+                  @input="validateWebhook"
                 >
                 <input 
                   type="text" 
                   v-model="settings.slack.channel"
                   placeholder="频道名称"
-                  class="w-full p-2 border rounded cyberpunk-input"
+                  pattern="^#?[a-zA-Z0-9_-]+$"
                 >
               </div>
-            </div>
+            </transition>
           </div>
         </div>
-      </div>
-  
-      <!-- 警报阈值设置 -->
-      <div class="settings-section mb-8">
-        <h3 class="text-xl font-semibold mb-4">警报阈值设置</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- CPU 使用率阈值 -->
-          <div class="threshold-setting">
-            <h4 class="text-lg font-medium mb-2">CPU 使用率</h4>
-            <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium mb-1">警告阈值 (%)</label>
-                <input 
-                  type="number" 
-                  v-model="settings.thresholds.cpu.warning"
-                  class="w-full p-2 border rounded cyberpunk-input"
-                  min="0"
-                  max="100"
-                >
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-1">严重阈值 (%)</label>
-                <input 
-                  type="number" 
-                  v-model="settings.thresholds.cpu.critical"
-                  class="w-full p-2 border rounded cyberpunk-input"
-                  min="0"
-                  max="100"
-                >
-              </div>
-            </div>
-          </div>
-  
-          <!-- 内存使用率阈值 -->
-          <div class="threshold-setting">
-            <h4 class="text-lg font-medium mb-2">内存使用率</h4>
-            <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium mb-1">警告阈值 (%)</label>
-                <input 
-                  type="number" 
-                  v-model="settings.thresholds.memory.warning"
-                  class="w-full p-2 border rounded cyberpunk-input"
-                  min="0"
-                  max="100"
-                >
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-1">严重阈值 (%)</label>
-                <input 
-                  type="number" 
-                  v-model="settings.thresholds.memory.critical"
-                  class="w-full p-2 border rounded cyberpunk-input"
-                  min="0"
-                  max="100"
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-  
-      <!-- 操作按钮 -->
-      <div class="flex justify-end space-x-4">
-        <button class="btn-cancel">取消</button>
-        <button 
-          class="btn-save"
-          @click="saveSettings"
-        >
-          保存设置
-        </button>
       </div>
     </div>
+
+    <!-- 警报阈值设置 -->
+    <div class="card mb-8 glow-background">
+      <h3 class="text-xl mb-4">警报阈值设置</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- CPU 使用率阈值 -->
+        <div class="threshold-group">
+          <h4 class="text-lg mb-3">CPU 使用率</h4>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm mb-2">警告阈值 (%)</label>
+              <div class="relative">
+                <input 
+                  type="range"
+                  v-model.number="settings.thresholds.cpu.warning"
+                  class="w-full"
+                  min="0"
+                  max="100"
+                  step="1"
+                >
+                <span class="absolute -right-8 top-0">
+                  {{ settings.thresholds.cpu.warning }}%
+                </span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm mb-2">严重阈值 (%)</label>
+              <div class="relative">
+                <input 
+                  type="range"
+                  v-model.number="settings.thresholds.cpu.critical"
+                  class="w-full"
+                  :min="settings.thresholds.cpu.warning"
+                  max="100"
+                  step="1"
+                >
+                <span class="absolute -right-8 top-0">
+                  {{ settings.thresholds.cpu.critical }}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 内存使用率阈值 -->
+        <div class="threshold-group">
+          <h4 class="text-lg mb-3">内存使用率</h4>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm mb-2">警告阈值 (%)</label>
+              <div class="relative">
+                <input 
+                  type="range"
+                  v-model.number="settings.thresholds.memory.warning"
+                  class="w-full"
+                  min="0"
+                  max="100"
+                  step="1"
+                >
+                <span class="absolute -right-8 top-0">
+                  {{ settings.thresholds.memory.warning }}%
+                </span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm mb-2">严重阈值 (%)</label>
+              <div class="relative">
+                <input 
+                  type="range"
+                  v-model.number="settings.thresholds.memory.critical"
+                  class="w-full"
+                  :min="settings.thresholds.memory.warning"
+                  max="100"
+                  step="1"
+                >
+                <span class="absolute -right-8 top-0">
+                  {{ settings.thresholds.memory.critical }}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="flex justify-end space-x-4">
+      <button 
+        class="button-neon"
+        @click="resetSettings"
+      >
+        重置
+      </button>
+      <button 
+        class="button-neon"
+        :disabled="!isFormValid"
+        @click="saveSettings"
+      >
+        保存设置
+      </button>
+    </div>
+  </div>
 </template>
 
 <script>
 export default {
   name: 'AlertSettings',
+  
   data() {
     return {
       settings: {
@@ -151,15 +202,80 @@ export default {
             critical: 95
           }
         }
-      }
+      },
+      isEmailValid: false,
+      isWebhookValid: false,
+      originalSettings: null
     }
   },
+
+  computed: {
+    isFormValid() {
+      if (this.settings.email.enabled && !this.isEmailValid) {
+        return false;
+      }
+      if (this.settings.slack.enabled && !this.isWebhookValid) {
+        return false;
+      }
+      return true;
+    }
+  },
+
+  created() {
+    // 保存初始设置用于重置
+    this.originalSettings = JSON.parse(JSON.stringify(this.settings));
+    // 从本地存储加载设置
+    this.loadSettings();
+  },
+
   methods: {
-    // 保存设置
-    saveSettings() {
-      // TODO: 实现设置保存逻辑
-      console.log('正在保存设置:', this.settings)
-      alert('设置已保存！')
+    validateEmail() {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      this.isEmailValid = emailRegex.test(this.settings.email.address);
+    },
+
+    validateWebhook() {
+      const webhookRegex = /^https:\/\/hooks\.slack\.com\/services\/T[A-Z0-9]+\/B[A-Z0-9]+\/[A-Za-z0-9]+$/;
+      this.isWebhookValid = webhookRegex.test(this.settings.slack.webhook);
+    },
+
+    loadSettings() {
+      const savedSettings = localStorage.getItem('alertSettings');
+      if (savedSettings) {
+        this.settings = JSON.parse(savedSettings);
+        this.validateEmail();
+        this.validateWebhook();
+      }
+    },
+
+    async saveSettings() {
+      if (!this.isFormValid) {
+        return;
+      }
+
+      try {
+        // 保存到本地存储
+        localStorage.setItem('alertSettings', JSON.stringify(this.settings));
+        
+        // 这里可以添加与后端API的通信
+        // await api.saveAlertSettings(this.settings);
+        
+        this.$emit('settings-saved', this.settings);
+        this.showNotification('设置已成功保存', 'success');
+      } catch (error) {
+        console.error('保存设置失败:', error);
+        this.showNotification('保存设置失败，请稍后重试', 'error');
+      }
+    },
+
+    resetSettings() {
+      this.settings = JSON.parse(JSON.stringify(this.originalSettings));
+      this.showNotification('设置已重置为默认值', 'info');
+    },
+
+    showNotification(message, type) {
+      // 这里可以集成您的通知系统
+      alert(message);
     }
   }
 }
@@ -167,91 +283,62 @@ export default {
 
 <style scoped>
 .alert-settings {
-  padding: 1.25rem;
-  background-color: var(--background-color, #1e1e1e);
-  color: var(--text-color, #ffffff);
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.settings-section {
-  padding: 1rem;
-  background-color: #2c3e50;
-  border: 1px solid #555;
-  border-radius: 0.375rem;
+.notification-group,
+.threshold-group {
+  background: var(--card-background-color);
+  padding: 1.5rem;
+  border-radius: 8px;
 }
 
-.settings-section h3 {
-  margin-bottom: 1rem;
-  color: #ff6ec7;
-}
-
-.notification-channel h4,
-.threshold-setting h4 {
-  margin-bottom: 0.5rem;
-  color: #ff6ec7;
-}
-
-.notification-channel input,
-.threshold-setting input,
-.cyberpunk-input {
+/* 表单元素样式覆盖 */
+input[type="range"] {
+  -webkit-appearance: none;
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #555;
-  border-radius: 0.375rem;
-  background-color: #2c2c2c;
-  color: #ffffff;
+  height: 4px;
+  background: var(--neon-blue);
+  border-radius: 2px;
+  outline: none;
 }
 
-.notification-channel input::placeholder,
-.threshold-setting input::placeholder {
-  color: #a0aec0;
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--neon-pink);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.btn-cancel {
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  background-color: #ff6ec7;
-  color: #1a1a1a;
-  box-shadow: 0 0 10px #ff6ec7, 0 0 20px #1f8ef1;
-  transition: background-color 0.2s, box-shadow 0.2s;
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 10px var(--neon-pink);
 }
 
-.btn-cancel:hover {
-  background-color: #1f8ef1;
-  box-shadow: 0 0 15px #ff6ec7, 0 0 25px #1f8ef1;
+/* 过渡动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
 }
 
-.btn-save {
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  background-color: #00ff99;
-  color: #1a1a1a;
-  box-shadow: 0 0 10px #00ff99, 0 0 20px #ff6ec7;
-  transition: background-color 0.2s, box-shadow 0.2s;
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
-.btn-save:hover {
-  background-color: #ff6ec7;
-  box-shadow: 0 0 15px #00ff99, 0 0 25px #ff6ec7;
-}
-
-.flex {
-  display: flex;
-}
-
-.justify-end {
-  justify-content: flex-end;
-}
-
-.space-x-4 > * + * {
-  margin-left: 1rem;
-}
-
-/* 响应式布局优化 */
+/* 响应式调整 */
 @media (max-width: 768px) {
-  .grid-cols-2 {
-    grid-template-columns: 1fr;
+  .alert-settings {
+    padding: 1rem;
+  }
+  
+  .notification-group,
+  .threshold-group {
+    padding: 1rem;
   }
 }
 </style>

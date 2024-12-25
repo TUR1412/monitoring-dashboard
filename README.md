@@ -4,12 +4,17 @@ monitoring-dashboard
 ├─ index.html
 ├─ package-lock.json
 ├─ package.json
+├─ postcss.config.js
 ├─ public
+│  ├─ particles.json
 │  └─ vite.svg
 ├─ README.md
 ├─ src
+│  ├─ api
+│  │  └─ alertService.js
 │  ├─ App.vue
 │  ├─ assets
+│  │  ├─ logo.jpg
 │  │  └─ vue.svg
 │  ├─ components
 │  │  ├─ alerts
@@ -20,6 +25,10 @@ monitoring-dashboard
 │  │  │  ├─ PerformanceAnalysis.vue
 │  │  │  ├─ Reports.vue
 │  │  │  └─ TrafficAnalysis.vue
+│  │  ├─ base
+│  │  │  ├─ BaseButton.vue
+│  │  │  ├─ BaseInput.vue
+│  │  │  └─ BaseModal.vue
 │  │  ├─ charts
 │  │  │  ├─ ChartComponent.vue
 │  │  │  ├─ CpuUsage.vue
@@ -29,9 +38,14 @@ monitoring-dashboard
 │  │  │  ├─ FrontendPerformance.vue
 │  │  │  ├─ MemoryUsage.vue
 │  │  │  ├─ NetworkTraffic.vue
+│  │  │  ├─ PerformanceChart.vue
 │  │  │  ├─ StorageNetwork.vue
 │  │  │  ├─ UserBehavior.vue
 │  │  │  └─ UserBehaviorAnalysis.vue
+│  │  ├─ common
+│  │  │  ├─ ErrorDisplay.vue
+│  │  │  ├─ FormSelect.vue
+│  │  │  └─ MetricCard.vue
 │  │  ├─ Footer.vue
 │  │  ├─ Header.vue
 │  │  ├─ Login.vue
@@ -54,14 +68,22 @@ monitoring-dashboard
 │  │     ├─ RolePermissions.vue
 │  │     ├─ UserForm.vue
 │  │     └─ UserGroups.vue
+│  ├─ composables
+│  │  └─ useUserGroups.js
 │  ├─ layouts
 │  │  └─ MainLayout.vue
 │  ├─ main.js
 │  ├─ router
 │  │  └─ index.js
 │  ├─ stores
-│  │  └─ monitorStore.js
+│  │  ├─ monitorStore.js
+│  │  ├─ performance.js
+│  │  └─ reports.js
 │  ├─ style.css
+│  ├─ utils
+│  │  ├─ date.js
+│  │  ├─ notify.js
+│  │  └─ statusMap.js
 │  └─ views
 │     ├─ Analytics.vue
 │     ├─ Dashboard.vue
@@ -70,6 +92,7 @@ monitoring-dashboard
 │     ├─ SecurityCenter.vue
 │     ├─ SystemAlerts.vue
 │     └─ UserManagement.vue
+├─ tailwind.config.js
 └─ vite.config.js
 
 ```
