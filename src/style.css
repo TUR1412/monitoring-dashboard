@@ -146,6 +146,16 @@ body {
   background-color: var(--background-color);
   transition: background-color 0.5s ease;
 }
+.login-container {
+  width: 100%; /* 容器占满整个屏幕宽度 */
+  margin: 0; /* 移除自动居中 */
+  padding: 2rem; /* 内边距可选 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh; /* 保证高度占满屏幕 */
+}
 
 /* 标题样式，移除默认外边距 */
 h1,
@@ -248,7 +258,7 @@ img:hover {
   }
 
   main {
-    padding: 10px;
+    padding-top: 60px; /* 确保与 TabBar 的高度一致 */
   }
 
   .card {

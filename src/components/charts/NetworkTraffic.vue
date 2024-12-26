@@ -1,3 +1,4 @@
+<!--src/components/charts/NetworkTraffic.vue-->>
 <template>
   <div class="network-traffic">
     <h4>网络流量</h4>
@@ -50,6 +51,7 @@ export default {
       maintainAspectRatio: true,
       scales: {
         y: {
+          type: 'linear', // 添加类型声明
           beginAtZero: true,
           title: {
             display: true,
@@ -57,6 +59,7 @@ export default {
           }
         },
         x: {
+          type: 'category', // 添加类型声明
           title: {
             display: true,
             text: '时间'
@@ -93,3 +96,4 @@ export default {
   height: 100%; /* 确保图表填满容器 */
 }
 </style>
+

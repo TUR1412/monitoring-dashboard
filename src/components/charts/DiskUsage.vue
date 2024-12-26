@@ -71,7 +71,6 @@ export default {
   display: flex;
   flex-direction: column;
 }
-
 .chart-wrapper {
   flex: 1;
   position: relative;

@@ -40,6 +40,7 @@ export default {
       aspectRatio: 1.5,
       scales: {
         y: {
+          type: 'linear', // 添加类型声明
           beginAtZero: true,
           max: 100,
           title: {
@@ -48,6 +49,7 @@ export default {
           }
         },
         x: {
+          type: 'category', // 添加类型声明
           title: {
             display: true,
             text: '时间'
@@ -79,7 +81,6 @@ export default {
   display: flex;
   flex-direction: column;
 }
-
 .chart-wrapper {
   flex: 1;
   position: relative;

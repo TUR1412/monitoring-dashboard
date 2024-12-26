@@ -14,6 +14,7 @@ monitoring-dashboard
 │  │  └─ alertService.js
 │  ├─ App.vue
 │  ├─ assets
+│  │  ├─ default-avatar.jpg
 │  │  ├─ logo.jpg
 │  │  └─ vue.svg
 │  ├─ components
@@ -30,16 +31,21 @@ monitoring-dashboard
 │  │  │  ├─ BaseInput.vue
 │  │  │  └─ BaseModal.vue
 │  │  ├─ charts
+│  │  │  ├─ BaseCharts.ts
 │  │  │  ├─ ChartComponent.vue
 │  │  │  ├─ CpuUsage.vue
 │  │  │  ├─ DiskUsage.vue
 │  │  │  ├─ ErrorRate.vue
 │  │  │  ├─ ErrorReports.vue
 │  │  │  ├─ FrontendPerformance.vue
+│  │  │  ├─ GPUUsage.vue
+│  │  │  ├─ IOStatistics.vue
 │  │  │  ├─ MemoryUsage.vue
 │  │  │  ├─ NetworkTraffic.vue
 │  │  │  ├─ PerformanceChart.vue
+│  │  │  ├─ ProcessMonitor.vue
 │  │  │  ├─ StorageNetwork.vue
+│  │  │  ├─ Temperature.vue
 │  │  │  ├─ UserBehavior.vue
 │  │  │  └─ UserBehaviorAnalysis.vue
 │  │  ├─ common
@@ -80,6 +86,8 @@ monitoring-dashboard
 │  │  ├─ performance.js
 │  │  └─ reports.js
 │  ├─ style.css
+│  ├─ types
+│  │  └─ alerts.ts
 │  ├─ utils
 │  │  ├─ date.js
 │  │  ├─ notify.js

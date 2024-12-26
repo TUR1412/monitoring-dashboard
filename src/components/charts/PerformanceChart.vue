@@ -1,82 +1,108 @@
+<!-- src/components/charts/PerformanceChart.vue -->
 <template>
-    <div class="chart-container">
-      <canvas ref="chartCanvas"></canvas>
+  <div class="performance-chart">
+    <h4>性能分析</h4>
+    <div class="chart-wrapper">
+      <ChartComponent
+        type="bar"
+        :data="chartData"
+        :options="chartOptions"
+      />
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
-  import { Chart } from 'chart.js'
-  
-  const props = defineProps({
-    data: Object
-  })
-  
-  const chartCanvas = ref(null)
-  let chart = null
-  
-  const initializeChart = (data) => {
-    if (chart) {
-      chart.destroy() // 销毁旧的图表实例
-    }
-  
-    try {
-      chart = new Chart(chartCanvas.value, {
-        type: 'line',
-        data: data,
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              position: 'top',
-            },
-            title: {
-              display: true,
-              text: 'Performance Chart',
-            },
-          },
-          scales: {
-            x: {
-              title: {
-                display: true,
-                text: '时间',
-              }
-            },
-            y: {
-              title: {
-                display: true,
-                text: '数值',
-              },
-              ticks: {
-                beginAtZero: true
-              }
-            }
+  </div>
+</template>
+
+<script>
+import { computed, onMounted, onUnmounted } from 'vue'
+import { useMonitorStore } from '@/stores/monitorStore'
+import ChartComponent from './ChartComponent.vue'
+
+export default {
+  name: 'PerformanceChart',
+  components: {
+    ChartComponent
+  },
+  setup() {
+    const store = useMonitorStore()
+
+    const chartData = computed(() => ({
+      labels: store.frontendPerformanceData.map(entry => entry.time),
+      datasets: [
+        {
+          label: '加载时间 (秒)',
+          data: store.frontendPerformanceData.map(entry => entry.loadTime),
+          backgroundColor: 'rgba(75, 192, 192, 0.6)'
+        },
+        {
+          label: '响应时间 (秒)',
+          data: store.frontendPerformanceData.map(entry => entry.responseTime),
+          backgroundColor: 'rgba(153, 102, 255, 0.6)'
+        }
+      ]
+    }))
+
+    const chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top'
+        },
+        tooltip: {
+          enabled: true
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: '时间 (秒)'
+          }
+        },
+        x: {
+          type: 'category',
+          title: {
+            display: true,
+            text: '时间'
           }
         }
-      })
-    } catch (error) {
-      console.error('Chart.js initialization failed:', error)
+      }
+    }
+
+    let updateInterval
+
+    const startFetching = () => {
+      store.fetchFrontendPerformance()
+      updateInterval = setInterval(() => {
+        store.fetchFrontendPerformance()
+      }, 5000)
+    }
+
+    onMounted(() => {
+      startFetching()
+    })
+
+    onUnmounted(() => {
+      clearInterval(updateInterval)
+    })
+
+    return {
+      chartData,
+      chartOptions
     }
   }
-  
-  watch(() => props.data, (newData) => {
-    if (newData) {
-      initializeChart(newData)
-    }
-  }, { immediate: true })
-  
-  onBeforeUnmount(() => {
-    if (chart) {
-      chart.destroy() // 销毁图表实例，避免内存泄漏
-    }
-  })
-  
-  </script>
-  
-  <style scoped>
-  .chart-container {
-    width: 100%;
-    height: 400px;
-  }
-  </style>
-  
+}
+</script>
+
+<style scoped>
+.performance-chart {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.chart-wrapper {
+  flex: 1;
+  position: relative;
+}
+</style>

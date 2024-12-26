@@ -1,8 +1,12 @@
 // src/stores/monitorStore.js
-import { defineStore } from 'pinia'
+import { defineStore } from 'pinia';
 
 export const useMonitorStore = defineStore('monitor', {
   state: () => ({
+    // 标签管理
+    openTabs: [], // 当前打开的标签数组
+    activeTab: null, // 当前活动的标签名称
+
     // 用户管理
     users: [
       { id: 1, username: 'admin', role: 'admin' },
@@ -42,18 +46,44 @@ export const useMonitorStore = defineStore('monitor', {
       { time: '23:00', usage: 98 }
     ],
     memoryUsage: { used: 4096, free: 2048 }, // 单位：MB
+    memoryUsageHistory: [
+      { time: '00:00', value: 2048 },
+      { time: '01:00', value: 2100 },
+      { time: '02:00', value: 2200 },
+      { time: '03:00', value: 2150 },
+      { time: '04:00', value: 2250 },
+      { time: '05:00', value: 2300 },
+      { time: '06:00', value: 2350 },
+      { time: '07:00', value: 2400 },
+      { time: '08:00', value: 2450 },
+      { time: '09:00', value: 2500 },
+      { time: '10:00', value: 2550 },
+      { time: '11:00', value: 2600 },
+      { time: '12:00', value: 2650 },
+      { time: '13:00', value: 2700 },
+      { time: '14:00', value: 2750 },
+      { time: '15:00', value: 2800 },
+      { time: '16:00', value: 2850 },
+      { time: '17:00', value: 2900 },
+      { time: '18:00', value: 2950 },
+      { time: '19:00', value: 3000 },
+      { time: '20:00', value: 3050 },
+      { time: '21:00', value: 3100 },
+      { time: '22:00', value: 3150 },
+      { time: '23:00', value: 3200 }
+    ], // 单位：MB
     diskUsage: { usedDisk1: 500, usedDisk2: 300, usedDisk3: 200, free: 1500 }, // 单位：GB
     networkTraffic: {
       inbound: [50, 60, 55, 70, 65], // 示例数据
       outbound: [40, 50, 45, 60, 55],
       total: [90, 110, 100, 130, 120]
     }, // 单位：Mbps
-    frontendPerformance: {
-      loadTime: 2.5, // 单位：秒
-      interactionTime: 1.2, // 单位：秒
-      responseTime: 0.8, // 单位：秒
-      renderTime: 1.5 // 单位：秒
-    },
+    frontendPerformanceData: [
+      { time: '00:00', loadTime: 2.5, interactionTime: 1.2, responseTime: 0.8, renderTime: 1.5 },
+      { time: '01:00', loadTime: 2.7, interactionTime: 1.3, responseTime: 0.85, renderTime: 1.6 },
+      { time: '02:00', loadTime: 2.8, interactionTime: 1.4, responseTime: 0.9, renderTime: 1.7 },
+      // 添加更多静态数据
+    ],
     errorReports: [
       '错误: 无法从服务器获取数据。',
       '警告: 检测到高内存使用率。',
@@ -105,7 +135,7 @@ export const useMonitorStore = defineStore('monitor', {
         muted: false, 
         archived: false 
       },
-      // 可以添加更多动态生成的警报
+      // 可以添加更多静态警报
     ],
     securityLogs: [
       { id: 1, level: 'high', source: '防火墙', message: '检测到异常登录尝试。', timestamp: '2024-04-27 10:30:00' },
@@ -121,212 +151,477 @@ export const useMonitorStore = defineStore('monitor', {
       { id: 5, username: 'user1', action: 'logout', message: '用户登出。', timestamp: '2024-04-27 12:15:00', details: { ip: '192.168.1.11', location: '远程' } }
     ],
 
+    // 进程管理
+    processes: [
+      { pid: 101, name: 'nginx', cpu: 5, memory: 150, status: 'running' },
+      { pid: 202, name: 'node', cpu: 15, memory: 300, status: 'running' },
+      { pid: 303, name: 'mysql', cpu: 10, memory: 250, status: 'stopped' },
+      // 可以添加更多初始进程数据
+    ],
+
+    // I/O 统计数据
+    ioStatistics: {
+      readOps: [
+        { time: '00:00', value: 2000 },
+        { time: '01:00', value: 2500 },
+        { time: '02:00', value: 3000 },
+        { time: '03:00', value: 2800 },
+        { time: '04:00', value: 3500 },
+        { time: '05:00', value: 4000 },
+        { time: '06:00', value: 3800 },
+        { time: '07:00', value: 4500 },
+        { time: '08:00', value: 5000 },
+        { time: '09:00', value: 5500 },
+        { time: '10:00', value: 6000 },
+        { time: '11:00', value: 5800 },
+        { time: '12:00', value: 6500 },
+        { time: '13:00', value: 7000 },
+        { time: '14:00', value: 6800 },
+        { time: '15:00', value: 7500 },
+        { time: '16:00', value: 8000 },
+        { time: '17:00', value: 7800 },
+        { time: '18:00', value: 8500 },
+        { time: '19:00', value: 9000 },
+        { time: '20:00', value: 8800 },
+        { time: '21:00', value: 9500 },
+        { time: '22:00', value: 10000 },
+        { time: '23:00', value: 9300 }
+      ],
+      writeOps: [
+        { time: '00:00', value: 1500 },
+        { time: '01:00', value: 2000 },
+        { time: '02:00', value: 2500 },
+        { time: '03:00', value: 2300 },
+        { time: '04:00', value: 3000 },
+        { time: '05:00', value: 3500 },
+        { time: '06:00', value: 3300 },
+        { time: '07:00', value: 4000 },
+        { time: '08:00', value: 4500 },
+        { time: '09:00', value: 5000 },
+        { time: '10:00', value: 5500 },
+        { time: '11:00', value: 5300 },
+        { time: '12:00', value: 6000 },
+        { time: '13:00', value: 6500 },
+        { time: '14:00', value: 6300 },
+        { time: '15:00', value: 7000 },
+        { time: '16:00', value: 7500 },
+        { time: '17:00', value: 7300 },
+        { time: '18:00', value: 8000 },
+        { time: '19:00', value: 8500 },
+        { time: '20:00', value: 8300 },
+        { time: '21:00', value: 9000 },
+        { time: '22:00', value: 9500 },
+        { time: '23:00', value: 9300 }
+      ]
+    },
+
+    // CPU 和系统温度历史数据（用于 Temperature.vue）
+    cpuTemperatureHistory: [
+      { time: '00:00', value: 40 },
+      { time: '01:00', value: 42 },
+      { time: '02:00', value: 45 },
+      { time: '03:00', value: 43 },
+      { time: '04:00', value: 47 },
+      { time: '05:00', value: 50 },
+      { time: '06:00', value: 48 },
+      { time: '07:00', value: 52 },
+      { time: '08:00', value: 55 },
+      { time: '09:00', value: 60 },
+      { time: '10:00', value: 65 },
+      { time: '11:00', value: 63 },
+      { time: '12:00', value: 68 },
+      { time: '13:00', value: 70 },
+      { time: '14:00', value: 72 },
+      { time: '15:00', value: 75 },
+      { time: '16:00', value: 78 },
+      { time: '17:00', value: 76 },
+      { time: '18:00', value: 80 },
+      { time: '19:00', value: 85 },
+      { time: '20:00', value: 83 },
+      { time: '21:00', value: 88 },
+      { time: '22:00', value: 90 },
+      { time: '23:00', value: 92 }
+    ],
+    systemTemperatureHistory: [
+      { time: '00:00', value: 35 },
+      { time: '01:00', value: 36 },
+      { time: '02:00', value: 38 },
+      { time: '03:00', value: 37 },
+      { time: '04:00', value: 39 },
+      { time: '05:00', value: 40 },
+      { time: '06:00', value: 39 },
+      { time: '07:00', value: 41 },
+      { time: '08:00', value: 43 },
+      { time: '09:00', value: 45 },
+      { time: '10:00', value: 48 },
+      { time: '11:00', value: 46 },
+      { time: '12:00', value: 50 },
+      { time: '13:00', value: 52 },
+      { time: '14:00', value: 54 },
+      { time: '15:00', value: 56 },
+      { time: '16:00', value: 58 },
+      { time: '17:00', value: 57 },
+      { time: '18:00', value: 60 },
+      { time: '19:00', value: 63 },
+      { time: '20:00', value: 62 },
+      { time: '21:00', value: 65 },
+      { time: '22:00', value: 67 },
+      { time: '23:00', value: 68 }
+    ],
+
     // 通用状态
     loading: false,
     error: null
   }),
   actions: {
+    // 标签管理动作
+    addTab(route) {
+      const exists = this.openTabs.find(tab => tab.name === route.name);
+      if (!exists && route.name) { // 确保路由有名称
+        this.openTabs.push({
+          name: route.name,
+          path: route.path,
+          meta: route.meta
+        });
+      }
+      if (route.name) {
+        this.activeTab = route.name;
+      }
+      this.persistTabs(); // 持久化
+    },
+
+    removeTab(name) {
+      const index = this.openTabs.findIndex(tab => tab.name === name);
+      if (index !== -1) {
+        this.openTabs.splice(index, 1);
+        // 如果关闭的是当前活动标签，切换到前一个或下一个标签
+        if (this.activeTab === name) {
+          if (this.openTabs.length > 0) {
+            this.activeTab = this.openTabs[Math.max(0, index - 1)].name;
+          } else {
+            this.activeTab = null;
+          }
+        }
+        this.persistTabs(); // 持久化
+      }
+    },
+
+    setActiveTab(name) {
+      this.activeTab = name;
+      this.persistTabs(); // 持久化
+    },
+
+    initializeTabs() {
+      const savedTabs = JSON.parse(localStorage.getItem('openTabs'));
+      const savedActiveTab = localStorage.getItem('activeTab');
+      if (savedTabs && Array.isArray(savedTabs)) {
+        this.openTabs = savedTabs;
+      }
+      if (savedActiveTab) {
+        this.activeTab = savedActiveTab;
+      }
+    },
+
+    persistTabs() {
+      localStorage.setItem('openTabs', JSON.stringify(this.openTabs));
+      localStorage.setItem('activeTab', this.activeTab);
+    },
+
     // 数据获取动作（使用静态数据，无需异步操作）
     fetchCpuUsage() {
-      this.loading = true
+      this.loading = true;
       try {
         // 数据已静态初始化，无需操作
       } catch (err) {
-        this.error = '无法获取 CPU 使用率数据。'
+        this.error = '无法获取 CPU 使用率数据。';
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
     fetchMemoryUsage() {
-      this.loading = true
+      this.loading = true;
       try {
         // 数据已静态初始化，无需操作
       } catch (err) {
-        this.error = '无法获取内存使用率数据。'
+        this.error = '无法获取内存使用率数据。';
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
     fetchDiskUsage() {
-      this.loading = true
+      this.loading = true;
       try {
         // 数据已静态初始化，无需操作
       } catch (err) {
-        this.error = '无法获取磁盘使用情况数据。'
+        this.error = '无法获取磁盘使用情况数据。';
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
     fetchNetworkTraffic() {
-      this.loading = true
+      this.loading = true;
       try {
         // 数据已静态初始化，无需操作
       } catch (err) {
-        this.error = '无法获取网络流量数据。'
+        this.error = '无法获取网络流量数据。';
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
     fetchFrontendPerformance() {
-      this.loading = true
+      this.loading = true;
       try {
         // 数据已静态初始化，无需操作
       } catch (err) {
-        this.error = '无法获取前端性能数据。'
+        this.error = '无法获取前端性能数据。';
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
     fetchErrorReports() {
-      this.loading = true
+      this.loading = true;
       try {
         // 数据已静态初始化，无需操作
       } catch (err) {
-        this.error = '无法获取错误报告。'
+        this.error = '无法获取错误报告。';
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
     fetchUserBehavior() {
-      this.loading = true
+      this.loading = true;
       try {
         // 数据已静态初始化，无需操作
       } catch (err) {
-        this.error = '无法获取用户行为数据。'
+        this.error = '无法获取用户行为数据。';
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
     fetchLogs() {
-      this.loading = true
+      this.loading = true;
       try {
         // 数据已静态初始化，无需操作
       } catch (err) {
-        this.error = '无法获取日志数据。'
+        this.error = '无法获取日志数据。';
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
     fetchAlerts() {
-      this.loading = true
+      this.loading = true;
       try {
         // 数据已静态初始化，无需操作
       } catch (err) {
-        this.error = '无法获取警报数据。'
+        this.error = '无法获取警报数据。';
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
     fetchSecurityLogs() {
-      this.loading = true
+      this.loading = true;
       try {
         // 数据已静态初始化，无需操作
       } catch (err) {
-        this.error = '无法获取安全日志数据。'
+        this.error = '无法获取安全日志数据。';
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
     fetchAuditLogs() {
-      this.loading = true
+      this.loading = true;
       try {
         // 数据已静态初始化，无需操作
       } catch (err) {
-        this.error = '无法获取审计日志数据。'
+        this.error = '无法获取审计日志数据。';
       } finally {
-        this.loading = false
+        this.loading = false;
+      }
+    },
+
+    fetchIOStatistics() {
+      this.loading = true;
+      try {
+        // 数据已静态初始化，无需操作
+      } catch (err) {
+        this.error = '无法获取 I/O 数据。';
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    fetchProcesses() {
+      this.loading = true;
+      try {
+        // 数据已静态初始化，无需操作
+      } catch (err) {
+        this.error = '无法获取进程数据。';
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    fetchTemperatureData() {
+      this.loading = true;
+      try {
+        // 获取最后一个时间点
+        const lastTimeCpu = this.cpuTemperatureHistory[this.cpuTemperatureHistory.length - 1].time;
+        const lastTimeSystem = this.systemTemperatureHistory[this.systemTemperatureHistory.length - 1].time;
+
+        // 假设时间以小时递增
+        const [hour, minute] = lastTimeCpu.split(':').map(Number);
+        let newHour = hour + 1;
+        let newMinute = minute;
+        if (newHour >= 24) {
+          newHour = 0;
+        }
+        const newTime = `${newHour.toString().padStart(2, '0')}:${newMinute.toString().padStart(2, '0')}`;
+
+        // 生成新的温度数据
+        const newCpuTemp = Math.floor(40 + Math.random() * 30); // 40°C 到 70°C
+        const newSystemTemp = Math.floor(35 + Math.random() * 25); // 35°C 到 60°C
+
+        // 更新 cpuTemperatureHistory
+        this.cpuTemperatureHistory = [
+          ...this.cpuTemperatureHistory.slice(1), // 移除最旧的数据点
+          { time: newTime, value: newCpuTemp }
+        ];
+
+        // 更新 systemTemperatureHistory
+        this.systemTemperatureHistory = [
+          ...this.systemTemperatureHistory.slice(1), // 移除最旧的数据点
+          { time: newTime, value: newSystemTemp }
+        ];
+
+        console.log('Temperature Data Updated:', {
+          cpu: newCpuTemp,
+          system: newSystemTemp,
+          time: newTime
+        });
+      } catch (err) {
+        this.error = '无法获取温度数据。';
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    stopProcess(pid) {
+      this.loading = true;
+      try {
+        const processIndex = this.processes.findIndex(p => p.pid === pid);
+        if (processIndex !== -1) {
+          // 使用不可变更新
+          this.processes = [
+            ...this.processes.slice(0, processIndex),
+            { ...this.processes[processIndex], status: 'stopped' },
+            ...this.processes.slice(processIndex + 1)
+          ];
+        }
+        this.error = null;
+      } catch (err) {
+        this.error = '无法停止进程。';
+      } finally {
+        this.loading = false;
       }
     },
 
     // 登录动作（模拟登录）
     async login(username, password) {
-      this.loading = true
-      this.error = null
+      this.loading = true;
+      this.error = null;
       try {
         // 模拟 API 请求延迟
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         // 使用静态凭证进行验证
         if (username === 'admin' && password === 'password') {
-          this.user = { name: '管理员用户', role: 'admin' }
+          this.user = { name: '管理员用户', role: 'admin' };
           // 存储用户信息到本地存储（实际项目中应存储令牌）
-          localStorage.setItem('authToken', 'mock-token')
-          localStorage.setItem('user', JSON.stringify(this.user))
+          localStorage.setItem('authToken', 'mock-token');
+          localStorage.setItem('user', JSON.stringify(this.user));
         } else {
-          throw new Error('用户名或密码错误')
+          throw new Error('用户名或密码错误');
         }
       } catch (err) {
-        this.error = err.message
-        throw err
+        this.error = err.message;
+        throw err;
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
 
-    // 退出登录
     logout() {
-      this.user = null
-      localStorage.removeItem('authToken')
-      localStorage.removeItem('user')
+      this.user = null;
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
     },
 
-    // 主题切换动作
     toggleTheme() {
-      this.theme = this.theme === 'light' ? 'dark' : 'light'
-      localStorage.setItem('theme', this.theme) // 持久化主题选择
-      this.applyTheme() // 应用主题类到 <body>
+      this.theme = this.theme === 'light' ? 'dark' : 'light';
+      localStorage.setItem('theme', this.theme); // 持久化主题选择
+      this.applyTheme(); // 应用主题类到 <body>
     },
 
-    // 初始化主题，根据本地存储或系统偏好设置
     initializeTheme() {
-      const savedTheme = localStorage.getItem('theme')
+      const savedTheme = localStorage.getItem('theme');
       if (savedTheme) {
-        this.theme = savedTheme
+        this.theme = savedTheme;
       } else {
         // 根据系统偏好设置自动选择主题
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-        this.theme = prefersDark ? 'dark' : 'light'
-        localStorage.setItem('theme', this.theme)
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        this.theme = prefersDark ? 'dark' : 'light';
+        localStorage.setItem('theme', this.theme);
       }
-      this.applyTheme() // 应用主题类到 <body>
+      this.applyTheme(); // 应用主题类到 <body>
     },
 
-    // 应用主题类到 <body>
     applyTheme() {
-      document.body.classList.remove('light', 'dark')
-      document.body.classList.add(this.theme)
+      document.body.classList.remove('light', 'dark');
+      document.body.classList.add(this.theme);
     },
 
     // 用户管理动作
     addUser(newUser) {
-      this.users.push({ id: Date.now(), ...newUser })
+      this.users = [...this.users, { id: Date.now(), ...newUser }];
       // 在实际项目中，应同步添加到后端
     },
     editUser(updatedUser) {
-      const index = this.users.findIndex(user => user.id === updatedUser.id)
+      const index = this.users.findIndex(user => user.id === updatedUser.id);
       if (index !== -1) {
-        this.users[index] = { ...this.users[index], ...updatedUser }
+        this.users = [
+          ...this.users.slice(0, index),
+          { ...this.users[index], ...updatedUser },
+          ...this.users.slice(index + 1)
+        ];
         // 在实际项目中，应同步更新到后端
       }
     },
     deleteUser(id) {
-      this.users = this.users.filter(user => user.id !== id)
+      this.users = this.users.filter(user => user.id !== id);
       // 在实际项目中，应同步删除到后端
     },
 
     // 警报管理动作
     acknowledgeAlert(alertId) {
-      const alert = this.alerts.find(a => a.id === alertId)
-      if (alert) {
-        alert.acknowledged = true
+      const alertIndex = this.alerts.findIndex(a => a.id === alertId);
+      if (alertIndex !== -1) {
+        this.alerts = [
+          ...this.alerts.slice(0, alertIndex),
+          { ...this.alerts[alertIndex], acknowledged: true },
+          ...this.alerts.slice(alertIndex + 1)
+        ];
         // 在实际项目中，应同步更新到后端
       }
     },
     muteAlert(alertId) {
-      const alert = this.alerts.find(a => a.id === alertId)
-      if (alert) {
-        alert.muted = !alert.muted
+      const alertIndex = this.alerts.findIndex(a => a.id === alertId);
+      if (alertIndex !== -1) {
+        this.alerts = [
+          ...this.alerts.slice(0, alertIndex),
+          { ...this.alerts[alertIndex], muted: !this.alerts[alertIndex].muted },
+          ...this.alerts.slice(alertIndex + 1)
+        ];
         // 在实际项目中，应同步更新到后端
       }
-    }
+    },
   }
-})
+});
