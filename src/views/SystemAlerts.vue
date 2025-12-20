@@ -1,7 +1,13 @@
 <!-- src/views/SystemAlerts.vue -->
 <template>
-  <div class="system-alerts">
-    <h1 class="text-2xl font-bold mb-6">系统警报</h1>
+  <div class="system-alerts fade-in">
+    <div class="section-header">
+      <div>
+        <div class="section-title">系统警报</div>
+        <div class="section-subtitle">风险事件、异常趋势与紧急通知</div>
+      </div>
+      <span class="pill">{{ store.alerts.length }} 条记录</span>
+    </div>
     
     <!-- 子路由导航（可选，如果需要在这里添加导航） -->
     <!--
@@ -22,10 +28,14 @@
     <router-view />
 
     <!-- 如果没有子路由激活，显示默认的警报列表 -->
-    <div v-if="$route.matched.length === 1" class="alerts-list">
+    <div v-if="$route.matched.length === 1" class="alerts-list surface-card">
       <div v-for="alert in store.alerts" :key="alert.id" :class="['alert', alert.level]">
-        <strong>{{ alert.level ? alert.level.toUpperCase() : 'UNKNOWN' }}:</strong> {{ alert.message }}
-        <span class="timestamp">{{ formatTimestamp(alert.timestamp) }}</span>
+        <div class="alert-head">
+          <span class="alert-level">{{ alert.level ? alert.level.toUpperCase() : 'UNKNOWN' }}</span>
+          <span class="timestamp">{{ formatTimestamp(alert.timestamp) }}</span>
+        </div>
+        <div class="alert-body">{{ alert.message }}</div>
+        <div class="alert-meta">{{ alert.source }}</div>
       </div>
     </div>
   </div>
@@ -70,48 +80,69 @@ export default {
 
 <style scoped>
 .system-alerts {
-  padding: 20px;
-  background-color: var(--background-color);
-  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .alerts-list {
-  margin-top: 20px;
+  padding: 1.5rem;
+  display: grid;
+  gap: 1rem;
 }
 
 .alert {
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 10px;
-  position: relative;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.alert-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.alert-level {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+.alert-body {
+  font-size: 0.95rem;
+  color: var(--text-0);
+}
+
+.alert-meta {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--text-3);
 }
 
 .alert.warning {
-  background-color: #fff3cd;
-  color: #856404;
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.12);
+  color: #fde68a;
 }
 
-.alert.error {
-  background-color: #f8d7da;
-  color: #721c24;
+.alert.error,
+.alert.critical {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.12);
+  color: #fecaca;
 }
 
 .alert.info {
-  background-color: #d1ecf1;
-  color: #0c5460;
-}
-
-.alert.critical {
-  background-color: #f8d7da;
-  color: #721c24;
+  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(56, 189, 248, 0.12);
+  color: #bae6fd;
 }
 
 .timestamp {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 0.8em;
-  color: #6c757d;
+  font-size: 0.75rem;
+  color: var(--text-3);
 }
 
 /* 可选的导航样式 */
@@ -123,17 +154,17 @@ export default {
 .nav-link {
   padding: 5px 10px;
   text-decoration: none;
-  color: #666;
+  color: var(--text-2);
   border-radius: 4px;
   transition: background-color 0.3s, color 0.3s;
 }
 
 .nav-link:hover {
-  background-color: #f0f0f0;
+  background-color: rgba(148, 163, 184, 0.12);
 }
 
 .active-link {
-  color: #42b983;
-  border-bottom: 2px solid #42b983;
+  color: var(--accent-0);
+  border-bottom: 2px solid var(--accent-0);
 }
 </style>

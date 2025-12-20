@@ -1,5 +1,6 @@
 // tailwind.config.js
 module.exports = {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{vue,js,ts,jsx,tsx}",
@@ -7,23 +8,22 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        cyberpunk: {
-          neonPurple: '#9b59b6',
-          neonPink: '#ff6ec7',
-          neonBlue: '#1f8ef1',
-          neonCyan: '#17c0eb',
-          darkPurple: '#2c3e50',
-          deepBlack: '#000000',
-          darkGray: '#34495e',
-          background: '#0f0f0f',
+        aurora: {
+          teal: '#22d3ee',
+          mint: '#14f1d9',
+          amber: '#f59e0b',
+          rose: '#fb7185',
+          slate: '#0f172a',
+          night: '#0b0f1a',
         },
       },
       fontFamily: {
-        cyber: ['Orbitron', 'sans-serif'],
-        mono: ['Roboto Mono', 'monospace'],
+        display: ['"Space Grotesk"', 'Manrope', 'system-ui', 'sans-serif'],
+        sans: ['Manrope', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       boxShadow: {
-        'neon': '0 0 10px #ff6ec7, 0 0 20px #1f8ef1, 0 0 30px #17c0eb',
+        glow: '0 0 20px rgba(34, 211, 238, 0.18), 0 0 40px rgba(251, 113, 133, 0.12)',
       },
     },
   },

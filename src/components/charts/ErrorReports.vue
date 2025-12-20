@@ -33,10 +33,10 @@ export default {
 
 <style scoped>
 .error-reports {
-  background-color: #f9f9f9;
+  background-color: var(--surface-1);
   padding: 15px;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
   margin-top: 20px;
 }
 
@@ -46,7 +46,7 @@ export default {
 }
 
 .error {
-  color: red;
+  color: #fecaca;
   margin-top: 10px;
 }
 </style>

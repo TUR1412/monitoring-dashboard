@@ -1,7 +1,13 @@
 <!-- src/components/SystemResources.vue -->
 <template>
-  <div class="system-resources">
-    <h3>系统资源</h3>
+  <div class="system-resources surface-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title">系统资源</div>
+        <div class="section-subtitle">核心节点与资源健康度</div>
+      </div>
+      <span class="pill">实时更新</span>
+    </div>
     <router-view />
     <div v-if="store.error" class="error">{{ store.error }}</div>
   </div>
@@ -31,14 +37,18 @@ export default {
 
 <style scoped>
 .system-resources {
-  background-color: #fff;
-  padding: 15px;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  margin-top: 20px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
+
 .error {
-  color: red;
-  margin-top: 10px;
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
 }
 </style>

@@ -1,8 +1,8 @@
 <!-- src/components/common/MetricCard.vue -->
 <template>
-  <div class="metric-card p-4 bg-white rounded shadow">
-    <h3 class="text-lg font-semibold">{{ title }}</h3>
-    <p class="text-2xl">{{ value }} {{ unit }}</p>
+  <div class="metric-card surface-card">
+    <h3>{{ title }}</h3>
+    <p class="metric-value">{{ value }} {{ unit }}</p>
     <p :class="trendClass">{{ trend }}</p>
   </div>
 </template>
@@ -46,14 +46,21 @@ const trendClass = computed(() => {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: 0.5rem;
+  padding: 1rem;
 }
 .text-green-500 {
-  color: #10B981;
+  color: #bbf7d0;
 }
 .text-red-500 {
-  color: #EF4444;
+  color: #fecaca;
 }
 .text-gray-500 {
-  color: #6B7280;
+  color: var(--text-3);
+}
+
+.metric-value {
+  font-size: 1.6rem;
+  color: var(--text-0);
 }
 </style>

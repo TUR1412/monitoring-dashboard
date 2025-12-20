@@ -788,13 +788,13 @@ onMounted(() => {
 
 /* 导出按钮自定义样式 */
 .pagination-custom .el-pagination__total {
-  color: #fff;
+  color: var(--text-0);
 }
 
 .pagination-custom .el-pagination__pager li a,
 .pagination-custom .el-pagination__pager li a:hover,
 .pagination-custom .el-pagination__pager li a.active {
-  color: #fff;
+  color: var(--text-0);
   background: transparent;
 }
 </style>

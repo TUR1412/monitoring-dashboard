@@ -116,10 +116,9 @@
   
   .metric-card {
     padding: 1rem;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 0.375rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: rgba(148, 163, 184, 0.08);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
   }
   
   .metric-card h3 {
@@ -133,23 +132,22 @@
   
   .metric-trend {
     font-size: 0.875rem;
-    color: #718096;
+    color: var(--text-3);
   }
   
   .metric-trend.up {
-    color: #38a169;
+    color: #bbf7d0;
   }
   
   .metric-trend.down {
-    color: #e53e3e;
+    color: #fecaca;
   }
   
   .performance-chart {
     padding: 1rem;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 0.375rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: rgba(148, 163, 184, 0.08);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
   }
   
   .performance-chart h3 {
@@ -171,7 +169,7 @@
   }
   
   .bg-white {
-    background-color: #ffffff;
+    background-color: transparent;
   }
   
   .rounded-lg {
@@ -179,7 +177,7 @@
   }
   
   .shadow {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
   }
   
   .text-lg {
@@ -203,39 +201,39 @@
   }
   
   .bg-red-100 {
-    background-color: #fdecea;
+    background-color: rgba(239, 68, 68, 0.12);
   }
   
   .text-red-800 {
-    color: #c53030;
+    color: #fecaca;
   }
   
   .bg-orange-100 {
-    background-color: #fffaf0;
+    background-color: rgba(245, 158, 11, 0.12);
   }
   
   .text-orange-800 {
-    color: #dd6b20;
+    color: #fde68a;
   }
   
   .bg-yellow-100 {
-    background-color: #fffff0;
+    background-color: rgba(245, 158, 11, 0.12);
   }
   
   .text-yellow-800 {
-    color: #d69e2e;
+    color: #fde68a;
   }
   
   .bg-green-100 {
-    background-color: #f0fff4;
+    background-color: rgba(34, 197, 94, 0.12);
   }
   
   .text-green-800 {
-    color: #22543d;
+    color: #bbf7d0;
   }
   
   .text-gray-500 {
-    color: #a0aec0;
+    color: var(--text-3);
   }
   </style>
   

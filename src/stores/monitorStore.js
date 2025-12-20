@@ -1,6 +1,29 @@
 // src/stores/monitorStore.js
 import { defineStore } from 'pinia';
 
+const canUseStorage = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+const readStorage = (key, fallback, parseJson = true) => {
+  if (!canUseStorage) return fallback;
+  const raw = localStorage.getItem(key);
+  if (raw === null || raw === undefined) return fallback;
+  if (!parseJson) return raw;
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    console.warn(`Failed to parse storage key: ${key}`, error);
+    return fallback;
+  }
+};
+const writeStorage = (key, value, stringify = true) => {
+  if (!canUseStorage) return;
+  try {
+    const payload = stringify ? JSON.stringify(value) : String(value);
+    localStorage.setItem(key, payload);
+  } catch (error) {
+    console.warn(`Failed to write storage key: ${key}`, error);
+  }
+};
+
 export const useMonitorStore = defineStore('monitor', {
   state: () => ({
     // 标签管理
@@ -8,15 +31,21 @@ export const useMonitorStore = defineStore('monitor', {
     activeTab: null, // 当前活动的标签名称
 
     // 用户管理
-    users: [
-      { id: 1, username: 'admin', role: 'admin' },
-      { id: 2, username: 'user1', role: 'user' },
-      { id: 3, username: 'user2', role: 'user' }
-    ],
-    user: JSON.parse(localStorage.getItem('user')) || null, // 当前登录用户
+    users: readStorage('users', [
+      { id: 1, username: 'admin', role: 'admin', isActive: true, lastSeen: '2025-12-20 09:12', department: 'SRE' },
+      { id: 2, username: 'observer', role: 'user', isActive: true, lastSeen: '2025-12-20 08:45', department: 'NOC' },
+      { id: 3, username: 'analyst', role: 'user', isActive: false, lastSeen: '2025-12-19 22:10', department: 'Security' }
+    ]),
+    user: readStorage('user', null), // 当前登录用户
 
     // 主题状态
-    theme: localStorage.getItem('theme') || 'light', // 默认主题为亮色主题
+    theme: readStorage('theme', 'dark', false), // 默认主题为深色主题
+
+    uiPreferences: readStorage('uiPreferences', {
+      density: 'comfortable',
+      reducedMotion: false,
+      compactSidebar: false
+    }),
 
     // 系统资源
     cpuUsage: [
@@ -312,19 +341,23 @@ export const useMonitorStore = defineStore('monitor', {
     },
 
     initializeTabs() {
-      const savedTabs = JSON.parse(localStorage.getItem('openTabs'));
-      const savedActiveTab = localStorage.getItem('activeTab');
+      const savedTabs = readStorage('openTabs', []);
+      const savedActiveTab = readStorage('activeTab', null, false);
       if (savedTabs && Array.isArray(savedTabs)) {
         this.openTabs = savedTabs;
       }
-      if (savedActiveTab) {
+      if (savedActiveTab && savedActiveTab !== 'null') {
         this.activeTab = savedActiveTab;
       }
     },
 
     persistTabs() {
-      localStorage.setItem('openTabs', JSON.stringify(this.openTabs));
-      localStorage.setItem('activeTab', this.activeTab);
+      writeStorage('openTabs', this.openTabs);
+      if (this.activeTab) {
+        writeStorage('activeTab', this.activeTab, false);
+      } else if (canUseStorage) {
+        localStorage.removeItem('activeTab');
+      }
     },
 
     // 数据获取动作（使用静态数据，无需异步操作）
@@ -534,10 +567,10 @@ export const useMonitorStore = defineStore('monitor', {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         // 使用静态凭证进行验证
         if (username === 'admin' && password === 'password') {
-          this.user = { name: '管理员用户', role: 'admin' };
+          this.user = { name: '管理员用户', role: 'admin', avatar: null };
           // 存储用户信息到本地存储（实际项目中应存储令牌）
-          localStorage.setItem('authToken', 'mock-token');
-          localStorage.setItem('user', JSON.stringify(this.user));
+          writeStorage('authToken', 'mock-token', false);
+          writeStorage('user', this.user);
         } else {
           throw new Error('用户名或密码错误');
         }
@@ -551,37 +584,44 @@ export const useMonitorStore = defineStore('monitor', {
 
     logout() {
       this.user = null;
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
+      if (canUseStorage) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+      }
     },
 
     toggleTheme() {
       this.theme = this.theme === 'light' ? 'dark' : 'light';
-      localStorage.setItem('theme', this.theme); // 持久化主题选择
+      writeStorage('theme', this.theme, false); // 持久化主题选择
       this.applyTheme(); // 应用主题类到 <body>
     },
 
     initializeTheme() {
-      const savedTheme = localStorage.getItem('theme');
+      const savedTheme = readStorage('theme', null, false);
       if (savedTheme) {
         this.theme = savedTheme;
       } else {
         // 根据系统偏好设置自动选择主题
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const prefersDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         this.theme = prefersDark ? 'dark' : 'light';
-        localStorage.setItem('theme', this.theme);
+        writeStorage('theme', this.theme, false);
       }
       this.applyTheme(); // 应用主题类到 <body>
     },
 
     applyTheme() {
+      if (typeof document === 'undefined') return;
+      document.documentElement.classList.remove('light', 'dark');
+      document.documentElement.classList.add(this.theme);
       document.body.classList.remove('light', 'dark');
       document.body.classList.add(this.theme);
     },
 
     // 用户管理动作
     addUser(newUser) {
-      this.users = [...this.users, { id: Date.now(), ...newUser }];
+      const payload = { isActive: true, ...newUser };
+      this.users = [...this.users, { id: Date.now(), ...payload }];
+      writeStorage('users', this.users);
       // 在实际项目中，应同步添加到后端
     },
     editUser(updatedUser) {
@@ -592,12 +632,19 @@ export const useMonitorStore = defineStore('monitor', {
           { ...this.users[index], ...updatedUser },
           ...this.users.slice(index + 1)
         ];
+        writeStorage('users', this.users);
         // 在实际项目中，应同步更新到后端
       }
     },
     deleteUser(id) {
       this.users = this.users.filter(user => user.id !== id);
+      writeStorage('users', this.users);
       // 在实际项目中，应同步删除到后端
+    },
+
+    setUiPreferences(preferences) {
+      this.uiPreferences = { ...this.uiPreferences, ...preferences };
+      writeStorage('uiPreferences', this.uiPreferences);
     },
 
     // 警报管理动作

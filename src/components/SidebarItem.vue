@@ -6,7 +6,7 @@
       :exact="exact" 
       class="sidebar-item" 
       active-class="active"
-      @click.native="toggleSubmenu"
+      @click="toggleSubmenu"
     >
       <i :class="icon" class="sidebar-icon"></i>
       <span>{{ label }}</span>
@@ -81,48 +81,45 @@ export default {
 .sidebar-item {
   display: flex;
   align-items: center;
-  padding: 10px 20px;
-  color: var(--text-color); /* 使用 CSS 变量管理文本颜色 */
+  padding: 10px 14px;
+  color: var(--text-1);
   text-decoration: none;
   position: relative;
-  transition: background-color 0.3s, color 0.3s;
-  border-left: 4px solid transparent; /* 左侧边框用于高亮 */
-  box-shadow: 0 0 5px var(--neon-pink), 0 0 10px var(--neon-blue); /* 添加霓虹阴影效果 */
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  border-left: 3px solid transparent;
+  border-radius: 10px;
 }
 
 .sidebar-item:hover {
-  background-color: var(--light-background); /* 使用 CSS 变量管理背景颜色 */
-  color: var(--neon-blue); /* 悬停时字体颜色变化 */
-  border-left: 4px solid var(--neon-blue); /* 悬停时左侧边框颜色变化 */
-  text-shadow: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-pink); /* 添加文字发光效果 */
+  background-color: rgba(34, 211, 238, 0.12);
+  color: var(--text-0);
+  border-left: 3px solid rgba(34, 211, 238, 0.6);
 }
 
 .sidebar-item.active {
-  background-color: var(--neon-blue); /* 激活状态背景颜色 */
-  color: var(--text-color); /* 激活状态字体颜色，保持一致 */
-  border-left: 4px solid var(--neon-pink); /* 激活状态左侧边框颜色 */
-  text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-blue); /* 添加文字发光效果 */
+  background-color: rgba(34, 211, 238, 0.2);
+  color: var(--text-0);
+  border-left: 3px solid rgba(34, 211, 238, 0.8);
 }
 
 .sidebar-icon {
   margin-right: 10px;
-  color: var(--neon-pink); /* 图标颜色使用 CSS 变量 */
-  text-shadow: 0 0 5px var(--neon-pink), 0 0 10px var(--neon-blue); /* 添加图标发光效果 */
+  color: var(--accent-0);
 }
 
 .submenu-arrow {
   position: absolute;
   right: 20px;
-  transition: transform 0.3s, color 0.3s;
-  color: var(--neon-blue); /* 箭头颜色使用 CSS 变量 */
+  transition: transform 0.2s, color 0.2s;
+  color: var(--text-2);
 }
 
 .sidebar-item:hover .submenu-arrow {
-  color: var(--neon-pink); /* 悬停时箭头颜色变化 */
+  color: var(--accent-1);
 }
 
 .active .submenu-arrow {
-  color: var(--neon-pink); /* 激活状态箭头颜色 */
+  color: var(--accent-1);
 }
 
 .sidebar-children {
@@ -139,6 +136,19 @@ export default {
 .slide-leave-to {
   opacity: 0;
   transform: translateX(-20px);
+}
+
+:deep(.sidebar.is-compact) .sidebar-item {
+  justify-content: center;
+}
+
+:deep(.sidebar.is-compact) .sidebar-item span,
+:deep(.sidebar.is-compact) .submenu-arrow {
+  display: none;
+}
+
+:deep(.sidebar.is-compact) .sidebar-icon {
+  margin-right: 0;
 }
 
 /* 响应式设计：调整子菜单缩进 */

@@ -1,419 +1,525 @@
-/* src/style.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* 全局盒模型设置，确保所有元素使用 border-box */
+:root {
+  color-scheme: dark;
+  --bg-0: #0b0f1a;
+  --bg-1: #101827;
+  --bg-2: #141c2f;
+  --surface-0: rgba(15, 23, 42, 0.72);
+  --surface-1: rgba(17, 25, 40, 0.86);
+  --surface-2: rgba(20, 29, 49, 0.92);
+  --text-0: #f8fafc;
+  --text-1: #cbd5e1;
+  --text-2: #94a3b8;
+  --text-3: #64748b;
+  --accent-0: #22d3ee;
+  --accent-1: #14f1d9;
+  --accent-2: #f59e0b;
+  --accent-3: #fb7185;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #38bdf8;
+  --neon-blue: var(--accent-0);
+  --neon-pink: var(--accent-3);
+  --neon-red: var(--danger);
+  --neon-yellow: var(--warning);
+  --neon-green: var(--success);
+  --dark-purple: var(--bg-2);
+  --gray-400: #94a3b8;
+  --gray-600: #64748b;
+  --gray-700: #475569;
+  --gray-800: #334155;
+  --border: rgba(148, 163, 184, 0.18);
+  --border-strong: rgba(148, 163, 184, 0.32);
+  --shadow-sm: 0 8px 20px rgba(2, 6, 23, 0.25);
+  --shadow-md: 0 12px 30px rgba(2, 6, 23, 0.35);
+  --shadow-lg: 0 20px 60px rgba(2, 6, 23, 0.45);
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --blur: 18px;
+  --font-sans: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", "Manrope", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --background-color: var(--bg-0);
+  --light-background: var(--bg-1);
+  --text-color: var(--text-1);
+  --card-background-color: rgba(17, 25, 40, 0.9);
+  --card-text-color: var(--text-1);
+  --heading-color: var(--text-0);
+  --paragraph-color: var(--text-2);
+  --border-color: var(--border);
+  --highlight-color: var(--accent-0);
+  --secondary-color: var(--accent-2);
+  --animation-duration: 16s;
+}
+
+:root.light {
+  color-scheme: light;
+  --bg-0: #f6f7f3;
+  --bg-1: #eef1f6;
+  --bg-2: #e6eaf2;
+  --surface-0: rgba(255, 255, 255, 0.72);
+  --surface-1: rgba(255, 255, 255, 0.9);
+  --surface-2: rgba(248, 249, 252, 0.96);
+  --text-0: #0f172a;
+  --text-1: #1f2937;
+  --text-2: #475569;
+  --text-3: #64748b;
+  --border: rgba(15, 23, 42, 0.12);
+  --border-strong: rgba(15, 23, 42, 0.24);
+  --card-background-color: rgba(255, 255, 255, 0.9);
+  --card-text-color: #0f172a;
+  --heading-color: #0f172a;
+  --paragraph-color: #475569;
+}
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* 定义赛博朋克色彩变量 */
-:root {
-  /* 基本颜色 */
-  --background-color: #1e1e1e; /* 深灰背景，减少纯黑 */
-  --text-color: #d1d5db;       /* 浅灰文本，避免纯白 */
-
-  /* 霓虹色 */
-  --neon-pink: #ff6ec7;
-  --neon-blue: #1f8ef1;
-  --neon-red: #ff073a;
-  --neon-yellow: #ffdd57;
-  --neon-green: #00ff99;
-
-  /* 辅助颜色 */
-  --dark-purple: #2c3e50;
-  --gray-400: #a0aec0;
-  --gray-600: #4a5568;
-  --gray-700: #718096;
-  --gray-800: #2d3748;
-
-  /* 额外颜色变量以提高对比度 */
-  --light-background: #2c2c2c; /* 更浅的深色背景 */
-  --light-text: #f3f4f6;       /* 更亮的浅色文本 */
-
-  /* 卡片背景和文本颜色 */
-  --card-background-color: #2c3e50; /* 深灰色卡片背景 */
-  --card-text-color: #d1d5db;       /* 浅灰色卡片文本 */
-
-  /* 标题和段落颜色 */
-  --heading-color: var(--neon-pink);
-  --paragraph-color: #a0aec0;
-
-  /* 其他颜色 */
-  --border-color: rgba(255, 255, 255, 0.1);
-
-  /* 动画相关 */
-  --animation-duration: 15s;
-
-  /* 新增颜色变量，避免使用黑白色 */
-  --highlight-color: var(--neon-pink);
-  --secondary-color: var(--neon-blue);
-}
-
-/* 主题相关变量 */
-.light {
-  /* 浅色主题 */
-  --background-color: #f0f0f0; /* 明亮背景 */
-  --text-color: #00ff7f;       /* 淡绿色文本，避免纯黑 */
-  --card-background-color: #ffffff; /* 浅色主题下卡片背景为白色 */
-  --card-text-color: #333333;
-  --heading-color: var(--neon-blue);
-  --paragraph-color: #4a5568;
-}
-
-.dark {
-  /* 深色主题 */
-  --background-color: #1e1e1e;
-  --text-color: #d1d5db;
-  --card-background-color: #2c3e50;
-  --card-text-color: #d1d5db;
-  --heading-color: var(--neon-pink);
-  --paragraph-color: #a0aec0;
-}
-
-/* 根据系统偏好设置自动应用主题 */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background-color: #1e1e1e;
-    --text-color: #d1d5db;
-    --card-background-color: #2c3e50;
-    --card-text-color: #d1d5db;
-    --heading-color: var(--neon-pink);
-    --paragraph-color: #a0aec0;
-  }
-}
-
-/* 全局背景动画 */
-body {
-  background: linear-gradient(135deg, var(--background-color), var(--light-background));
-  background-size: 400% 400%;
-  animation: gradientAnimation var(--animation-duration) ease infinite;
-  font-family: 'Orbitron', sans-serif;
-}
-
-/* 背景渐变动画关键帧 */
-@keyframes gradientAnimation {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* 链接样式 */
-a {
-  font-weight: 500;
-  color: var(--neon-pink);
-  text-decoration: none;
-  transition: color 0.3s, text-shadow 0.3s;
-}
-
-a:hover {
-  color: var(--neon-blue);
-  text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-pink);
-}
-
-/* 设置 html 和 body 的高度为 100%，并移除默认的外边距和内边距 */
 html,
 body {
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: var(--background-color);
-  color: var(--text-color);
-  font-family: 'Orbitron', sans-serif, Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color-scheme: light dark;
-  font-synthesis: none;
+  font-family: var(--font-sans);
+  color: var(--text-1);
+  background-color: var(--bg-0);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 确保 #app 容器占满整个视口高度，并使用 Flexbox 布局 */
-#app {
-  min-height: 100vh;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  background-color: var(--background-color);
-  transition: background-color 0.5s ease;
-}
-.login-container {
-  width: 100%; /* 容器占满整个屏幕宽度 */
-  margin: 0; /* 移除自动居中 */
-  padding: 2rem; /* 内边距可选 */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh; /* 保证高度占满屏幕 */
-}
-
-/* 标题样式，移除默认外边距 */
-h1,
-h2,
-h3,
-h4 {
-  color: var(--heading-color);
-  margin: 0;
-  font-family: 'Orbitron', sans-serif;
-  text-shadow: 0 0 5px var(--heading-color), 0 0 10px var(--neon-blue);
-}
-
-/* 段落样式 */
-p {
-  color: var(--paragraph-color);
-  text-shadow: 0 0 3px var(--neon-blue);
-}
-
-/* 按钮霓虹光效 */
-.button-neon {
-  background-color: var(--neon-pink);
-  color: var(--text-color); /* 使用 CSS 变量，避免固定白色 */
-  border: none;
-  border-radius: 8px; /* 添加圆角 */
-  padding: 0.6em 1.2em; /* 确保按钮内边距合适 */
-  font-size: 1em;
-  font-weight: 500;
-  font-family: 'Orbitron', sans-serif, inherit;
-  box-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-blue);
-  transition: background-color 0.3s, box-shadow 0.3s, color 0.3s, transform 0.3s;
-  cursor: pointer;
-}
-
-.button-neon:hover {
-  background-color: var(--neon-blue);
-  color: var(--text-color); /* 保持通过 CSS 变量管理颜色 */
-  box-shadow: 0 0 15px var(--neon-pink), 0 0 25px var(--neon-blue);
-  transform: scale(1.05); /* 添加缩放效果 */
-}
-
-.button-neon:active {
-  transform: scale(0.95);
-  box-shadow: 0 0 5px var(--neon-pink), 0 0 10px var(--neon-blue);
-}
-
-.button-neon:focus,
-.button-neon:focus-visible {
-  outline: 4px auto var(--neon-pink);
-}
-
-/* 卡片样式 */
-.card {
-  padding: 2em;
-  background-color: var(--card-background-color);
-  color: var(--card-text-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(255, 110, 199, 0.6), 0 0 30px rgba(31, 142, 241, 0.6);
-  transition: box-shadow 0.3s, transform 0.3s;
-}
-
-.card:hover {
-  box-shadow: 0 6px 16px rgba(255, 110, 199, 0.8), 0 0 40px rgba(31, 142, 241, 0.8);
-  transform: translateY(-5px);
-}
-
-/* 全局图片样式 */
-img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-img:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.2);
-}
-
-/* 移除 #app 内部元素可能的默认外边距 */
-#app > * {
-  margin: 0;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .header-actions {
-    margin-top: 10px;
-  }
-
-  .content {
-    flex-direction: column;
-  }
-
-  main {
-    padding-top: 60px; /* 确保与 TabBar 的高度一致 */
-  }
-
-  .card {
-    padding: 1em;
-  }
-
-  .button-neon {
-    padding: 0.5rem;
-    font-size: 0.875rem;
-  }
-}
-
-/* 其他赛博朋克特有元素 */
-
-/* 边框光效 */
-.neon-border {
-  border: 2px solid var(--neon-pink);
-  box-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-blue);
-}
-
-/* 背景光效 */
-.glow-background {
-  background: rgba(255, 110, 199, 0.1);
-  box-shadow: 0 0 20px var(--neon-pink), 0 0 40px var(--neon-blue);
-  border-radius: 8px;
-}
-
-/* 输入框样式 */
-input,
-textarea,
-select {
-  background-color: var(--card-background-color);
-  color: var(--text-color);
-  border: 1px solid var(--gray-600);
-  border-radius: 4px;
-  padding: 0.5em;
-  font-family: 'Orbitron', sans-serif, inherit;
-  box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.1);
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-  border-color: var(--neon-blue);
-  box-shadow: 0 0 10px var(--neon-blue), inset 0 0 5px rgba(255, 255, 255, 0.2);
-  outline: none;
-}
-
-/* 滚动条样式 */
-::-webkit-scrollbar {
-  width: 12px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--dark-purple);
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: var(--neon-blue);
-  border-radius: 6px;
-  border: 3px solid var(--dark-purple);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: var(--neon-pink);
-}
-
-/* 动态效果 */
-.fade-in {
-  animation: fadeIn 1s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* 按钮图标样式 */
-.button-icon {
-  margin-right: 8px;
-  color: var(--neon-blue);
-}
-
-/* 表格样式 */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: var(--card-background-color);
-  box-shadow: 0 2px 8px rgba(255, 110, 199, 0.3), 0 0 20px rgba(31, 142, 241, 0.3);
-  border-radius: 8px;
+body {
   overflow: hidden;
+  background:
+    radial-gradient(1200px 700px at 10% 10%, rgba(34, 211, 238, 0.18), transparent 55%),
+    radial-gradient(1000px 600px at 90% 20%, rgba(251, 113, 133, 0.18), transparent 60%),
+    radial-gradient(800px 500px at 50% 90%, rgba(245, 158, 11, 0.16), transparent 55%),
+    linear-gradient(135deg, var(--bg-0), var(--bg-2));
+  background-size: 140% 140%;
+  animation: gradientFloat var(--animation-duration) ease infinite;
 }
 
-th,
-td {
-  padding: 1em;
-  text-align: left;
-  border-bottom: 1px solid var(--gray-600);
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E");
+  opacity: 0.06;
+  mix-blend-mode: soft-light;
 }
 
-th {
-  background-color: var(--neon-blue);
-  color: var(--text-color); /* 使用 CSS 变量，避免固定白色 */
-  text-shadow: 0 0 5px var(--neon-blue);
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(600px 300px at 70% 30%, rgba(255, 255, 255, 0.06), transparent 70%);
+  opacity: 0.8;
 }
 
-tr:hover {
-  background-color: rgba(31, 142, 241, 0.1);
-}
-
-/* 图表容器样式 */
-.chart-container {
-  position: relative;
-  width: 100%;
-  height: 400px;
-  background-color: var(--card-background-color);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(255, 110, 199, 0.3), 0 0 20px rgba(31, 142, 241, 0.3);
-  padding: 1em;
-}
-/* 添加到现有的 style.css */
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient 15s ease infinite;
-}
-
-.animate-text-shimmer {
-  background-size: 200% auto;
-  animation: shimmer 2s linear infinite;
-}
-
-@keyframes gradient {
+@keyframes gradientFloat {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+#app {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  color: var(--text-1);
+}
+
+a {
+  color: var(--accent-0);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--accent-1);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--heading-color);
+  letter-spacing: 0.02em;
+}
+
+p {
+  margin: 0;
+  color: var(--paragraph-color);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-0);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent-0);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.18);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.55);
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-content {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.app-main {
+  flex: 1;
+  overflow: auto;
+  padding: 1.75rem 2rem 2.5rem;
+  background: transparent;
+}
+
+.surface-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.surface-glass {
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(var(--blur));
+  box-shadow: var(--shadow-md);
+}
+
+.card {
+  background: var(--card-background-color);
+  color: var(--card-text-color);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.glassmorphism {
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(var(--blur));
+}
+
+.neon-shadow {
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.15), 0 0 36px rgba(251, 113, 133, 0.12);
+}
+
+.neon-border {
+  border: 1px solid rgba(34, 211, 238, 0.5);
+  box-shadow: inset 0 0 12px rgba(34, 211, 238, 0.08);
+}
+
+.glow-background {
+  background: radial-gradient(circle at 30% 30%, rgba(34, 211, 238, 0.16), transparent 55%),
+              radial-gradient(circle at 80% 10%, rgba(251, 113, 133, 0.12), transparent 50%),
+              var(--surface-1);
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.bento-card {
+  padding: 1.5rem;
+  min-height: 180px;
+}
+
+.bento-span-4 { grid-column: span 4; }
+.bento-span-5 { grid-column: span 5; }
+.bento-span-6 { grid-column: span 6; }
+.bento-span-7 { grid-column: span 7; }
+.bento-span-8 { grid-column: span 8; }
+.bento-span-12 { grid-column: span 12; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.section-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.section-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-2);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(34, 211, 238, 0.18);
+  color: var(--text-0);
+  font-size: 0.75rem;
+  border: 1px solid rgba(34, 211, 238, 0.35);
+}
+
+.pill {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(148, 163, 184, 0.12);
+  font-size: 0.8rem;
+  color: var(--text-1);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 10px;
+  background: rgba(34, 211, 238, 0.12);
+  color: var(--text-1);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  font-size: 0.8rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.9), rgba(251, 113, 133, 0.9));
+  color: var(--text-0);
+  box-shadow: 0 10px 30px rgba(34, 211, 238, 0.25);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+}
+
+.btn-ghost {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text-1);
+  border: 1px solid var(--border);
+}
+
+.btn-ghost:hover {
+  border-color: rgba(34, 211, 238, 0.5);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fecaca;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.button-neon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.9), rgba(245, 158, 11, 0.9));
+  color: var(--text-0);
+  border: 1px solid rgba(34, 211, 238, 0.45);
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 10px 24px rgba(34, 211, 238, 0.22);
+}
+
+.button-neon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(34, 211, 238, 0.28);
+}
+
+.button-neon:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.button-icon {
+  color: var(--text-0);
+}
+
+.fade-in {
+  animation: fadeIn 0.8s ease both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradientFloat var(--animation-duration) ease infinite;
+}
+
+.animate-text-shimmer {
+  background: linear-gradient(90deg, var(--accent-0) 0%, var(--accent-3) 50%, var(--accent-0) 100%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
 }
 
 @keyframes shimmer {
   to { background-position: 200% center; }
 }
 
-/* 磨砂玻璃效果 */
-.glassmorphism {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: transparent;
 }
 
-/* 改进的阴影效果 */
-.neon-shadow {
-  box-shadow: 0 0 10px rgba(31, 142, 241, 0.3),
-              0 0 20px rgba(255, 110, 199, 0.2);
+.table th,
+.table td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  color: var(--text-1);
+}
+
+.table th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-2);
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  background: transparent;
+}
+
+@media (max-width: 1200px) {
+  .bento-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .bento-span-7 { grid-column: span 8; }
+  .bento-span-8 { grid-column: span 8; }
+}
+
+@media (max-width: 900px) {
+  .app-main { padding: 1.5rem; }
+  .bento-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .bento-span-6,
+  .bento-span-7,
+  .bento-span-8,
+  .bento-span-5,
+  .bento-span-4 { grid-column: span 4; }
+}
+
+@media (max-width: 640px) {
+  body { overflow: auto; }
+  .app-content { flex-direction: column; }
+  .app-main { padding: 1.25rem 1rem 2rem; }
+  .bento-grid { grid-template-columns: 1fr; }
+  .bento-span-12,
+  .bento-span-8,
+  .bento-span-7,
+  .bento-span-6,
+  .bento-span-5,
+  .bento-span-4 { grid-column: span 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }

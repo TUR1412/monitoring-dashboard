@@ -2,12 +2,15 @@
 <template>
   <div class="user-management fade-in">
     <div class="header-section">
-      <h1 class="title">用户管理控制台</h1>
+      <div>
+        <h1 class="title">用户管理控制台</h1>
+        <p class="subtitle">统一管理权限、角色与活跃状态</p>
+      </div>
       <div class="actions">
-        <!-- 修正导航路径，使用命名路由 -->
         <router-link :to="{ name: 'AddUser' }">
-          <button class="button-neon">
-            <span class="button-icon">+</span>新增用户
+          <button class="btn btn-primary">
+            <i class="fas fa-user-plus"></i>
+            新增用户
           </button>
         </router-link>
       </div>
@@ -23,6 +26,10 @@
         <h3>管理员数</h3>
         <p class="stat-number">{{ adminCount }}</p>
       </div>
+      <div class="card stat-card">
+        <h3>活跃用户</h3>
+        <p class="stat-number">{{ activeCount }}</p>
+      </div>
     </div>
 
     <!-- 用户表格，添加加载和空状态处理 -->
@@ -36,7 +43,7 @@
         <p>暂无用户数据</p>
       </div>
       
-      <table v-else class="user-table">
+      <table v-else class="table user-table">
         <thead>
           <tr>
             <th>ID</th>
@@ -51,7 +58,7 @@
             <td>{{ user.id }}</td>
             <td>{{ user.username }}</td>
             <td>
-              <span :class="['role-badge', `role-${user.role.toLowerCase()}`]">
+              <span :class="['role-badge', `role-${user.role?.toLowerCase()}`]">
                 {{ user.role }}
               </span>
             </td>
@@ -63,13 +70,12 @@
             <td class="actions-cell">
               <!-- 编辑用户，使用命名路由 -->
               <router-link :to="{ name: 'EditUser', query: { id: user.id } }">
-                <button class="button-neon edit-btn">
-                  编辑
-                </button>
+                <button class="btn btn-ghost edit-btn">编辑</button>
               </router-link>
-              <button class="button-neon delete-btn" 
-                      @click="confirmDelete(user)"
-                      :class="{ 'delete-btn': true }">
+              <button
+                class="btn btn-danger delete-btn"
+                @click="confirmDelete(user)"
+              >
                 删除
               </button>
             </td>
@@ -84,8 +90,8 @@
         <h2>确认删除</h2>
         <p>是否确认删除用户 "{{ selectedUser?.username }}"？</p>
         <div class="modal-actions">
-          <button class="button-neon" @click="executeDelete">确认</button>
-          <button class="button-neon" @click="showDeleteModal = false">取消</button>
+          <button class="btn btn-primary" @click="executeDelete">确认</button>
+          <button class="btn btn-ghost" @click="showDeleteModal = false">取消</button>
         </div>
       </div>
     </div>
@@ -110,7 +116,11 @@ export default {
 
     // 计算管理员数量
     const adminCount = computed(() => {
-      return store.users.filter(user => user.role === 'ADMIN').length
+      return store.users.filter(user => user.role?.toLowerCase() === 'admin').length
+    })
+
+    const activeCount = computed(() => {
+      return store.users.filter(user => user.isActive).length
     })
 
     // 删除确认
@@ -137,6 +147,7 @@ export default {
       showDeleteModal,
       selectedUser,
       adminCount,
+      activeCount,
       confirmDelete,
       executeDelete
     }
@@ -162,6 +173,12 @@ export default {
   margin: 0;
 }
 
+.subtitle {
+  margin-top: 0.5rem;
+  color: var(--text-2);
+  font-size: 0.9rem;
+}
+
 .stats-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -176,7 +193,7 @@ export default {
 
 .stat-number {
   font-size: 2rem;
-  color: var(--neon-blue);
+  color: var(--accent-0);
   margin: 0.5rem 0;
 }
 
@@ -192,8 +209,8 @@ export default {
 }
 
 .user-table th {
-  background-color: var(--dark-purple);
-  color: var(--text-color);
+  background-color: rgba(148, 163, 184, 0.12);
+  color: var(--text-1);
   font-weight: 600;
   text-align: left;
   padding: 1rem;
@@ -212,13 +229,13 @@ export default {
 }
 
 .role-admin {
-  background-color: var(--neon-pink);
-  color: var(--text-color);
+  background-color: rgba(251, 113, 133, 0.2);
+  color: #fecaca;
 }
 
 .role-user {
-  background-color: var(--neon-blue);
-  color: var(--text-color);
+  background-color: rgba(34, 211, 238, 0.2);
+  color: #bae6fd;
 }
 
 .status-indicator {
@@ -230,13 +247,13 @@ export default {
 }
 
 .status-indicator.active {
-  background-color: var(--neon-green);
-  color: var(--background-color);
+  background-color: rgba(34, 197, 94, 0.2);
+  color: #bbf7d0;
 }
 
 .status-indicator.inactive {
-  background-color: var(--gray-600);
-  color: var(--text-color);
+  background-color: rgba(148, 163, 184, 0.2);
+  color: var(--text-2);
 }
 
 .actions-cell {
@@ -245,11 +262,11 @@ export default {
 }
 
 .edit-btn {
-  background-color: var(--neon-blue);
+  background-color: rgba(34, 211, 238, 0.2);
 }
 
 .delete-btn {
-  background-color: var(--neon-red);
+  background-color: rgba(239, 68, 68, 0.2);
 }
 
 /* 加载状态 */

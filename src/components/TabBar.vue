@@ -76,11 +76,11 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 2.5rem;
-    margin-bottom: 1rem;
-    background-color: var(--card-background-color);
-    backdrop-filter: blur(8px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    height: 2.6rem;
+    margin-bottom: 0.75rem;
+    background: var(--surface-0);
+    backdrop-filter: blur(var(--blur));
+    border-bottom: 1px solid var(--border);
     z-index: 50;
   }
   
@@ -112,23 +112,25 @@
     height: 2rem;
     padding: 0 0.75rem;
     margin-right: 0.5rem;
-    border-radius: 0.375rem;
-    background-color: var(--dark-purple);
-    color: var(--text-color);
-    font-size: 0.875rem;
+    border-radius: 0.6rem;
+    background-color: rgba(148, 163, 184, 0.12);
+    color: var(--text-1);
+    font-size: 0.85rem;
     white-space: nowrap;
     transition: all 0.2s ease;
     cursor: pointer;
     user-select: none;
+    border: 1px solid transparent;
   }
   
   .tab-item:hover {
-    background-color: var(--gray-700);
+    border-color: rgba(34, 211, 238, 0.3);
   }
   
   .tab-active {
-    background-color: var(--neon-blue);
-    box-shadow: 0 0 10px var(--neon-blue);
+    background-color: rgba(34, 211, 238, 0.2);
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.25);
+    border-color: rgba(34, 211, 238, 0.45);
   }
   
   .tab-title {
@@ -155,12 +157,12 @@
   
   .tab-close:hover {
     opacity: 1;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(148, 163, 184, 0.2);
   }
   
   .tab-close:focus {
     outline: none;
-    box-shadow: 0 0 0 2px var(--neon-pink);
+    box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.5);
   }
   
   @media (max-width: 768px) {

@@ -3,17 +3,17 @@
     <div class="surveys">
       <h2 class="text-2xl font-bold mb-4">调查问卷</h2>
       <div class="survey-controls mb-4">
-        <button @click="createNewSurvey" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+        <button @click="createNewSurvey" class="btn btn-primary">
           创建新调查
         </button>
-        <select v-model="filterStatus" class="w-1/3 p-2 border rounded">
+        <select v-model="filterStatus">
           <option value="all">全部调查</option>
           <option value="active">进行中</option>
           <option value="completed">已完成</option>
         </select>
       </div>
-      <div class="survey-list grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div v-for="survey in filteredSurveys" :key="survey.id" class="survey-card bg-white p-4 rounded-lg shadow">
+      <div class="survey-list">
+        <div v-for="survey in filteredSurveys" :key="survey.id" class="survey-card">
           <h3 class="text-lg font-semibold">{{ survey.title }}</h3>
           <p class="text-gray-600">{{ survey.description }}</p>
           <div class="survey-stats flex justify-between mt-4">
@@ -100,23 +100,8 @@
     align-items: center;
   }
   
-  .survey-controls button {
-    background-color: #38a169;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    transition: background-color 0.2s;
-  }
-  
-  .survey-controls button:hover {
-    background-color: #2f855a;
-  }
-  
   .survey-controls select {
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 0.375rem;
-    background-color: white;
+    max-width: 240px;
   }
   
   .survey-list {
@@ -125,10 +110,9 @@
   
   .survey-card {
     padding: 1rem;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 0.375rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: rgba(148, 163, 184, 0.08);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
   }
   
   .survey-card h3 {
@@ -136,13 +120,13 @@
   }
   
   .survey-card p {
-    color: #4a5568;
+    color: var(--text-2);
   }
   
   .survey-stats {
     margin-top: 1rem;
     font-size: 0.875rem;
-    color: #718096;
+    color: var(--text-3);
   }
   
   .flex {
@@ -162,7 +146,7 @@
   }
   
   .text-gray-600 {
-    color: #718096;
+    color: var(--text-2);
   }
   
   .text-lg {
@@ -174,7 +158,7 @@
   }
   
   .bg-white {
-    background-color: #ffffff;
+    background-color: transparent;
   }
   
   .rounded-lg {
@@ -182,7 +166,7 @@
   }
   
   .shadow {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
   }
   </style>
   

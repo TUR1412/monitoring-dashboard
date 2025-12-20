@@ -1,12 +1,15 @@
 <!-- src/components/UserExperience.vue -->
 <template>
-  <div class="user-experience p-6">
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold">用户体验</h1>
+  <div class="user-experience">
+    <div class="section-header">
+      <div>
+        <div class="section-title">用户体验</div>
+        <div class="section-subtitle">满意度、使用路径与体验反馈</div>
+      </div>
     </div>
 
     <!-- 图表展示区域 -->
-    <div class="mb-8">
+    <div class="surface-card chart-block">
       <ChartComponent 
         type="bar"
         :data="experienceData" 
@@ -14,26 +17,26 @@
     </div>
     
     <!-- 导航区域 -->
-    <div class="mb-6">
-      <nav class="flex space-x-4">
+    <div class="nav-block surface-glass">
+      <nav class="nav-links">
         <router-link 
           to="/dashboard/user-experience/feedback"
-          class="px-4 py-2 rounded-lg hover:bg-blue-50"
-          :class="{ 'bg-blue-50 text-blue-600': isActive('feedback') }"
+          class="nav-link"
+          :class="{ 'nav-active': isActive('feedback') }"
         >
           用户反馈
         </router-link>
         <router-link 
           to="/dashboard/user-experience/surveys"
-          class="px-4 py-2 rounded-lg hover:bg-blue-50"
-          :class="{ 'bg-blue-50 text-blue-600': isActive('surveys') }"
+          class="nav-link"
+          :class="{ 'nav-active': isActive('surveys') }"
         >
           调查问卷
         </router-link>
         <router-link 
           to="/dashboard/user-experience/metrics"
-          class="px-4 py-2 rounded-lg hover:bg-blue-50"
-          :class="{ 'bg-blue-50 text-blue-600': isActive('metrics') }"
+          class="nav-link"
+          :class="{ 'nav-active': isActive('metrics') }"
         >
           用户指标
         </router-link>
@@ -41,7 +44,7 @@
     </div>
 
     <!-- 子路由渲染区域 -->
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="surface-card content-block">
       <router-view></router-view>
     </div>
   </div>
@@ -66,8 +69,8 @@ export default {
         {
           label: '用户行为',
           data: store.userBehavior.data,
-          backgroundColor: 'rgba(54, 162, 235, 0.5)',
-          borderColor: 'rgb(54, 162, 235)',
+          backgroundColor: 'rgba(34, 211, 238, 0.35)',
+          borderColor: 'rgb(34, 211, 238)',
           borderWidth: 1
         }
       ]
@@ -87,15 +90,45 @@ export default {
 
 <style scoped>
 .user-experience {
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.user-experience nav a {
-  transition: background-color 0.3s, color 0.3s;
+.chart-block {
+  padding: 1.5rem;
 }
 
-.user-experience nav a.active-link {
-  background-color: #bfdbfe;
-  color: #1e3a8a;
+.nav-block {
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+
+.nav-links {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  color: var(--text-2);
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  background: rgba(34, 211, 238, 0.12);
+  color: var(--text-0);
+}
+
+.nav-active {
+  background: rgba(34, 211, 238, 0.18);
+  color: var(--text-0);
+}
+
+.content-block {
+  padding: 1.5rem;
 }
 </style>

@@ -73,6 +73,9 @@ export default {
 <style scoped>
 .traffic-analysis {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
 .stat-card {
@@ -80,9 +83,16 @@ export default {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 16px;
 }
 
 .traffic-chart {
   margin-top: 20px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
 }
 </style>

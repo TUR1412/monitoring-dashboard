@@ -1,10 +1,15 @@
 <!-- src/views/Analytics.vue -->
 <template>
   <div class="analytics">
-    <h1 class="text-2xl font-bold mb-4">数据分析</h1>
+    <div class="section-header">
+      <div>
+        <div class="section-title">数据分析</div>
+        <div class="section-subtitle">流量、性能与报表洞察</div>
+      </div>
+      <span class="pill">分析管线运行中</span>
+    </div>
     <div class="analytics-content">
-      <!-- 使用数组循环渲染导航链接 -->
-      <nav class="flex gap-4 border-b border-gray-200 mb-6">
+      <nav class="analytics-nav surface-glass">
         <router-link 
           v-for="route in navRoutes" 
           :key="route.path"
@@ -13,8 +18,8 @@
           custom
         >
           <a 
-            class="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors duration-200"
-            :class="{ 'text-blue-600 border-b-2 border-blue-600 font-medium': isActive }"
+            class="nav-link"
+            :class="{ 'nav-active': isActive }"
           >
             {{ route.name }}
           </a>
@@ -31,8 +36,8 @@
           </router-view>
         </template>
         <template #fallback>
-          <div class="flex justify-center items-center h-64">
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+          <div class="loading-block">
+            <div class="loading-spinner"></div>
           </div>
         </template>
       </Suspense>
@@ -56,3 +61,66 @@ const navRoutes = [
   }
 ]
 </script>
+
+<style scoped>
+.analytics {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.analytics-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.analytics-nav {
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: var(--text-2);
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  background: rgba(34, 211, 238, 0.12);
+  color: var(--text-0);
+}
+
+.nav-active {
+  background: rgba(34, 211, 238, 0.18);
+  color: var(--text-0);
+  font-weight: 600;
+}
+
+.loading-block {
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(34, 211, 238, 0.3);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>

@@ -46,16 +46,33 @@ export default {
 
       const ctx = canvas.value.getContext('2d')
 
+      const styles = getComputedStyle(document.documentElement)
+      const textColor = styles.getPropertyValue('--text-2').trim() || '#94a3b8'
+      const gridColor = styles.getPropertyValue('--border').trim() || 'rgba(148, 163, 184, 0.2)'
+      const headingColor = styles.getPropertyValue('--text-1').trim() || '#cbd5e1'
+
       // 定义默认选项
       const defaultOptions = {
         responsive: true,
         maintainAspectRatio: false,
+        color: textColor,
+        plugins: {
+          legend: {
+            labels: {
+              color: headingColor
+            }
+          }
+        },
         scales: {
           x: {
             type: 'category',
             display: true,
             grid: {
-              display: true
+              display: true,
+              color: gridColor
+            },
+            ticks: {
+              color: textColor
             }
           },
           y: {
@@ -63,7 +80,11 @@ export default {
             display: true,
             beginAtZero: true,
             grid: {
-              display: true
+              display: true,
+              color: gridColor
+            },
+            ticks: {
+              color: textColor
             }
           }
         }

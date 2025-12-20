@@ -99,19 +99,20 @@ export default {
   padding: 20px;
   max-width: 600px;
   margin: 0 auto;
-  background-color: var(--card-background-color);
-  color: var(--text-color);
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(31, 142, 241, 0.7), 0 0 20px var(--neon-pink);
+  background-color: var(--surface-1);
+  color: var(--text-1);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
 .error {
   margin-bottom: 15px;
   padding: 10px;
-  background-color: rgba(255, 7, 58, 0.1); /* 使用霓虹红色的透明背景 */
-  color: var(--neon-red);
-  border-left: 4px solid var(--neon-red);
-  border-radius: 4px;
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #fecaca;
+  border-left: 4px solid rgba(239, 68, 68, 0.6);
+  border-radius: 8px;
   text-align: center;
   animation: fadeIn 0.3s ease;
 }
@@ -127,11 +128,4 @@ export default {
   }
 }
 
-/* 深色主题适配 */
-:root[data-theme='dark'] .edit-user {
-  --background-color: #1a1a1a;
-  --text-color: #ffffff;
-  --border-color: #4c4c4c;
-  --input-background: #2c2c2c;
-}
 </style>

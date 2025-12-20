@@ -127,19 +127,19 @@ export default {
 <style scoped>
 .user-form {
   padding: 20px;
-  background-color: var(--card-background-color);
-  color: var(--text-color);
+  background-color: var(--surface-1);
+  color: var(--text-1);
   max-width: 500px;
   margin: 0 auto;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(31, 142, 241, 0.7), 0 0 20px var(--neon-pink);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
 h2 {
   text-align: center;
   margin-bottom: 1.5rem;
-  color: var(--highlight-color);
-  text-shadow: 0 0 5px var(--highlight-color), 0 0 10px var(--neon-blue);
+  color: var(--accent-0);
 }
 
 .form {
@@ -156,17 +156,17 @@ h2 {
 
 label {
   font-weight: 500;
-  color: var(--text-color);
+  color: var(--text-2);
 }
 
 input,
 select {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: 0.375rem;
-  background-color: var(--card-background-color);
-  color: var(--text-color);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background-color: rgba(148, 163, 184, 0.08);
+  color: var(--text-1);
   box-sizing: border-box;
   transition: border-color 0.3s, box-shadow 0.3s;
 }
@@ -179,17 +179,17 @@ select::placeholder {
 input:focus,
 select:focus {
   outline: none;
-  border-color: var(--neon-blue);
-  box-shadow: 0 0 0 2px rgba(31, 142, 241, 0.5);
+  border-color: var(--accent-0);
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.4);
 }
 
 .error-input {
-  border-color: var(--neon-red);
-  box-shadow: 0 0 5px var(--neon-red);
+  border-color: rgba(239, 68, 68, 0.6);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
 }
 
 .error-text {
-  color: var(--neon-red);
+  color: #fecaca;
   font-size: 0.875rem;
 }
 
@@ -212,14 +212,14 @@ button {
 }
 
 .success {
-  background-color: rgba(56, 162, 89, 0.1);
-  color: var(--neon-green);
-  border-left: 4px solid var(--neon-green);
+  background-color: rgba(34, 197, 94, 0.12);
+  color: #bbf7d0;
+  border-left: 4px solid rgba(34, 197, 94, 0.6);
 }
 
 .error {
-  background-color: rgba(255, 7, 58, 0.1);
-  color: var(--neon-red);
-  border-left: 4px solid var(--neon-red);
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #fecaca;
+  border-left: 4px solid rgba(239, 68, 68, 0.6);
 }
 </style>

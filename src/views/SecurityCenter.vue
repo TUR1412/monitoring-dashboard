@@ -1,9 +1,15 @@
 <!-- src/views/SecurityCenter.vue -->
 <template>
     <div class="security-center">
-      <h1 class="text-2xl font-bold mb-4">安全中心</h1>
+      <div class="section-header">
+        <div>
+          <div class="section-title">安全中心</div>
+          <div class="section-subtitle">威胁检测、访问控制与合规审计</div>
+        </div>
+        <span class="pill">策略已同步</span>
+      </div>
       <div class="security-content">
-        <nav class="security-nav">
+        <nav class="security-nav surface-glass">
           <router-link 
             to="/dashboard/security/threats" 
             class="nav-link"
@@ -45,36 +51,41 @@
   
   <style scoped>
   .security-center {
-    padding: 20px;
-  }
-  
-  .security-content {
-    margin-top: 20px;
-  }
-  
-  .security-nav {
-    margin-bottom: 20px;
-    padding: 10px 0;
-    border-bottom: 1px solid #eee;
     display: flex;
-    gap: 20px;
+    flex-direction: column;
+    gap: 1.5rem;
   }
-  
+
+  .security-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .security-nav {
+    padding: 0.75rem 1rem;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    display: flex;
+    gap: 0.75rem;
+  }
+
   .nav-link {
-    padding: 5px 10px;
+    padding: 6px 12px;
     text-decoration: none;
-    color: #666;
-    border-radius: 4px;
+    color: var(--text-2);
+    border-radius: 999px;
     transition: background-color 0.3s, color 0.3s;
   }
-  
+
   .nav-link:hover {
-    background-color: #f0f0f0;
+    background-color: rgba(34, 211, 238, 0.12);
+    color: var(--text-0);
   }
-  
+
   .active-link {
-    color: #42b983;
-    border-bottom: 2px solid #42b983;
+    color: var(--text-0);
+    background-color: rgba(34, 211, 238, 0.18);
   }
   </style>
   

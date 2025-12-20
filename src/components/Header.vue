@@ -1,58 +1,78 @@
 <!-- src/components/Header.vue -->
 <template>
-  <header :class="['dashboard-header', theme]" v-bind="$attrs">
-    <div class="header-content glassmorphism">
+  <header class="dashboard-header surface-glass" v-bind="$attrs">
+    <div class="header-left">
+      <div class="brand-mark">
+        <span class="brand-dot"></span>
+      </div>
       <div class="header-title">
         <h1 class="title animate-text-shimmer">
           {{ title }}
           <span class="version-badge">v{{ version }}</span>
         </h1>
         <p class="subtitle" v-if="subtitle">{{ subtitle }}</p>
+        <p class="subtitle" v-else>实时态势 · 风险预警 · 业务脉搏</p>
       </div>
-      
-      <div class="header-actions">
-        <div class="user-info" v-if="user">
-          <span class="user-name">{{ user.name }}</span>
-          <img 
-            v-if="!avatarError"
-            :src="userAvatar" 
-            :alt="user?.name || 'User Avatar'"
-            class="user-avatar"
-            @error="handleAvatarError"
-            @load="handleImageLoad"
-          >
-          <div v-else class="avatar-placeholder">
-            {{ user?.name?.[0]?.toUpperCase() || 'U' }}
-          </div>
+    </div>
+
+    <div class="header-center">
+      <div class="search-box">
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="搜索节点、告警、用户或报表"
+          aria-label="搜索"
+        />
+      </div>
+      <div class="status-pill">
+        <span class="status-dot"></span>
+        <span>系统运行良好</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="user-info" v-if="user">
+        <span class="user-name">{{ user.name }}</span>
+        <img
+          v-if="!avatarError"
+          :src="userAvatar"
+          :alt="user?.name || 'User Avatar'"
+          class="user-avatar"
+          @error="handleAvatarError"
+          @load="handleImageLoad"
+        >
+        <div v-else class="avatar-placeholder">
+          {{ user?.name?.[0]?.toUpperCase() || 'U' }}
         </div>
-        
-        <div class="actions-group">
-          <button 
-            class="action-button"
-            :class="{ 'active': theme === 'dark' }"
-            @click="toggleTheme"
-            :title="themeButtonTitle"
-          >
-            <i :class="themeIcon" aria-hidden="true"></i>
-            <span class="button-text">{{ themeButtonText }}</span>
-          </button>
-          
-          <button 
-            class="action-button logout-button"
-            @click="handleLogout"
-            :title="logoutButtonTitle"
-          >
-            <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
-            <span class="button-text">退出</span>
-          </button>
-        </div>
+      </div>
+
+      <div class="actions-group">
+        <button
+          class="btn btn-ghost"
+          :class="{ 'active': theme === 'dark' }"
+          @click="toggleTheme"
+          :title="themeButtonTitle"
+        >
+          <i :class="themeIcon" aria-hidden="true"></i>
+          <span class="button-text">{{ themeButtonText }}</span>
+        </button>
+
+        <button
+          class="btn btn-danger"
+          @click="handleLogout"
+          :title="logoutButtonTitle"
+        >
+          <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+          <span class="button-text">退出</span>
+        </button>
       </div>
     </div>
   </header>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useMonitorStore } from '@/stores/monitorStore'
 import { useRouter } from 'vue-router'
 
@@ -86,6 +106,7 @@ const theme = computed(() => store.theme)
 const user = computed(() => store.user)
 const avatarLoading = ref(true)
 const avatarError = ref(false)
+const searchQuery = ref('')
 
 const userAvatar = computed(() => {
   if (user.value?.avatar?.startsWith('http')) {
@@ -142,65 +163,116 @@ const handleImageLoad = () => {
 }
 
 // Lifecycle
-onMounted(() => {
-  // 可以在这里添加初始化逻辑
-})
 </script>
 
 <style scoped>
 .dashboard-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  width: 100%;
-  background-color: var(--background-color);
-  transition: all 0.3s ease;
+  display: grid;
+  grid-template-columns: 1fr minmax(280px, 420px) auto;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid var(--border);
 }
 
-.header-content {
+.header-left {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
   gap: 1rem;
+}
+
+.brand-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  background: rgba(34, 211, 238, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(34, 211, 238, 0.4);
+  box-shadow: inset 0 0 16px rgba(34, 211, 238, 0.2);
+}
+
+.brand-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-0);
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.8);
 }
 
 .header-title {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .title {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin: 0;
-  font-size: 1.5rem;
+  gap: 0.8rem;
+  font-size: 1.4rem;
   font-weight: 700;
-  color: var(--heading-color);
-  letter-spacing: 0.05em;
 }
 
 .version-badge {
   font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  background-color: var(--neon-blue);
-  color: var(--text-color);
-  border-radius: 1rem;
-  font-weight: normal;
+  padding: 0.2rem 0.55rem;
+  background: rgba(34, 211, 238, 0.18);
+  color: var(--text-0);
+  border-radius: 999px;
+  border: 1px solid rgba(34, 211, 238, 0.35);
 }
 
 .subtitle {
-  font-size: 0.875rem;
-  color: var(--paragraph-color);
-  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.header-center {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+}
+
+.search-box input {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--text-0);
+}
+
+.search-box input:focus {
+  box-shadow: none;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-1);
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  width: fit-content;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .user-info {
@@ -210,125 +282,65 @@ onMounted(() => {
 }
 
 .user-name {
-  font-size: 0.875rem;
-  color: var(--text-color);
+  font-size: 0.85rem;
+  color: var(--text-1);
+}
+
+.user-avatar,
+.avatar-placeholder {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
 }
 
 .user-avatar {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--neon-blue);
-  transition: border-color 0.3s ease;
-}
-
-.user-avatar:hover {
-  border-color: var(--neon-pink);
+  border: 1px solid rgba(34, 211, 238, 0.45);
 }
 
 .avatar-placeholder {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  background-color: var(--neon-blue);
-  color: var(--text-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  font-size: 1rem;
-  border: 2px solid var(--neon-pink);
+  background: rgba(34, 211, 238, 0.2);
+  color: var(--text-0);
+  border: 1px solid rgba(34, 211, 238, 0.4);
 }
 
 .actions-group {
   display: flex;
-  gap: 0.75rem;
-}
-
-.action-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 0.5rem;
-  background-color: var(--card-background-color);
-  color: var(--text-color);
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.action-button:hover {
-  background-color: var(--neon-blue);
-  transform: translateY(-2px);
-}
-
-.action-button.active {
-  background-color: var(--neon-pink);
-}
-
-.logout-button {
-  background-color: var(--neon-red);
-}
-
-.logout-button:hover {
-  background-color: var(--neon-pink);
+  gap: 0.6rem;
 }
 
 .button-text {
   display: inline-block;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .header-content {
-    flex-direction: column;
-    padding: 1rem;
+@media (max-width: 1200px) {
+  .dashboard-header {
+    grid-template-columns: 1fr;
+    padding: 1rem 1.5rem;
   }
 
+  .header-center {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
   .header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .actions-group {
     width: 100%;
     justify-content: space-between;
   }
 
   .button-text {
     display: none;
-  }
-
-  .action-button {
-    padding: 0.5rem;
-  }
-
-  .user-name {
-    display: none;
-  }
-}
-
-/* Dark theme specific styles */
-:root[data-theme='dark'] .dashboard-header {
-  background-color: var(--background-color);
-}
-
-/* Animation classes */
-.animate-text-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--neon-pink) 0%,
-    var(--neon-blue) 50%,
-    var(--neon-pink) 100%
-  );
-  background-size: 200% auto;
-  color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: shimmer 3s linear infinite;
-}
-
-@keyframes shimmer {
-  to {
-    background-position: 200% center;
   }
 }
 </style>

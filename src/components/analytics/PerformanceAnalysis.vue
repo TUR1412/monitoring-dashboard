@@ -129,5 +129,15 @@ onMounted(() => {
 <style scoped>
 .performance-analysis {
   @apply p-6;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.performance-chart {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
 }
 </style>

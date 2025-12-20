@@ -65,10 +65,11 @@
   }
   
   .feedback-container {
-    background-color: #ffffff;
+    background-color: var(--surface-1);
     padding: 1.5rem;
-    border-radius: 0.375rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
   }
   
   .feedback-stats {
@@ -78,10 +79,9 @@
   
   .stat-card {
     padding: 1rem;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 0.375rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: rgba(148, 163, 184, 0.08);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
   }
   
   .stat-card h3 {
@@ -98,26 +98,25 @@
   
   .feedback-item {
     padding: 1rem;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 0.375rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: rgba(148, 163, 184, 0.08);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
   }
   
   .feedback-item .rating {
     font-size: 1.25rem;
-    color: #2b6cb0;
+    color: var(--accent-0);
   }
   
   .feedback-item .comment {
     margin-top: 0.5rem;
-    color: #4a5568;
+    color: var(--text-1);
   }
   
   .feedback-item .date {
     display: block;
     margin-top: 0.5rem;
-    color: #718096;
+    color: var(--text-3);
   }
   </style>
   

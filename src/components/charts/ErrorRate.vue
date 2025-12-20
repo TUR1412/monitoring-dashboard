@@ -45,10 +45,10 @@
   
   <style scoped>
   .error-rate {
-    background-color: #fff;
+    background-color: var(--surface-1);
     padding: 15px;
-    border: 1px solid #dcdfe6;
-    border-radius: 4px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
   }
   </style>
   
