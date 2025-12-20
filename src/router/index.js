@@ -1,52 +1,53 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
-import LoginPage from '@/views/LoginPage.vue';
-import Dashboard from '@/views/Dashboard.vue';
-import MainLayout from '@/layouts/MainLayout.vue';
+
+const LoginPage = () => import('@/views/LoginPage.vue');
+const Dashboard = () => import('@/views/Dashboard.vue');
+const MainLayout = () => import('@/layouts/MainLayout.vue');
 
 // 系统资源组件
-import SystemResources from '@/components/SystemResources.vue';
-import CpuUsage from '@/components/charts/CpuUsage.vue';
-import MemoryUsage from '@/components/charts/MemoryUsage.vue';
-import DiskUsage from '@/components/charts/DiskUsage.vue';
-import NetworkTraffic from '@/components/charts/NetworkTraffic.vue';
+const SystemResources = () => import('@/components/SystemResources.vue');
+const CpuUsage = () => import('@/components/charts/CpuUsage.vue');
+const MemoryUsage = () => import('@/components/charts/MemoryUsage.vue');
+const DiskUsage = () => import('@/components/charts/DiskUsage.vue');
+const NetworkTraffic = () => import('@/components/charts/NetworkTraffic.vue');
 
 // 用户管理
-import UserManagement from '@/views/UserManagement.vue';
-import AddUser from '@/components/UserManagement/AddUser.vue';
-import EditUser from '@/components/UserManagement/EditUser.vue';
-import RolePermissions from '@/components/UserManagement/RolePermissions.vue';
-import UserGroups from '@/components/UserManagement/UserGroups.vue';
+const UserManagement = () => import('@/views/UserManagement.vue');
+const AddUser = () => import('@/components/UserManagement/AddUser.vue');
+const EditUser = () => import('@/components/UserManagement/EditUser.vue');
+const RolePermissions = () => import('@/components/UserManagement/RolePermissions.vue');
+const UserGroups = () => import('@/components/UserManagement/UserGroups.vue');
 
 // 系统警报
-import SystemAlerts from '@/views/SystemAlerts.vue';
-import ActiveAlerts from '@/components/alerts/ActiveAlerts.vue';
-import AlertHistory from '@/components/alerts/AlertHistory.vue';
-import AlertSettings from '@/components/alerts/AlertSettings.vue';
+const SystemAlerts = () => import('@/views/SystemAlerts.vue');
+const ActiveAlerts = () => import('@/components/alerts/ActiveAlerts.vue');
+const AlertHistory = () => import('@/components/alerts/AlertHistory.vue');
+const AlertSettings = () => import('@/components/alerts/AlertSettings.vue');
 
 // 日志
-import Logs from '@/views/Logs.vue';
-import SystemLogs from '@/components/logs/SystemLogs.vue';
-import SecurityLogs from '@/components/logs/SecurityLogs.vue';
-import AuditLogs from '@/components/logs/AuditLogs.vue';
+const Logs = () => import('@/views/Logs.vue');
+const SystemLogs = () => import('@/components/logs/SystemLogs.vue');
+const SecurityLogs = () => import('@/components/logs/SecurityLogs.vue');
+const AuditLogs = () => import('@/components/logs/AuditLogs.vue');
 
 // 用户体验
-import UserExperience from '@/components/UserExperience.vue';
-import UserFeedback from '@/components/UserExperience/UserFeedback.vue';
-import Surveys from '@/components/UserExperience/Surveys.vue';
-import UserMetrics from '@/components/UserExperience/UserMetrics.vue';
+const UserExperience = () => import('@/components/UserExperience.vue');
+const UserFeedback = () => import('@/components/UserExperience/UserFeedback.vue');
+const Surveys = () => import('@/components/UserExperience/Surveys.vue');
+const UserMetrics = () => import('@/components/UserExperience/UserMetrics.vue');
 
 // 安全中心
-import SecurityCenter from '@/views/SecurityCenter.vue';
-import ThreatDetection from '@/components/security/ThreatDetection.vue';
-import AccessControl from '@/components/security/AccessControl.vue';
-import Compliance from '@/components/security/Compliance.vue';
+const SecurityCenter = () => import('@/views/SecurityCenter.vue');
+const ThreatDetection = () => import('@/components/security/ThreatDetection.vue');
+const AccessControl = () => import('@/components/security/AccessControl.vue');
+const Compliance = () => import('@/components/security/Compliance.vue');
 
 // 数据分析
-import Analytics from '@/views/Analytics.vue';
-import TrafficAnalysis from '@/components/analytics/TrafficAnalysis.vue';
-import PerformanceAnalysis from '@/components/analytics/PerformanceAnalysis.vue';
-import Reports from '@/components/analytics/Reports.vue';
+const Analytics = () => import('@/views/Analytics.vue');
+const TrafficAnalysis = () => import('@/components/analytics/TrafficAnalysis.vue');
+const PerformanceAnalysis = () => import('@/components/analytics/PerformanceAnalysis.vue');
+const Reports = () => import('@/components/analytics/Reports.vue');
 
 // 引入 Pinia 存储
 import { useMonitorStore } from '@/stores/monitorStore';
