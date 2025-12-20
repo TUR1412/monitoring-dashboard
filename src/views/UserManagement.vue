@@ -108,6 +108,7 @@
 <script>
 import { ref, computed } from 'vue'
 import { useMonitorStore } from '@/stores/monitorStore'
+import { notify } from '@/utils/notify'
 
 export default {
   name: 'UserManagement',
@@ -136,12 +137,13 @@ export default {
     // 执行删除
     const executeDelete = async () => {
       try {
+        if (!selectedUser.value) return
         await store.deleteUser(selectedUser.value.id)
         showDeleteModal.value = false
-        // 可以添加成功提示
+        notify.success('用户已删除')
       } catch (error) {
         console.error('删除用户失败:', error)
-        // 可以添加错误提示
+        notify.error('删除用户失败，请稍后重试')
       }
     }
 
