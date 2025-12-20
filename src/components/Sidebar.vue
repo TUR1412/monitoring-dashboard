@@ -3,7 +3,7 @@
   <aside class="sidebar surface-glass" :class="{ 'is-compact': compact }">
     <div class="logo">
       <div class="logo-mark">
-        <img src="@/assets/logo.jpg" alt="Logo" />
+        <img src="@/assets/logo.svg" alt="Logo" />
       </div>
       <h2>监控</h2>
       <button class="sidebar-toggle" @click="toggleSidebar" aria-label="切换侧边栏">
