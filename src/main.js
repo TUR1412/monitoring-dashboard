@@ -6,7 +6,6 @@ import { createPinia } from 'pinia';
 import { useMonitorStore } from './stores/monitorStore';
 import '@fortawesome/fontawesome-free/css/fontawesome.min.css';
 import '@fortawesome/fontawesome-free/css/solid.min.css';
-import '@fortawesome/fontawesome-free/css/brands.min.css';
 import './style.css';
 
 // 创建 Pinia 实例

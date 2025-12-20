@@ -77,11 +77,11 @@
 
         <div class="social-login">
           <button type="button" class="social-btn" @click="showNotImplemented('微信登录')">
-            <i class="fab fa-weixin"></i>
+            <MessageCircle class="social-icon" />
             微信登录
           </button>
           <button type="button" class="social-btn" @click="showNotImplemented('企业微信登录')">
-            <i class="fab fa-weixin"></i>
+            <QrCode class="social-icon" />
             企业微信
           </button>
         </div>
@@ -95,6 +95,7 @@ import { ref } from 'vue'
 import { useMonitorStore } from '@/stores/monitorStore'
 import { useRouter } from 'vue-router'
 import { notify } from '@/utils/notify'
+import { MessageCircle, QrCode } from 'lucide-vue-next'
 
 const router = useRouter()
 const store = useMonitorStore()
@@ -295,6 +296,11 @@ const showNotImplemented = (feature) => {
   border-radius: 10px;
   color: var(--text-1);
   cursor: pointer;
+}
+
+.social-icon {
+  width: 18px;
+  height: 18px;
 }
 
 @keyframes spin {
