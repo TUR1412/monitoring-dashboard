@@ -67,6 +67,17 @@ export default {
       isOpen: false
     }
   },
+  watch: {
+    $route: {
+      immediate: true,
+      handler() {
+        if (this.children && this.children.length) {
+          const activeChild = this.children.some(child => this.$route.path.startsWith(child.to))
+          this.isOpen = activeChild || this.isOpen
+        }
+      }
+    }
+  },
   methods: {
     toggleSubmenu() {
       if (this.children && this.children.length) {

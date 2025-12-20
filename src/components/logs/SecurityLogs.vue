@@ -41,9 +41,13 @@ const keyword = ref('')
 const levelFilter = ref('all')
 
 const filteredLogs = computed(() => {
+  const query = keyword.value.trim().toLowerCase()
   return store.securityLogs
     .filter(log => levelFilter.value === 'all' || log.level === levelFilter.value)
-    .filter(log => log.message.includes(keyword.value) || log.source.includes(keyword.value))
+    .filter(log => {
+      if (!query) return true
+      return log.message.toLowerCase().includes(query) || log.source.toLowerCase().includes(query)
+    })
     .slice()
     .reverse()
 })

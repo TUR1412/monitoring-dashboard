@@ -25,9 +25,15 @@
           aria-label="搜索"
         />
       </div>
-      <div class="status-pill">
-        <span class="status-dot"></span>
-        <span>系统运行良好</span>
+      <div class="status-row">
+        <div class="status-pill">
+          <span class="status-dot"></span>
+          <span>系统运行良好</span>
+        </div>
+        <div class="time-pill">
+          <i class="fas fa-clock"></i>
+          <span>{{ currentTime }}</span>
+        </div>
       </div>
     </div>
 
@@ -72,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useMonitorStore } from '@/stores/monitorStore'
 import { useRouter } from 'vue-router'
 
@@ -107,6 +113,8 @@ const user = computed(() => store.user)
 const avatarLoading = ref(true)
 const avatarError = ref(false)
 const searchQuery = ref('')
+const currentTime = ref('')
+let timerId = null
 
 const userAvatar = computed(() => {
   if (user.value?.avatar?.startsWith('http')) {
@@ -162,7 +170,22 @@ const handleImageLoad = () => {
   avatarError.value = false
 }
 
-// Lifecycle
+const updateTime = () => {
+  const now = new Date()
+  currentTime.value = now.toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+onMounted(() => {
+  updateTime()
+  timerId = setInterval(updateTime, 60000)
+})
+
+onBeforeUnmount(() => {
+  if (timerId) clearInterval(timerId)
+})
 </script>
 
 <style scoped>
@@ -235,6 +258,13 @@ const handleImageLoad = () => {
   gap: 0.6rem;
 }
 
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .search-box {
   display: flex;
   align-items: center;
@@ -267,6 +297,18 @@ const handleImageLoad = () => {
   padding: 0.3rem 0.6rem;
   border-radius: 999px;
   width: fit-content;
+}
+
+.time-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-1);
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid var(--border);
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
 }
 
 .header-actions {

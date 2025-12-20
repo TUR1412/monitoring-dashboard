@@ -46,9 +46,13 @@ const keyword = ref('')
 const actionFilter = ref('all')
 
 const filteredLogs = computed(() => {
+  const query = keyword.value.trim().toLowerCase()
   return store.auditLogs
     .filter(log => actionFilter.value === 'all' || log.action === actionFilter.value)
-    .filter(log => log.username.includes(keyword.value) || log.message.includes(keyword.value))
+    .filter(log => {
+      if (!query) return true
+      return log.username.toLowerCase().includes(query) || log.message.toLowerCase().includes(query)
+    })
     .slice()
     .reverse()
 })

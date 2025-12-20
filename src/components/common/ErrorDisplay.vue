@@ -1,11 +1,11 @@
 <template>
-    <div class="error-display p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-      <p>{{ message }}</p>
-      <button @click="$emit('retry')" class="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
-        重试
-      </button>
-    </div>
-  </template>
+  <div class="error-display surface-card">
+    <p>{{ message }}</p>
+    <button @click="$emit('retry')" class="btn btn-danger">
+      重试
+    </button>
+  </div>
+</template>
   
   <script setup>
   const props = defineProps({
@@ -16,11 +16,16 @@
   })
   </script>
   
-  <style scoped>
-  .error-display {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  </style>
+<style scoped>
+.error-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.12);
+  color: #fecaca;
+}
+</style>
   

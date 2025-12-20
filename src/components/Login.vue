@@ -8,6 +8,9 @@
       </div>
 
       <form @submit.prevent="handleLogin" class="login-form">
+        <div class="login-hint">
+          演示账号：<strong>admin</strong> / <strong>password</strong>
+        </div>
         <div class="form-group">
           <label for="username" class="form-label">
             <i class="fas fa-user"></i>
@@ -174,6 +177,15 @@ const showNotImplemented = (feature) => {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+}
+
+.login-hint {
+  padding: 0.65rem 0.9rem;
+  border-radius: 12px;
+  background: rgba(34, 211, 238, 0.12);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  color: var(--text-1);
+  font-size: 0.85rem;
 }
 
 .form-group {

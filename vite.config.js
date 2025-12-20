@@ -8,5 +8,17 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src')
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vue: ['vue', 'vue-router', 'pinia'],
+          ui: ['element-plus', '@element-plus/icons-vue'],
+          charts: ['chart.js'],
+          icons: ['@fortawesome/fontawesome-free', 'lucide-vue-next']
+        }
+      }
+    }
   }
 })
