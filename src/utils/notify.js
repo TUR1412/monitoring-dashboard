@@ -9,6 +9,13 @@ export const notify = {
       duration: 2000
     })
   },
+  info(message) {
+    ElMessage({
+      type: 'info',
+      message,
+      duration: 2200
+    })
+  },
 
   error(message) {
     ElMessage({

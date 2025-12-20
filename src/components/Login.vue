@@ -94,6 +94,7 @@
 import { ref } from 'vue'
 import { useMonitorStore } from '@/stores/monitorStore'
 import { useRouter } from 'vue-router'
+import { notify } from '@/utils/notify'
 
 const router = useRouter()
 const store = useMonitorStore()
@@ -141,7 +142,7 @@ const handleLogin = async () => {
 }
 
 const showNotImplemented = (feature) => {
-  alert(`${feature} 功能暂未实现`)
+  notify.info(`${feature} 功能暂未实现`)
 }
 </script>
 

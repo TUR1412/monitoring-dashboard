@@ -92,28 +92,33 @@
   
   /* 类型变体 */
   .button-default {
-    @apply bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200;
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--text-1);
   }
   
   .button-primary {
-    background-color: var(--neon-blue);
-    @apply text-white hover:opacity-90;
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.9), rgba(251, 113, 133, 0.9));
+    color: var(--text-0);
   }
   
   .button-success {
-    @apply bg-green-500 text-white hover:bg-green-600;
+    background: rgba(34, 197, 94, 0.2);
+    color: #bbf7d0;
   }
   
   .button-warning {
-    @apply bg-yellow-500 text-white hover:bg-yellow-600;
+    background: rgba(245, 158, 11, 0.2);
+    color: #fde68a;
   }
   
   .button-danger {
-    @apply bg-red-500 text-white hover:bg-red-600;
+    background: rgba(239, 68, 68, 0.2);
+    color: #fecaca;
   }
   
   .button-info {
-    @apply bg-blue-500 text-white hover:bg-blue-600;
+    background: rgba(56, 189, 248, 0.2);
+    color: #bae6fd;
   }
   
   /* Loading 状态 */
@@ -134,10 +139,4 @@
     @apply w-4 h-4;
   }
   
-  /* Dark mode adjustments */
-  @media (prefers-color-scheme: dark) {
-    .button-default {
-      @apply bg-gray-700 hover:bg-gray-600 text-gray-200;
-    }
-  }
   </style>

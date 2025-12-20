@@ -77,13 +77,14 @@
   }
   
   .modal-content {
-    @apply bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full mx-4 overflow-hidden;
-    background-color: var(--card-background-color);
+    @apply rounded-lg shadow-xl w-full mx-4 overflow-hidden;
+    background-color: var(--surface-1);
+    border: 1px solid var(--border);
   }
   
   .modal-header {
     @apply flex justify-between items-center px-6 py-4 border-b;
-    border-color: var(--border-color);
+    border-color: var(--border);
   }
   
   .modal-title {
@@ -106,7 +107,7 @@
   
   .modal-footer {
     @apply px-6 py-4 border-t;
-    border-color: var(--border-color);
+    border-color: var(--border);
   }
   
   /* 过渡动画 */

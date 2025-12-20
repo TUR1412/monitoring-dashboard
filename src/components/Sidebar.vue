@@ -62,7 +62,7 @@
       />
     </nav>
 
-    <button class="button-neon logout-button">
+    <button class="button-neon logout-button" @click="handleLogout">
       <i class="fas fa-sign-out-alt button-icon"></i>
       <span v-if="!compact">退出</span>
     </button>
@@ -73,6 +73,8 @@
 import SidebarItem from './SidebarItem.vue'
 import { useMonitorStore } from '@/stores/monitorStore'
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { notify } from '@/utils/notify'
 
 export default {
   name: 'Sidebar',
@@ -81,14 +83,25 @@ export default {
   },
   setup() {
     const store = useMonitorStore()
+    const router = useRouter()
     const compact = computed(() => store.uiPreferences.compactSidebar)
     const toggleSidebar = () => {
       store.setUiPreferences({ compactSidebar: !store.uiPreferences.compactSidebar })
+    }
+    const handleLogout = async () => {
+      try {
+        await notify.confirm('确认退出当前账号？', '退出登录')
+        store.logout()
+        router.push({ name: 'Login' })
+      } catch (error) {
+        // 用户取消
+      }
     }
 
     return {
       compact,
       toggleSidebar,
+      handleLogout,
       systemResourcesChildren: [
         { to: '/dashboard/system-resources/cpu-usage', label: 'CPU 使用率', icon: 'fas fa-microchip' },
         { to: '/dashboard/system-resources/memory-usage', label: '内存使用率', icon: 'fas fa-memory' },

@@ -55,26 +55,27 @@
   
   .base-input {
     @apply w-full px-4 py-2 rounded-lg border outline-none transition-colors;
-    @apply bg-white dark:bg-gray-700;
-    @apply text-gray-900 dark:text-white;
-    border-color: var(--border-color);
+    background-color: var(--surface-1);
+    color: var(--text-1);
+    border-color: var(--border);
   }
   
   .base-input:focus {
     @apply ring-2 ring-opacity-50;
-    border-color: var(--neon-blue);
-    ring-color: var(--neon-blue);
+    border-color: var(--accent-0);
+    ring-color: var(--accent-0);
   }
   
   .base-input::placeholder {
-    @apply text-gray-500 dark:text-gray-400;
+    color: var(--text-3);
   }
   
   .input-disabled {
-    @apply bg-gray-100 dark:bg-gray-800 cursor-not-allowed;
+    @apply cursor-not-allowed;
+    background-color: rgba(148, 163, 184, 0.08);
   }
   
   .base-input:disabled::placeholder {
-    @apply text-gray-400 dark:text-gray-500;
+    color: var(--text-3);
   }
   </style>
