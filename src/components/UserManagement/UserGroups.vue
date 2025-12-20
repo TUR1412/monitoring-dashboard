@@ -1,6 +1,6 @@
 <!-- src/components/UserManagement/UserGroups.vue -->
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useUserGroups } from '@/composables/useUserGroups'
 import BaseModal from '@/components/base/BaseModal.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
@@ -28,6 +28,13 @@ const resetModal = () => {
 
 onMounted(async () => {
   await fetchUserGroups()
+})
+
+watch(showAddGroupModal, (open) => {
+  if (!open) {
+    editingGroup.value = null
+    newGroupName.value = ''
+  }
 })
 
 const handleAddGroup = async () => {

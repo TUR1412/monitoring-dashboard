@@ -1,7 +1,7 @@
 <template>
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="modelValue" class="modal-overlay">
+        <div v-if="modelValue" class="modal-overlay" @click="handleBackdrop">
           <div 
             class="modal-content"
             :style="{ maxWidth: width }"
@@ -46,6 +46,10 @@
     width: {
       type: String,
       default: '500px'
+    },
+    closeOnBackdrop: {
+      type: Boolean,
+      default: true
     }
   })
   
@@ -53,6 +57,12 @@
   
   const closeModal = () => {
     emit('update:modelValue', false)
+  }
+
+  const handleBackdrop = () => {
+    if (props.closeOnBackdrop) {
+      closeModal()
+    }
   }
   
   // ESC 键关闭模态框
