@@ -188,6 +188,7 @@ const routes = [
         path: 'logs',
         name: 'LogsParent',
         component: Logs,
+        redirect: { name: 'SystemLogs' },
         meta: { title: '日志' },
         children: [
           {
@@ -240,6 +241,7 @@ const routes = [
         path: 'security',
         name: 'SecurityCenterParent',
         component: SecurityCenter,
+        redirect: { name: 'ThreatDetection' },
         meta: { title: '安全中心' },
         children: [
           {
@@ -266,6 +268,7 @@ const routes = [
         path: 'analytics',
         name: 'AnalyticsParent',
         component: Analytics,
+        redirect: { name: 'TrafficAnalysis' },
         meta: { title: '数据分析' },
         children: [
           {

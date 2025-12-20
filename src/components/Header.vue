@@ -21,9 +21,11 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="搜索节点、告警、用户或报表"
+          placeholder="输入关键词，回车打开命令面板"
           aria-label="搜索"
+          @keydown="handleSearchKeydown"
         />
+        <span class="search-hint">Ctrl + K</span>
       </div>
       <div class="status-row">
         <div class="status-pill">
@@ -99,7 +101,7 @@ const props = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['theme-changed', 'logout'])
+const emit = defineEmits(['theme-changed', 'logout', 'open-command'])
 
 import defaultAvatar from '@/assets/default-avatar.jpg'
 
@@ -148,6 +150,11 @@ const toggleTheme = () => {
   emit('theme-changed', store.theme)
 }
 
+const openCommandPalette = () => {
+  emit('open-command', searchQuery.value)
+  searchQuery.value = ''
+}
+
 const handleLogout = async () => {
   try {
     await store.logout()
@@ -168,6 +175,18 @@ const handleAvatarError = () => {
 const handleImageLoad = () => {
   avatarLoading.value = false
   avatarError.value = false
+}
+
+const handleSearchKeydown = (event) => {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+    event.preventDefault()
+    openCommandPalette()
+    return
+  }
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    openCommandPalette()
+  }
 }
 
 const updateTime = () => {
@@ -276,10 +295,17 @@ onBeforeUnmount(() => {
 }
 
 .search-box input {
+  flex: 1;
   border: none;
   background: transparent;
   padding: 0;
   color: var(--text-0);
+}
+
+.search-hint {
+  font-size: 0.7rem;
+  color: var(--text-3);
+  white-space: nowrap;
 }
 
 .search-box input:focus {
