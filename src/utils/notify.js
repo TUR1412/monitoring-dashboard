@@ -1,36 +1,27 @@
 // src/utils/notify.js
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { useUiStore } from '@/stores/ui'
+
+const push = (type, message, duration) => {
+  const store = useUiStore()
+  store.pushToast({ type, message, duration })
+}
 
 export const notify = {
   success(message) {
-    ElMessage({
-      type: 'success',
-      message,
-      duration: 2000
-    })
+    push('success', message, 2200)
   },
   info(message) {
-    ElMessage({
-      type: 'info',
-      message,
-      duration: 2200
-    })
+    push('info', message, 2400)
   },
-
+  warning(message) {
+    push('warning', message, 2600)
+  },
   error(message) {
-    ElMessage({
-      type: 'error',
-      message,
-      duration: 3000
-    })
+    push('error', message, 3200)
   },
-
   confirm(message, title = '确认') {
-    return ElMessageBox.confirm(message, title, {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
+    const store = useUiStore()
+    return store.requestConfirm(message, title)
   }
 }
 

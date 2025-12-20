@@ -14,8 +14,8 @@
       <span v-if="loading" class="spinner"></span>
       
       <!-- Icon -->
-      <span v-else-if="icon" class="button-icon">
-        <component :is="icon" class="icon" />
+      <span v-else-if="iconComponent" class="button-icon">
+        <component :is="iconComponent" class="icon" />
       </span>
       
       <!-- Button Content -->
@@ -26,8 +26,8 @@
   </template>
   
   <script setup>
-  import * as Icons from '@element-plus/icons-vue'
   import { computed } from 'vue'
+  import { Plus, Pencil, Trash2, Check, X } from 'lucide-vue-next'
   const props = defineProps({
     type: {
       type: String,
@@ -65,9 +65,18 @@
   })
   
   // 动态导入图标
+  const iconMap = {
+    Plus,
+    Edit: Pencil,
+    Delete: Trash2,
+    Check,
+    Close: X,
+    X
+  }
+
   const iconComponent = computed(() => {
     if (!props.icon) return null
-    return Icons[props.icon]
+    return iconMap[props.icon] || null
   })
   </script>
   

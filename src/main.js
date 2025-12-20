@@ -6,8 +6,6 @@ import { createPinia } from 'pinia';
 import { useMonitorStore } from './stores/monitorStore';
 import '@fortawesome/fontawesome-free/css/all.css';
 import './style.css';
-import ElementPlus from 'element-plus';
-import 'element-plus/dist/index.css';
 
 // 创建 Pinia 实例
 const pinia = createPinia();
@@ -16,7 +14,6 @@ const pinia = createPinia();
 const app = createApp(App);
 
 // 使用插件
-app.use(ElementPlus);
 app.use(pinia);
 app.use(router);
 

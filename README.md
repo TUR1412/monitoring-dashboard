@@ -5,7 +5,6 @@
 ![Vite](https://img.shields.io/badge/Vite-6.x-22d3ee?style=flat-square&logo=vite&logoColor=white)
 ![Vue](https://img.shields.io/badge/Vue-3.x-42b883?style=flat-square&logo=vue.js&logoColor=white)
 ![Pinia](https://img.shields.io/badge/Pinia-2.x-f59e0b?style=flat-square&logo=pinia&logoColor=white)
-![ElementPlus](https://img.shields.io/badge/Element%20Plus-2.x-409eff?style=flat-square&logo=element&logoColor=white)
 
 ---
 
@@ -49,7 +48,7 @@ npm run build
 
 - **框架**：Vue 3 + Vite
 - **状态**：Pinia
-- **UI**：Element Plus + 自研设计系统（Aurora）
+- **UI**：自研设计系统（Aurora）
 - **可视化**：Chart.js
 - **表单验证**：Vuelidate
 

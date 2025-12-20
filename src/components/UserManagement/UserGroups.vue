@@ -5,7 +5,7 @@ import { useUserGroups } from '@/composables/useUserGroups'
 import BaseModal from '@/components/base/BaseModal.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { notify } from '@/utils/notify'
 
 const {
   groups,
@@ -20,6 +20,12 @@ const showAddGroupModal = ref(false)
 const newGroupName = ref('')
 const editingGroup = ref(null)
 
+const resetModal = () => {
+  showAddGroupModal.value = false
+  editingGroup.value = null
+  newGroupName.value = ''
+}
+
 onMounted(async () => {
   await fetchUserGroups()
 })
@@ -28,38 +34,41 @@ const handleAddGroup = async () => {
   if (!newGroupName.value.trim()) return
   
   try {
-    await addUserGroup({
-      name: newGroupName.value.trim(),
-      memberCount: 0,
-      createTime: new Date().toISOString().split('T')[0]
-    })
-    
-    showAddGroupModal.value = false
-    newGroupName.value = ''
-    ElMessage.success('用户组创建成功')
+    if (editingGroup.value) {
+      await updateUserGroup(editingGroup.value.id, {
+        ...editingGroup.value,
+        name: newGroupName.value.trim()
+      })
+      notify.success('用户组更新成功')
+    } else {
+      await addUserGroup({
+        name: newGroupName.value.trim(),
+        memberCount: 0,
+        createTime: new Date().toISOString().split('T')[0]
+      })
+      notify.success('用户组创建成功')
+    }
+    resetModal()
   } catch (error) {
-    ElMessage.error('创建用户组失败：' + error.message)
+    notify.error('创建用户组失败：' + error.message)
   }
 }
 
 const handleEditGroup = async (group) => {
   editingGroup.value = { ...group }
+  newGroupName.value = group.name
   showAddGroupModal.value = true
 }
 
 const handleDeleteGroup = async (groupId) => {
   try {
-    await ElMessageBox.confirm('确定要删除该用户组吗？此操作不可恢复', '警告', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
+    await notify.confirm('确定要删除该用户组吗？此操作不可恢复', '警告')
     
     await deleteUserGroup(groupId)
-    ElMessage.success('用户组删除成功')
+    notify.success('用户组删除成功')
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('删除用户组失败：' + error.message)
+      notify.error('删除用户组失败：' + error.message)
     }
   }
 }
@@ -134,12 +143,12 @@ const handleDeleteGroup = async (groupId) => {
         </div>
         
         <div class="form-actions">
-          <BaseButton
-            type="default"
-            @click="showAddGroupModal = false"
-          >
-            取消
-          </BaseButton>
+      <BaseButton
+        type="default"
+        @click="resetModal"
+      >
+        取消
+      </BaseButton>
           <BaseButton
             type="primary"
             :loading="loading"

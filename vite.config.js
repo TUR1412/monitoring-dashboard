@@ -14,7 +14,6 @@ export default defineConfig({
       output: {
         manualChunks: {
           vue: ['vue', 'vue-router', 'pinia'],
-          ui: ['element-plus', '@element-plus/icons-vue'],
           charts: ['chart.js'],
           icons: ['@fortawesome/fontawesome-free', 'lucide-vue-next']
         }
