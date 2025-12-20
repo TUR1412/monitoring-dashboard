@@ -19,7 +19,7 @@
       </span>
       
       <!-- Button Content -->
-      <span :class="{ 'ml-2': icon && $slots.default }">
+      <span :class="{ 'ml-2': iconComponent && $slots.default }">
         <slot></slot>
       </span>
     </button>

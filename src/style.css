@@ -379,6 +379,19 @@ textarea:focus {
   font-weight: 600;
 }
 
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.25);
+}
+
 .btn-primary {
   background: linear-gradient(135deg, rgba(34, 211, 238, 0.9), rgba(251, 113, 133, 0.9));
   color: var(--text-0);
