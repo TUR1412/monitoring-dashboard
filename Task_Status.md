@@ -17,6 +17,8 @@
 - [x] 3. 核心页面升级（Dashboard / Header / Sidebar / TabBar / Login / Logs 等）
 - [x] 4. 命令面板与快捷导航能力注入（Ctrl + K）
 - [x] 5. 图表渲染优化与主题自适配
-- [x] 6. README 一级美化与内容重写
-- [x] 7. 有限构建验证（npm run build 或 node --check）
-- [ ] 8. 推送并按要求删除本地仓库（需最终确认）
+- [x] 6. 报告中心 UI 重构与导出能力强化
+- [x] 7. 表单控件与状态持久化升级（reports）
+- [x] 8. README 一级美化与内容重写
+- [x] 9. 有限构建验证（npm run build 或 node --check）
+- [ ] 10. 推送并按要求删除本地仓库（需最终确认）
