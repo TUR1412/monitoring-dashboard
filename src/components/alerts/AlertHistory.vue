@@ -7,14 +7,14 @@
         <div class="section-subtitle">筛选、复盘与导出风险事件</div>
       </div>
       <div class="header-actions">
-        <button class="btn btn-ghost" title="刷新数据" @click="refreshData">
+        <BaseButton type="ghost" size="small" title="刷新数据" @click="refreshData">
           <i class="fas fa-rotate-right"></i>
           刷新数据
-        </button>
-        <button class="btn btn-primary" title="导出数据" @click="exportAlerts">
+        </BaseButton>
+        <BaseButton type="primary" size="small" title="导出数据" @click="exportAlerts">
           <i class="fas fa-download"></i>
           导出数据
-        </button>
+        </BaseButton>
       </div>
     </div>
 
@@ -113,14 +113,15 @@
               <td class="truncate" :title="alert.description">{{ alert.description }}</td>
               <td>
                 <div class="row-actions">
-                  <button class="btn btn-ghost" @click="viewAlertDetails(alert)">查看</button>
-                  <button
-                    class="btn btn-ghost"
+                  <BaseButton type="ghost" size="small" @click="viewAlertDetails(alert)">查看</BaseButton>
+                  <BaseButton
+                    type="ghost"
+                    size="small"
                     :disabled="alert.status === 'resolved'"
                     @click="handleUpdateAlertStatus(alert)"
                   >
                     {{ alert.status === 'open' ? '确认' : '解决' }}
-                  </button>
+                  </BaseButton>
                 </div>
               </td>
             </tr>
@@ -134,23 +135,25 @@
           <FormSelect v-model="pagination.pageSize" :options="pageSizeOptions" />
         </div>
         <div class="pagination-controls">
-          <button class="btn btn-ghost" :disabled="!canPrev" @click="goToPage(pagination.currentPage - 1)">
+          <BaseButton type="ghost" size="small" :disabled="!canPrev" @click="goToPage(pagination.currentPage - 1)">
             上一页
-          </button>
+          </BaseButton>
           <div class="page-numbers">
-            <button
+            <BaseButton
               v-for="page in pageNumbers"
               :key="page"
+              type="ghost"
+              size="small"
               class="page-number"
               :class="{ active: page === pagination.currentPage }"
               @click="goToPage(page)"
             >
               {{ page }}
-            </button>
+            </BaseButton>
           </div>
-          <button class="btn btn-ghost" :disabled="!canNext" @click="goToPage(pagination.currentPage + 1)">
+          <BaseButton type="ghost" size="small" :disabled="!canNext" @click="goToPage(pagination.currentPage + 1)">
             下一页
-          </button>
+          </BaseButton>
         </div>
       </div>
     </div>
@@ -179,7 +182,7 @@
         </div>
       </div>
       <template #footer>
-        <button class="btn btn-primary" @click="dialogVisible = false">关闭</button>
+        <BaseButton type="primary" @click="dialogVisible = false">关闭</BaseButton>
       </template>
     </BaseModal>
   </div>
@@ -193,6 +196,7 @@ import { saveAs } from 'file-saver'
 import FormSelect from '@/components/common/FormSelect.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseModal from '@/components/base/BaseModal.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
 import { notify } from '@/utils/notify'
 
 const alertData = ref([])

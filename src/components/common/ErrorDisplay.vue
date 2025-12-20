@@ -1,20 +1,22 @@
 <template>
   <div class="error-display surface-card">
     <p>{{ message }}</p>
-    <button @click="$emit('retry')" class="btn btn-danger">
+    <BaseButton type="danger" size="small" @click="$emit('retry')">
       重试
-    </button>
+    </BaseButton>
   </div>
 </template>
   
-  <script setup>
-  const props = defineProps({
-    message: {
-      type: String,
-      required: true
-    }
-  })
-  </script>
+<script setup>
+import BaseButton from '@/components/base/BaseButton.vue'
+
+const props = defineProps({
+  message: {
+    type: String,
+    required: true
+  }
+})
+</script>
   
 <style scoped>
 .error-display {

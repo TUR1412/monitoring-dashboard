@@ -11,31 +11,40 @@
           一眼掌控关键资源、风险波动与业务脉搏，确保核心链路稳定。
         </p>
         <div class="hero-actions">
-          <button class="btn btn-primary">
+          <BaseButton type="primary" size="default">
             <i class="fas fa-bolt"></i>
             立即巡检
-          </button>
-          <button class="btn btn-ghost">
+          </BaseButton>
+          <BaseButton type="ghost" size="default">
             <i class="fas fa-file-alt"></i>
             生成日报
-          </button>
+          </BaseButton>
         </div>
       </div>
       <div class="hero-metrics">
         <div class="metric-card surface-card">
           <div class="metric-label">CPU 峰值</div>
           <div class="metric-value">{{ latestCpu }}%</div>
-          <div class="metric-meta">过去 1 小时</div>
+          <div class="metric-meta">{{ cpuToneLabel }} · 过去 1 小时</div>
+          <div class="metric-progress">
+            <span class="metric-progress-bar" :class="cpuTone" :style="{ width: `${latestCpu}%` }"></span>
+          </div>
         </div>
         <div class="metric-card surface-card">
           <div class="metric-label">内存占用</div>
           <div class="metric-value">{{ memoryPercent }}%</div>
-          <div class="metric-meta">{{ memoryUsage.used }} MB / {{ memoryTotal }} MB</div>
+          <div class="metric-meta">{{ memoryToneLabel }} · {{ memoryUsage.used }} MB / {{ memoryTotal }} MB</div>
+          <div class="metric-progress">
+            <span class="metric-progress-bar" :class="memoryTone" :style="{ width: `${memoryPercent}%` }"></span>
+          </div>
         </div>
         <div class="metric-card surface-card">
           <div class="metric-label">健康评分</div>
           <div class="metric-value">{{ healthScore }}</div>
           <div class="metric-meta">{{ healthLabel }}</div>
+          <div class="metric-progress">
+            <span class="metric-progress-bar" :class="healthTone" :style="{ width: `${healthScore}%` }"></span>
+          </div>
         </div>
       </div>
     </section>
@@ -84,12 +93,12 @@
         </div>
         <div class="alert-list">
           <div v-for="alert in activeAlerts" :key="alert.id" class="alert-item">
-            <span :class="['alert-level', alert.level]">{{ alert.level }}</span>
+            <span :class="['alert-level', alert.level]">{{ levelLabel(alert.level) }}</span>
             <div class="alert-info">
               <div class="alert-title">{{ alert.title }}</div>
               <div class="alert-meta">{{ alert.source }}</div>
             </div>
-            <span class="alert-time">{{ formatTime(alert.timestamp) }}</span>
+            <span class="alert-time">{{ formatDateTime(alert.timestamp) }}</span>
           </div>
           <div v-if="!activeAlerts.length" class="empty-hint">
             暂无未确认警报，系统运行平稳。
@@ -140,6 +149,8 @@ import CpuUsage from '@/components/charts/CpuUsage.vue'
 import MemoryUsage from '@/components/charts/MemoryUsage.vue'
 import DiskUsage from '@/components/charts/DiskUsage.vue'
 import NetworkTraffic from '@/components/charts/NetworkTraffic.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import { formatDateTime, sortByTimestamp } from '@/utils/logs'
 
 const store = useMonitorStore()
 
@@ -173,12 +184,61 @@ const healthLabel = computed(() => {
   return '高风险'
 })
 
-const activeAlerts = computed(() => store.alerts.filter(alert => !alert.acknowledged && !alert.archived).slice(0, 4))
+const cpuTone = computed(() => {
+  if (latestCpu.value >= 85) return 'danger'
+  if (latestCpu.value >= 65) return 'warning'
+  return 'safe'
+})
+
+const memoryTone = computed(() => {
+  if (memoryPercent.value >= 85) return 'danger'
+  if (memoryPercent.value >= 65) return 'warning'
+  return 'safe'
+})
+
+const healthTone = computed(() => {
+  if (healthScore.value >= 85) return 'safe'
+  if (healthScore.value >= 70) return 'warning'
+  return 'danger'
+})
+
+const cpuToneLabel = computed(() => {
+  if (cpuTone.value === 'danger') return '高负载'
+  if (cpuTone.value === 'warning') return '偏高'
+  return '平稳'
+})
+
+const memoryToneLabel = computed(() => {
+  if (memoryTone.value === 'danger') return '高占用'
+  if (memoryTone.value === 'warning') return '偏高'
+  return '健康'
+})
+
+const severityRank = {
+  critical: 4,
+  error: 3,
+  warning: 2,
+  info: 1
+}
+
+const activeAlerts = computed(() => {
+  const data = store.alerts.filter(alert => !alert.acknowledged && !alert.archived)
+  const sorted = [...data].sort((a, b) => {
+    const severityDiff = (severityRank[b.level] || 0) - (severityRank[a.level] || 0)
+    if (severityDiff !== 0) return severityDiff
+    const timeSorted = sortByTimestamp([a, b], 'desc', (item) => item.timestamp)
+    return timeSorted[0]?.id === a.id ? -1 : 1
+  })
+  return sorted.slice(0, 4)
+})
+
 const hotProcesses = computed(() => store.processes.slice(0, 4))
 
-const formatTime = (timestamp) => {
-  const date = new Date(timestamp)
-  return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+const levelLabel = (level) => {
+  if (level === 'critical') return '严重'
+  if (level === 'error') return '错误'
+  if (level === 'warning') return '警告'
+  return '信息'
 }
 </script>
 
@@ -244,6 +304,32 @@ const formatTime = (timestamp) => {
   color: var(--text-3);
 }
 
+.metric-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.18);
+  overflow: hidden;
+}
+
+.metric-progress-bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0.8), rgba(20, 241, 217, 0.5));
+}
+
+.metric-progress-bar.warning {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.85), rgba(251, 191, 36, 0.5));
+}
+
+.metric-progress-bar.danger {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.85), rgba(248, 113, 113, 0.5));
+}
+
+.metric-progress-bar.safe {
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.85), rgba(74, 222, 128, 0.5));
+}
+
 .alert-list {
   display: flex;
   flex-direction: column;
@@ -278,6 +364,12 @@ const formatTime = (timestamp) => {
   background: rgba(245, 158, 11, 0.15);
   color: #fde68a;
   border-color: rgba(245, 158, 11, 0.4);
+}
+
+.alert-level.critical {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fecaca;
+  border-color: rgba(239, 68, 68, 0.5);
 }
 
 .alert-level.info {

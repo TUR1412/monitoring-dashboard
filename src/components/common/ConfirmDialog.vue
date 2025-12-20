@@ -9,8 +9,8 @@
     <p class="confirm-message">{{ store.confirmMessage }}</p>
     <template #footer>
       <div class="confirm-actions">
-        <button class="btn btn-ghost" @click="handleClose">取消</button>
-        <button class="btn btn-primary" @click="handleConfirm">确定</button>
+        <BaseButton type="ghost" size="small" @click="handleClose">取消</BaseButton>
+        <BaseButton type="primary" size="small" @click="handleConfirm">确定</BaseButton>
       </div>
     </template>
   </BaseModal>
@@ -18,6 +18,7 @@
 
 <script setup>
 import BaseModal from '@/components/base/BaseModal.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
 import { useUiStore } from '@/stores/ui'
 
 const store = useUiStore()

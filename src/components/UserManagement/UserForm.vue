@@ -5,11 +5,10 @@
     <form @submit.prevent="handleSubmit" class="form">
       <div class="form-group">
         <label for="username">用户名</label>
-        <input
-          type="text"
+        <BaseInput
           id="username"
           v-model="form.username"
-          :class="{ 'error-input': v$.form.username.$error }"
+          :invalid="v$.form.username.$error"
           @blur="v$.form.username.$touch()"
           required
           placeholder="输入用户名"
@@ -36,9 +35,14 @@
         </span>
       </div>
 
-      <button type="submit" class="button-neon" :disabled="loading || v$.$invalid">
+      <BaseButton
+        type="primary"
+        native-type="submit"
+        :loading="loading"
+        :disabled="loading || v$.$invalid"
+      >
         {{ loading ? '处理中...' : submitText }}
-      </button>
+      </BaseButton>
 
       <div v-if="successMessage" class="success">{{ successMessage }}</div>
       <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
@@ -50,6 +54,8 @@
 import { ref, reactive, computed } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
 import { required, minLength } from '@vuelidate/validators'
+import BaseInput from '@/components/base/BaseInput.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
 
 export default {
   name: 'UserForm',
@@ -76,6 +82,10 @@ export default {
   },
   
   emits: ['submit'],
+  components: {
+    BaseInput,
+    BaseButton
+  },
 
   setup(props, { emit }) {
     const form = reactive({
@@ -159,7 +169,6 @@ label {
   color: var(--text-2);
 }
 
-input,
 select {
   width: 100%;
   padding: 0.75rem;
@@ -171,12 +180,10 @@ select {
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-input::placeholder,
 select::placeholder {
   color: var(--paragraph-color);
 }
 
-input:focus,
 select:focus {
   outline: none;
   border-color: var(--accent-0);
@@ -193,15 +200,7 @@ select:focus {
   font-size: 0.875rem;
 }
 
-/* 移除局部按钮样式，使用全局 .button-neon 类 */
-button {
-  /* 移除局部样式 */
-}
-
-/* 确保全局按钮样式应用 */
-:deep(.button-neon) {
-  /* 无需添加样式，依赖全局样式 */
-}
+/* BaseButton 已负责按钮样式 */
 
 .success,
 .error {

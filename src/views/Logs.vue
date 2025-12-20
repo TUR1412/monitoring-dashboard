@@ -8,6 +8,23 @@
       </div>
       <span class="pill">数据实时同步</span>
     </div>
+    <div class="log-overview-grid">
+      <div class="log-summary-card">
+        <span class="log-summary-label">系统日志</span>
+        <strong class="log-summary-value">{{ systemCount }}</strong>
+        <span class="log-summary-meta">最新更新：{{ systemLatest }}</span>
+      </div>
+      <div class="log-summary-card is-alert">
+        <span class="log-summary-label">安全日志</span>
+        <strong class="log-summary-value">{{ securityCount }}</strong>
+        <span class="log-summary-meta">最新更新：{{ securityLatest }}</span>
+      </div>
+      <div class="log-summary-card is-warning">
+        <span class="log-summary-label">审计日志</span>
+        <strong class="log-summary-value">{{ auditCount }}</strong>
+        <span class="log-summary-meta">最新更新：{{ auditLatest }}</span>
+      </div>
+    </div>
     <div class="logs-nav surface-glass">
       <router-link to="/dashboard/logs/system" class="nav-link">系统日志</router-link>
       <router-link to="/dashboard/logs/security" class="nav-link">安全日志</router-link>
@@ -17,10 +34,31 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'Logs'
-}
+<script setup>
+import { computed } from 'vue'
+import { useMonitorStore } from '@/stores/monitorStore'
+import { formatDateTime, getLatestDate } from '@/utils/logs'
+
+const store = useMonitorStore()
+
+const systemCount = computed(() => store.logs?.length ?? 0)
+const securityCount = computed(() => store.securityLogs?.length ?? 0)
+const auditCount = computed(() => store.auditLogs?.length ?? 0)
+
+const systemLatest = computed(() => {
+  const latest = getLatestDate(store.logs ?? [])
+  return latest ? formatDateTime(latest) : '暂无数据'
+})
+
+const securityLatest = computed(() => {
+  const latest = getLatestDate(store.securityLogs ?? [])
+  return latest ? formatDateTime(latest) : '暂无数据'
+})
+
+const auditLatest = computed(() => {
+  const latest = getLatestDate(store.auditLogs ?? [])
+  return latest ? formatDateTime(latest) : '暂无数据'
+})
 </script>
 
 <style scoped>
@@ -28,6 +66,18 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.log-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.log-summary-meta {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--text-3);
 }
 
 .logs-nav {

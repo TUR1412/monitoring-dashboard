@@ -22,9 +22,11 @@
         <div v-else class="palette-body">
           <div v-if="display.recents.length" class="palette-section">
             <p class="palette-section-title">最近</p>
-            <button
+            <BaseButton
               v-for="(item, index) in display.recents"
               :key="item.id"
+              type="ghost"
+              size="small"
               class="palette-item"
               :class="{ active: activeIndex === index }"
               @click="selectItem(item)"
@@ -34,14 +36,16 @@
                 <span>{{ item.title }}</span>
               </div>
               <span class="palette-item-meta">{{ item.description }}</span>
-            </button>
+            </BaseButton>
           </div>
 
           <div class="palette-section">
             <p class="palette-section-title">推荐</p>
-            <button
+            <BaseButton
               v-for="(item, index) in display.others"
               :key="item.id"
+              type="ghost"
+              size="small"
               class="palette-item"
               :class="{ active: activeIndex === index + display.recents.length }"
               @click="selectItem(item)"
@@ -51,7 +55,7 @@
                 <span>{{ item.title }}</span>
               </div>
               <span class="palette-item-meta">{{ item.description }}</span>
-            </button>
+            </BaseButton>
           </div>
         </div>
       </div>
@@ -63,6 +67,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMonitorStore } from '@/stores/monitorStore'
+import BaseButton from '@/components/base/BaseButton.vue'
 
 const props = defineProps({
   open: {

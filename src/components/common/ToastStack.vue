@@ -13,15 +13,21 @@
         <div class="toast-title">{{ titleMap[toast.type] || '提示' }}</div>
         <div class="toast-message">{{ toast.message }}</div>
       </div>
-      <button class="toast-close" @click="store.removeToast(toast.id)" aria-label="关闭通知">
-        ×
-      </button>
+      <BaseButton
+        class="toast-close"
+        type="ghost"
+        size="small"
+        icon="Close"
+        aria-label="关闭通知"
+        @click="store.removeToast(toast.id)"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
 import { useUiStore } from '@/stores/ui'
+import BaseButton from '@/components/base/BaseButton.vue'
 
 const store = useUiStore()
 
@@ -94,12 +100,23 @@ const titleMap = {
   color: var(--text-2);
 }
 
-.toast-close {
+.toast-close.btn {
   background: transparent;
   border: none;
   color: var(--text-3);
-  font-size: 1.1rem;
-  cursor: pointer;
+  padding: 0.25rem;
+  min-width: 0;
+  box-shadow: none;
+}
+
+.toast-close.btn:hover {
+  background: rgba(148, 163, 184, 0.14);
+  color: var(--text-1);
+}
+
+.toast-close .icon {
+  width: 0.85rem;
+  height: 0.85rem;
 }
 
 .toast-success {

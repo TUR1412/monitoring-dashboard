@@ -41,22 +41,28 @@
               required
               placeholder="请输入密码"
             />
-            <button
-              type="button"
+            <BaseButton
+              type="ghost"
+              size="small"
               class="toggle-password"
               @click="togglePassword"
               :aria-label="showPassword ? '隐藏密码' : '显示密码'"
             >
               <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
-            </button>
+            </BaseButton>
           </div>
           <span v-if="passwordError" class="error-message">{{ passwordError }}</span>
         </div>
 
-        <button type="submit" class="btn btn-primary login-button" :disabled="loading">
-          <span v-if="!loading">登 录</span>
-          <span v-else class="loading-spinner"></span>
-        </button>
+        <BaseButton
+          type="primary"
+          native-type="submit"
+          class="login-button"
+          :loading="loading"
+          :disabled="loading"
+        >
+          {{ loading ? '登录中...' : '登 录' }}
+        </BaseButton>
 
         <div v-if="error" class="error-container">
           <span class="error-icon">!</span>
@@ -64,26 +70,26 @@
         </div>
 
         <div class="option-buttons">
-          <button type="button" class="option-btn" @click="showNotImplemented('忘记密码')">
+          <BaseButton type="ghost" size="small" class="option-btn" @click="showNotImplemented('忘记密码')">
             忘记密码？
-          </button>
-          <button type="button" class="option-btn" @click="showNotImplemented('扫码登录')">
+          </BaseButton>
+          <BaseButton type="ghost" size="small" class="option-btn" @click="showNotImplemented('扫码登录')">
             扫码登录
-          </button>
-          <button type="button" class="option-btn" @click="showNotImplemented('注册账号')">
+          </BaseButton>
+          <BaseButton type="ghost" size="small" class="option-btn" @click="showNotImplemented('注册账号')">
             注册账号
-          </button>
+          </BaseButton>
         </div>
 
         <div class="social-login">
-          <button type="button" class="social-btn" @click="showNotImplemented('微信登录')">
+          <BaseButton type="ghost" size="small" class="social-btn" @click="showNotImplemented('微信登录')">
             <MessageCircle class="social-icon" />
             微信登录
-          </button>
-          <button type="button" class="social-btn" @click="showNotImplemented('企业微信登录')">
+          </BaseButton>
+          <BaseButton type="ghost" size="small" class="social-btn" @click="showNotImplemented('企业微信登录')">
             <QrCode class="social-icon" />
             企业微信
-          </button>
+          </BaseButton>
         </div>
       </form>
     </div>
@@ -96,6 +102,7 @@ import { useMonitorStore } from '@/stores/monitorStore'
 import { useRouter } from 'vue-router'
 import { notify } from '@/utils/notify'
 import { MessageCircle, QrCode } from 'lucide-vue-next'
+import BaseButton from '@/components/base/BaseButton.vue'
 
 const router = useRouter()
 const store = useMonitorStore()
@@ -217,23 +224,16 @@ const showNotImplemented = (feature) => {
 .toggle-password {
   position: absolute;
   right: 0.6rem;
-  background: transparent;
-  border: none;
   color: var(--text-2);
   cursor: pointer;
+  padding: 0.25rem;
+  min-width: auto;
+  border: none;
+  background: transparent;
 }
 
 .login-button {
   justify-content: center;
-}
-
-.loading-spinner {
-  width: 22px;
-  height: 22px;
-  border: 3px solid rgba(255, 255, 255, 0.4);
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
 }
 
 .error-container {

@@ -3,9 +3,9 @@
     <div class="surveys">
       <h2 class="text-2xl font-bold mb-4">调查问卷</h2>
       <div class="survey-controls mb-4">
-        <button @click="createNewSurvey" class="btn btn-primary">
+        <BaseButton type="primary" size="small" @click="createNewSurvey">
           创建新调查
-        </button>
+        </BaseButton>
         <select v-model="filterStatus">
           <option value="all">全部调查</option>
           <option value="active">进行中</option>
@@ -26,8 +26,14 @@
   </template>
   
   <script>
+  import BaseButton from '@/components/base/BaseButton.vue'
+  import { notify } from '@/utils/notify'
+
   export default {
     name: 'Surveys',
+    components: {
+      BaseButton
+    },
     data() {
       return {
         filterStatus: 'all',
@@ -44,8 +50,7 @@
     methods: {
       // 创建新的调查问卷
       createNewSurvey() {
-        // 实现创建新调查问卷的逻辑
-        alert('创建新调查问卷功能尚未实现。')
+        notify.info('创建新调查问卷功能尚未实现')
       }
     },
     created() {

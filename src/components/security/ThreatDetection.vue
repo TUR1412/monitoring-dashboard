@@ -41,9 +41,7 @@
                    backgroundColor: `${priority.color}20`,
                    border: `2px solid ${priority.color}`
                  }">
-              <span class="text-2xl" :style="{ color: priority.color }">
-                {{ priority.icon }}
-              </span>
+              <i class="text-2xl" :class="priority.icon" :style="{ color: priority.color }"></i>
             </div>
           </div>
           <h3 class="text-xl font-medium mb-3" :style="{ color: priority.color }">
@@ -81,12 +79,16 @@
             }">
           威胁详情
         </h3>
-        <button @click="refreshThreats" 
-                class="refresh-button px-6 py-2 rounded-lg transition-all duration-300 flex items-center space-x-2"
-                :class="{ 'animate-spin': isRefreshing }">
-          <span class="icon text-lg">↻</span>
+        <BaseButton
+          type="ghost"
+          size="small"
+          class="refresh-button px-6 py-2 rounded-lg transition-all duration-300 flex items-center space-x-2"
+          :class="{ 'animate-spin': isRefreshing }"
+          @click="refreshThreats"
+        >
+          <i class="fas fa-rotate text-lg"></i>
           <span>刷新数据</span>
-        </button>
+        </BaseButton>
       </div>
 
       <div class="threat-list space-y-4">
@@ -119,15 +121,19 @@
             </div>
           </div>
           <div class="threat-actions mt-4 flex justify-end space-x-3">
-            <button v-for="action in threat.actions" 
-                    :key="action.label"
-                    class="action-button px-3 py-1 rounded-md text-sm transition-all duration-300"
-                    :style="{
-                      borderColor: getThreatColor(threat.severity),
-                      color: getThreatColor(threat.severity)
-                    }">
+            <BaseButton
+              v-for="action in threat.actions"
+              :key="action.label"
+              type="ghost"
+              size="small"
+              class="action-button px-3 py-1 rounded-md text-sm transition-all duration-300"
+              :style="{
+                borderColor: getThreatColor(threat.severity),
+                color: getThreatColor(threat.severity)
+              }"
+            >
               {{ action.label }}
-            </button>
+            </BaseButton>
           </div>
         </div>
       </div>
@@ -136,7 +142,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onBeforeUnmount, onMounted } from 'vue'
+import BaseButton from '@/components/base/BaseButton.vue'
 
 const currentTime = ref(new Date().toLocaleString('zh-CN'))
 const isRefreshing = ref(false)
@@ -149,7 +156,7 @@ const priorities = ref([
     percentage: 75,
     color: 'var(--neon-red)',
     cardClass: 'high-priority',
-    icon: '⚠️'
+    icon: 'fas fa-radiation'
   },
   {
     label: '中度威胁',
@@ -158,7 +165,7 @@ const priorities = ref([
     percentage: 45,
     color: 'var(--neon-yellow)',
     cardClass: 'medium-priority',
-    icon: '⚡'
+    icon: 'fas fa-bolt'
   },
   {
     label: '低危威胁',
@@ -167,7 +174,7 @@ const priorities = ref([
     percentage: 25,
     color: 'var(--neon-green)',
     cardClass: 'low-priority',
-    icon: '📊'
+    icon: 'fas fa-shield-virus'
   }
 ])
 
@@ -269,10 +276,16 @@ const refreshThreats = async () => {
 }
 
 // 自动刷新
+let timerId = null
+
 onMounted(() => {
-  setInterval(() => {
+  timerId = setInterval(() => {
     currentTime.value = new Date().toLocaleString('zh-CN')
   }, 1000)
+})
+
+onBeforeUnmount(() => {
+  if (timerId) clearInterval(timerId)
 })
 </script>
 <style scoped>

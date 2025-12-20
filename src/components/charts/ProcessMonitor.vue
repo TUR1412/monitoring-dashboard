@@ -30,13 +30,14 @@
                   />
                 </td>
                 <td>
-                  <button 
-                    class="action-button" 
+                  <BaseButton
+                    type="danger"
+                    size="small"
                     @click="handleProcessAction(process.pid)"
                     :disabled="process.status === 'stopped'"
                   >
                     <i class="fas fa-stop"></i>
-                  </button>
+                  </BaseButton>
                 </td>
               </tr>
             </tbody>
@@ -64,12 +65,14 @@ import { computed, onMounted, onUnmounted } from 'vue'
 import { useMonitorStore } from '@/stores/monitorStore'
 import ChartComponent from './ChartComponent.vue'
 import StatusIndicator from '../StatusIndicator.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
 
 export default {
   name: 'ProcessMonitor',
   components: {
     ChartComponent,
-    StatusIndicator
+    StatusIndicator,
+    BaseButton
   },
   setup() {
     const store = useMonitorStore()
@@ -229,25 +232,6 @@ th {
 .status-badge.stopped {
   background-color: var(--danger-bg);
   color: var(--danger-text);
-}
-
-.action-button {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  background-color: var(--danger-bg);
-  color: var(--danger-text);
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.action-button:hover {
-  opacity: 0.8;
-}
-
-.action-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
 }
 
 .chart-container {

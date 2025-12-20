@@ -27,25 +27,26 @@
             <p>按需生成日报、周报与专项分析</p>
           </div>
           <div class="controls-actions">
-            <button class="btn btn-ghost" @click="exportReports('json')">
+            <BaseButton type="ghost" size="small" @click="exportReports('json')">
               导出 JSON
-            </button>
-            <button class="btn btn-ghost" @click="exportReports('csv')">
+            </BaseButton>
+            <BaseButton type="ghost" size="small" @click="exportReports('csv')">
               导出 CSV
-            </button>
+            </BaseButton>
           </div>
         </div>
         <div class="controls-grid">
           <FormSelect v-model="dateRange" label="日期范围" :options="dateRangeOptions" />
           <FormSelect v-model="reportType" label="报告类型" :options="reportTypeOptions" />
-          <button
-            class="btn btn-primary generate-button"
+          <BaseButton
+            type="primary"
+            class="generate-button"
             :disabled="isGenerating"
             @click="generateReport"
           >
             <span v-if="isGenerating" class="loading-spinner"></span>
             {{ isGenerating ? '生成中...' : '生成报告' }}
-          </button>
+          </BaseButton>
         </div>
       </div>
 
@@ -56,7 +57,7 @@
             <p>最近生成与可下载的分析报告</p>
           </div>
           <div class="table-actions">
-            <button class="btn btn-ghost" @click="loadReports">刷新列表</button>
+            <BaseButton type="ghost" size="small" @click="loadReports">刷新列表</BaseButton>
           </div>
         </div>
 
@@ -67,12 +68,12 @@
 
         <div v-else-if="error" class="state-block error-block">
           <p>{{ error }}</p>
-          <button class="btn btn-danger" @click="loadReports">重试</button>
+          <BaseButton type="danger" size="small" @click="loadReports">重试</BaseButton>
         </div>
 
         <div v-else-if="!reports.length" class="state-block empty-block">
           <p>还没有生成任何报告</p>
-          <button class="btn btn-primary" @click="generateReport">生成第一份报告</button>
+          <BaseButton type="primary" size="small" @click="generateReport">生成第一份报告</BaseButton>
         </div>
 
         <div v-else class="table-wrapper">
@@ -105,14 +106,15 @@
                   </span>
                 </td>
                 <td>
-                  <button
-                    class="btn btn-ghost"
+                  <BaseButton
+                    type="ghost"
+                    size="small"
                     :disabled="isDownloading[report.id]"
                     @click="downloadReport(report)"
                   >
                     <span v-if="isDownloading[report.id]" class="loading-spinner small"></span>
                     {{ isDownloading[report.id] ? '下载中' : '下载' }}
-                  </button>
+                  </BaseButton>
                 </td>
               </tr>
             </tbody>
@@ -129,6 +131,7 @@ import { saveAs } from 'file-saver'
 import FormSelect from '../common/FormSelect.vue'
 import { useReportStore } from '@/stores/reports'
 import { formatDate } from '@/utils/date'
+import BaseButton from '@/components/base/BaseButton.vue'
 
 const store = useReportStore()
 const loading = ref(true)

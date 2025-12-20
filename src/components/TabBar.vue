@@ -12,13 +12,15 @@
           @click="switchTab(tab)"
         >
           <span class="tab-title">{{ tab.meta?.title || tab.name }}</span>
-          <button
+          <BaseButton
+            type="ghost"
+            size="small"
             class="tab-close"
             @click.stop="closeTab(tab)"
             aria-label="Close Tab"
           >
             <span aria-hidden="true">&times;</span>
-          </button>
+          </BaseButton>
         </div>
       </div>
     </nav>
@@ -28,9 +30,13 @@
   import { computed } from 'vue';
   import { useMonitorStore } from '@/stores/monitorStore';
   import { useRouter } from 'vue-router';
+  import BaseButton from '@/components/base/BaseButton.vue';
   
   export default {
     name: 'TabBar',
+    components: {
+      BaseButton
+    },
     setup() {
       const store = useMonitorStore();
       const router = useRouter();

@@ -56,24 +56,26 @@
       </div>
 
       <div class="actions-group">
-        <button
-          class="btn btn-ghost"
+        <BaseButton
+          type="ghost"
+          size="small"
           :class="{ 'active': theme === 'dark' }"
           @click="toggleTheme"
           :title="themeButtonTitle"
         >
           <i :class="themeIcon" aria-hidden="true"></i>
           <span class="button-text">{{ themeButtonText }}</span>
-        </button>
+        </BaseButton>
 
-        <button
-          class="btn btn-danger"
+        <BaseButton
+          type="danger"
+          size="small"
           @click="handleLogout"
           :title="logoutButtonTitle"
         >
           <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
           <span class="button-text">退出</span>
-        </button>
+        </BaseButton>
       </div>
     </div>
   </header>
@@ -83,6 +85,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useMonitorStore } from '@/stores/monitorStore'
 import { useRouter } from 'vue-router'
+import BaseButton from '@/components/base/BaseButton.vue'
 
 // Props
 const props = defineProps({

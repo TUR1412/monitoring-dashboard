@@ -1,8 +1,10 @@
 <!-- src/components/RolePermissions.vue -->
 <script setup lang="ts">
-import { ref, reactive, watch, nextTick } from 'vue'
-import { Teleport, Transition } from 'vue'
-import type { Role, Permission, AlertType } from '@/types/role'
+import { ref, reactive, nextTick, computed, watch, onMounted } from 'vue'
+import type { Role, AlertType } from '@/types/role'
+import { notify } from '@/utils/notify'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BaseInput from '@/components/base/BaseInput.vue'
 
 // Types
 interface Alert {
@@ -13,7 +15,7 @@ interface Alert {
 }
 
 // State
-const roles = reactive<Role[]>([
+const createDefaultRoles = () => ([
   {
     id: 1,
     name: '管理员',
@@ -34,9 +36,13 @@ const roles = reactive<Role[]>([
   }
 ])
 
+const roles = reactive<Role[]>(createDefaultRoles())
+
+const STORAGE_KEY = 'md:roles-permissions'
 const editingRole = ref<Role | null>(null)
 const selectedRole = ref<Role | null>(null)
 const showDeleteModal = ref(false)
+const searchQuery = ref('')
 const alert = reactive<Alert>({
   show: false,
   message: '',
@@ -49,6 +55,89 @@ const editingName = ref('')
 const isEditingName = ref(false)
 
 // 新增方法
+const query = computed(() => searchQuery.value.trim().toLowerCase())
+
+const roleStats = computed(() => {
+  const totalRoles = roles.length
+  const totalPermissions = roles.reduce((sum, role) => sum + role.permissions.length, 0)
+  const enabledPermissions = roles.reduce(
+    (sum, role) => sum + role.permissions.filter(perm => perm.enabled).length,
+    0
+  )
+  return {
+    totalRoles,
+    totalPermissions,
+    enabledPermissions
+  }
+})
+
+const filteredRoles = computed(() => {
+  const value = query.value
+  if (!value) return roles
+  return roles.filter((role) => {
+    const nameMatch = role.name.toLowerCase().includes(value)
+    const permissionMatch = role.permissions.some(perm => perm.name.toLowerCase().includes(value))
+    return nameMatch || permissionMatch
+  })
+})
+
+const getVisiblePermissions = (role: Role) => {
+  const value = query.value
+  if (!value || role.name.toLowerCase().includes(value)) return role.permissions
+  return role.permissions.filter(perm => perm.name.toLowerCase().includes(value))
+}
+
+const getNextRoleId = () => roles.reduce((max, role) => Math.max(max, role.id), 0) + 1
+
+const normalizeRoles = (data: unknown) => {
+  if (!Array.isArray(data)) return []
+  return data.map((role, index) => {
+    const safeRole = role && typeof role === 'object' ? role : {}
+    const permissions = Array.isArray(safeRole.permissions) ? safeRole.permissions : []
+    return {
+      id: Number.isFinite(safeRole.id) ? Number(safeRole.id) : index + 1,
+      name: typeof safeRole.name === 'string' && safeRole.name.trim()
+        ? safeRole.name.trim()
+        : `角色 ${index + 1}`,
+      permissions: permissions.map((perm, permIndex) => ({
+        id: Number.isFinite(perm?.id) ? Number(perm.id) : permIndex + 1,
+        name: typeof perm?.name === 'string' && perm.name.trim()
+          ? perm.name.trim()
+          : `权限 ${permIndex + 1}`,
+        enabled: Boolean(perm?.enabled)
+      }))
+    }
+  })
+}
+
+const enabledCount = (role: Role) => role.permissions.filter(perm => perm.enabled).length
+
+const setAllPermissions = (role: Role, enabled: boolean) => {
+  role.permissions.forEach((perm) => {
+    perm.enabled = enabled
+  })
+  showAlert(enabled ? '已启用全部权限' : '已禁用全部权限', enabled ? 'success' : 'warning')
+}
+
+const exportRoles = () => {
+  if (typeof window === 'undefined') return
+  const payload = JSON.stringify(roles, null, 2)
+  const blob = new Blob([payload], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `roles-${new Date().toISOString().slice(0, 10)}.json`
+  link.click()
+  URL.revokeObjectURL(url)
+  notify.success('角色权限已导出')
+}
+
+const resetRoles = async () => {
+  const confirmed = await notify.confirm('确定要重置角色配置到默认状态吗？', '重置角色')
+  if (!confirmed) return
+  roles.splice(0, roles.length, ...createDefaultRoles())
+  showAlert('角色配置已重置', 'info')
+}
 
 /**
  * 开始编辑角色名称
@@ -62,7 +151,7 @@ const editRole = (role: Role) => {
   
   // 使用 nextTick 确保在 DOM 更新后聚焦输入框
   nextTick(() => {
-    const nameInput = document.querySelector('.role-name-input') as HTMLInputElement
+    const nameInput = document.querySelector('.role-name-input .base-input') as HTMLInputElement
     if (nameInput) {
       nameInput.focus()
       nameInput.select()
@@ -91,6 +180,7 @@ const saveRoleName = (role: Role) => {
 const cancelEdit = () => {
   editingRole.value = null
   isEditingName.value = false
+  editingName.value = ''
   showAlert('已取消编辑', 'info')
 }
 
@@ -98,9 +188,10 @@ const cancelEdit = () => {
  * 添加新角色并进入编辑模式
  */
 const addNewRole = () => {
+  const nextId = getNextRoleId()
   const newRole: Role = {
-    id: roles.length + 1,
-    name: `新角色 ${roles.length + 1}`,
+    id: nextId,
+    name: `新角色 ${nextId}`,
     permissions: [
       { id: 1, name: '用户管理', enabled: false },
       { id: 2, name: '系统设置', enabled: false },
@@ -189,6 +280,30 @@ const closeModal = () => {
   showDeleteModal.value = false
   selectedRole.value = null
 }
+
+onMounted(() => {
+  if (typeof window === 'undefined') return
+  const cached = window.localStorage.getItem(STORAGE_KEY)
+  if (!cached) return
+  try {
+    const parsed = JSON.parse(cached)
+    const normalized = normalizeRoles(parsed)
+    if (normalized.length > 0) {
+      roles.splice(0, roles.length, ...normalized)
+    }
+  } catch (error) {
+    window.localStorage.removeItem(STORAGE_KEY)
+  }
+})
+
+watch(
+  roles,
+  (value) => {
+    if (typeof window === 'undefined') return
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value))
+  },
+  { deep: true }
+)
 </script>
 
 <template>
@@ -209,68 +324,110 @@ const closeModal = () => {
     <!-- Header -->
     <div class="header">
       <h2 class="header__title">角色权限管理</h2>
-      <button class="btn btn--add" @click="addNewRole">
-        <i class="fas fa-plus btn__icon" />
+      <BaseButton type="primary" icon="Plus" @click="addNewRole">
         添加角色
-      </button>
+      </BaseButton>
+    </div>
+
+    <div class="role-toolbar">
+      <div class="role-toolbar__search">
+        <BaseInput
+          v-model="searchQuery"
+          placeholder="搜索角色或权限..."
+        />
+      </div>
+      <div class="role-toolbar__stats">
+        <span class="role-stat">角色 {{ roleStats.totalRoles }}</span>
+        <span class="role-stat">
+          已启用权限 {{ roleStats.enabledPermissions }}/{{ roleStats.totalPermissions }}
+        </span>
+      </div>
+      <div class="role-toolbar__actions">
+        <BaseButton type="ghost" size="small" @click="exportRoles">
+          导出配置
+        </BaseButton>
+        <BaseButton type="ghost" size="small" @click="resetRoles">
+          重置默认
+        </BaseButton>
+      </div>
     </div>
 
     <!-- Roles Grid -->
     <div class="roles-grid">
+      <div v-if="filteredRoles.length === 0" class="empty-state">
+        <div class="empty-state__icon">
+          <i class="fas fa-user-shield"></i>
+        </div>
+        <div class="empty-state__title">未找到匹配的角色或权限</div>
+        <div class="empty-state__desc">试试调整关键词，或者创建一个新的角色模板。</div>
+        <BaseButton type="primary" icon="Plus" @click="addNewRole">
+          创建新角色
+        </BaseButton>
+      </div>
       <div
-        v-for="role in roles"
+        v-for="role in filteredRoles"
         :key="role.id"
         :class="['role-card', { 'role-card--editing': editingRole?.id === role.id }]"
       >
         <div class="role-card__header">
           <div v-if="isEditingName && editingRole?.id === role.id" class="role-name-edit">
-            <input
+            <BaseInput
               v-model="editingName"
               type="text"
               class="role-name-input"
               @keyup.enter="saveRoleName(role)"
               @blur="saveRoleName(role)"
-              ref="nameInput"
-            >
+            />
           </div>
           <h3 v-else class="role-card__title" @dblclick="editRole(role)">
             {{ role.name }}
           </h3>
           <div class="role-card__actions">
+            <span class="role-chip">
+              {{ enabledCount(role) }}/{{ role.permissions.length }} 已启用
+            </span>
             <template v-if="editingRole?.id === role.id">
-              <button
-                class="btn btn--icon btn--save"
+              <BaseButton
+                class="role-action"
+                type="success"
+                size="small"
+                icon="Check"
+                aria-label="保存角色名称"
                 @click="saveRoleName(role)"
-              >
-                <i class="fas fa-check" />
-              </button>
-              <button
-                class="btn btn--icon btn--cancel"
+              />
+              <BaseButton
+                class="role-action"
+                type="ghost"
+                size="small"
+                icon="Close"
+                aria-label="取消编辑角色"
                 @click="cancelEdit"
-              >
-                <i class="fas fa-times" />
-              </button>
+              />
             </template>
             <template v-else>
-              <button
-                class="btn btn--icon btn--edit"
+              <BaseButton
+                class="role-action"
+                type="info"
+                size="small"
+                icon="Edit"
+                aria-label="编辑角色"
                 @click="editRole(role)"
-              >
-                <i class="fas fa-edit" />
-              </button>
-              <button
-                class="btn btn--icon btn--delete"
+              />
+              <BaseButton
+                class="role-action"
+                type="danger"
+                size="small"
+                icon="Delete"
+                aria-label="删除角色"
                 @click="confirmDelete(role)"
-              >
-                <i class="fas fa-trash" />
-              </button>
+              />
             </template>
           </div>
         </div>
 
         <div class="permissions-list">
           <div
-            v-for="perm in role.permissions"
+            v-for="perm in getVisiblePermissions(role)"
             :key="perm.id"
             class="permission-item"
           >
@@ -283,6 +440,15 @@ const closeModal = () => {
               <span class="permission-label__text">{{ perm.name }}</span>
             </label>
           </div>
+        </div>
+
+        <div class="role-card__footer">
+          <BaseButton type="success" size="small" @click="setAllPermissions(role, true)">
+            全部启用
+          </BaseButton>
+          <BaseButton type="ghost" size="small" @click="setAllPermissions(role, false)">
+            全部禁用
+          </BaseButton>
         </div>
       </div>
     </div>
@@ -304,18 +470,18 @@ const closeModal = () => {
               确定要删除角色 "{{ selectedRole?.name }}" 吗？
             </p>
             <div class="modal__actions">
-              <button
-                class="btn btn--secondary"
+              <BaseButton
+                type="ghost"
                 @click="closeModal"
               >
                 取消
-              </button>
-              <button
-                class="btn btn--primary"
+              </BaseButton>
+              <BaseButton
+                type="danger"
                 @click="deleteRole"
               >
                 确认删除
-              </button>
+              </BaseButton>
             </div>
           </div>
         </div>
@@ -349,61 +515,50 @@ const closeModal = () => {
   color: var(--heading-color);
 }
 
-/* Button Styles */
-.btn {
-  display: inline-flex;
+/* Toolbar */
+.role-toolbar {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) auto auto;
+  gap: var(--rp-spacing-md);
   align-items: center;
+  margin-bottom: var(--rp-spacing-xl);
+}
+
+.role-toolbar__search {
+  width: 100%;
+}
+
+.role-toolbar__stats {
+  display: flex;
   gap: var(--rp-spacing-sm);
-  padding: var(--rp-spacing-sm) var(--rp-spacing-md);
-  border: none;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  flex-wrap: wrap;
 }
 
-.btn--add {
-  background-color: var(--neon-green);
+.role-toolbar__actions {
+  display: flex;
+  gap: var(--rp-spacing-sm);
+  justify-content: flex-end;
+}
+
+.role-stat {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid var(--border-color);
   color: var(--text-color);
+  font-size: 0.85rem;
 }
 
-.btn--icon {
-  padding: var(--rp-spacing-sm);
+/* Button Styles */
+.role-action.btn {
+  padding: 0.35rem;
+  width: 2.1rem;
+  height: 2.1rem;
 }
 
-.btn--edit {
-  background-color: var(--neon-blue);
-  color: var(--text-color);
-}
-
-.btn--delete {
-  background-color: var(--neon-red);
-  color: var(--text-color);
-}
-
-.btn--save {
-  background-color: var(--neon-green);
-  color: var(--text-color);
-}
-
-.btn--cancel {
-  background-color: var(--neon-red);
-  color: var(--text-color);
-}
-
-.btn--primary {
-  background-color: var(--neon-blue);
-  color: var(--text-color);
-}
-
-.btn--secondary {
-  background-color: var(--gray-600);
-  color: var(--text-color);
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 10px currentColor;
+.role-action .icon {
+  width: 1rem;
+  height: 1rem;
 }
 
 /* Roles Grid */
@@ -452,6 +607,17 @@ const closeModal = () => {
 .role-card__actions {
   display: flex;
   gap: var(--rp-spacing-sm);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.role-chip {
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: var(--text-color);
+  font-size: 0.75rem;
 }
 
 /* 新增样式 */
@@ -462,12 +628,12 @@ const closeModal = () => {
 
 .role-name-input {
   width: 100%;
-  padding: var(--rp-spacing-sm);
-  border: 2px solid var(--neon-blue);
-  border-radius: 0.25rem;
-  background-color: var(--card-background-color);
-  color: var(--text-color);
-  font-size: 1.25rem;
+}
+
+.role-name-input .base-input {
+  font-size: 1.1rem;
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.2);
 }
 
 /* Permissions List */
@@ -475,6 +641,14 @@ const closeModal = () => {
   display: flex;
   flex-direction: column;
   gap: var(--rp-spacing-sm);
+}
+
+.role-card__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--rp-spacing-sm);
+  margin-top: var(--rp-spacing-md);
+  flex-wrap: wrap;
 }
 
 .permission-label {
@@ -551,6 +725,45 @@ input[type="checkbox"]:checked::after {
   font-size: 1.25rem;
 }
 
+/* Empty State */
+.empty-state {
+  grid-column: 1 / -1;
+  padding: var(--rp-spacing-xl);
+  border-radius: 1rem;
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+  background: rgba(15, 23, 42, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+  color: var(--text-color);
+}
+
+.empty-state__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(56, 189, 248, 0.18);
+  color: var(--text-color);
+  font-size: 1.4rem;
+}
+
+.empty-state__title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--heading-color);
+}
+
+.empty-state__desc {
+  font-size: 0.9rem;
+  color: var(--text-color);
+  max-width: 320px;
+}
+
 /* Modal Styles */
 .modal-overlay {
   position: fixed;
@@ -621,6 +834,11 @@ input[type="checkbox"]:checked::after {
     gap: var(--rp-spacing-md);
     align-items: stretch;
   }
+
+  .role-toolbar {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
   
   .roles-grid {
     grid-template-columns: 1fr;
@@ -632,3 +850,7 @@ input[type="checkbox"]:checked::after {
   }
 }
 </style>
+
+
+
+

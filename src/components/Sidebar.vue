@@ -6,9 +6,15 @@
         <img src="@/assets/logo.svg" alt="Logo" />
       </div>
       <h2>监控</h2>
-      <button class="sidebar-toggle" @click="toggleSidebar" aria-label="切换侧边栏">
+      <BaseButton
+        type="ghost"
+        size="small"
+        class="sidebar-toggle"
+        @click="toggleSidebar"
+        aria-label="切换侧边栏"
+      >
         <i class="fas fa-sliders-h" aria-hidden="true"></i>
-      </button>
+      </BaseButton>
     </div>
 
     <nav class="navigation">
@@ -62,15 +68,20 @@
       />
     </nav>
 
-    <button class="button-neon logout-button" @click="handleLogout">
+    <BaseButton
+      type="default"
+      class="button-neon logout-button"
+      @click="handleLogout"
+    >
       <i class="fas fa-sign-out-alt button-icon"></i>
       <span v-if="!compact">退出</span>
-    </button>
+    </BaseButton>
   </aside>
 </template>
 
 <script>
 import SidebarItem from './SidebarItem.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
 import { useMonitorStore } from '@/stores/monitorStore'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
@@ -79,7 +90,8 @@ import { notify } from '@/utils/notify'
 export default {
   name: 'Sidebar',
   components: {
-    SidebarItem
+    SidebarItem,
+    BaseButton
   },
   setup() {
     const store = useMonitorStore()
@@ -204,6 +216,7 @@ export default {
   margin-left: auto;
   width: 32px;
   height: 32px;
+  padding: 0;
   border-radius: 10px;
   background: rgba(148, 163, 184, 0.12);
   border: 1px solid var(--border);

@@ -7,7 +7,7 @@
       <div class="policy-section card glassmorphism p-6">
         <h2 class="section-title">
           <span class="icon-wrapper">
-            <span class="neon-icon">🔐</span>
+            <i class="fas fa-shield-alt neon-icon" aria-hidden="true"></i>
           </span>
           访问策略配置
         </h2>
@@ -26,12 +26,16 @@
               <p class="policy-description">{{ policy.description }}</p>
               <div class="policy-footer">
                 <span class="policy-updated">最后更新: {{ policy.lastUpdated }}</span>
-                <button @click="togglePolicy(policy.id)" 
-                        class="cyber-button"
-                        :class="policy.status === '启用' ? 'enabled' : 'disabled'">
+                <BaseButton
+                  type="ghost"
+                  size="small"
+                  class="cyber-button"
+                  :class="policy.status === '启用' ? 'enabled' : 'disabled'"
+                  @click="togglePolicy(policy.id)"
+                >
                   <span class="button-content">{{ policy.status }}</span>
                   <span class="button-glitch"></span>
-                </button>
+                </BaseButton>
               </div>
             </div>
           </div>
@@ -43,16 +47,16 @@
         <div class="section-header">
           <h2 class="section-title">
             <span class="icon-wrapper">
-              <span class="neon-icon">👥</span>
+              <i class="fas fa-user-shield neon-icon" aria-hidden="true"></i>
             </span>
             活动会话
           </h2>
-          <button @click="refreshSessions" class="cyber-button refresh">
+          <BaseButton type="ghost" size="small" class="cyber-button refresh" @click="refreshSessions">
             <span class="button-content">
-              <span class="refresh-icon">↻</span>
+              <i class="fas fa-rotate refresh-icon" aria-hidden="true"></i>
               刷新
             </span>
-          </button>
+          </BaseButton>
         </div>
         
         <div class="session-cards">
@@ -61,16 +65,17 @@
                class="session-card">
             <div class="session-header">
               <div class="user-info">
-                <span class="user-avatar">👤</span>
+                <span class="user-avatar">
+                  <i class="fas fa-user-circle" aria-hidden="true"></i>
+                </span>
                 <div class="user-details">
                   <h4 class="username">{{ session.username }}</h4>
                   <span class="user-ip">{{ session.ip }}</span>
                 </div>
               </div>
-              <button @click="terminateSession(session.id)" 
-                      class="cyber-button danger">
+              <BaseButton type="danger" size="small" class="cyber-button danger" @click="terminateSession(session.id)">
                 <span class="button-content">终止会话</span>
-              </button>
+              </BaseButton>
             </div>
             <div class="session-details">
               <div class="detail-item">
@@ -92,6 +97,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { format } from 'date-fns'
+import BaseButton from '@/components/base/BaseButton.vue'
 
 // 策略数据
 const policies = ref([

@@ -23,6 +23,74 @@ const writeStorage = (key, value, stringify = true) => {
     console.warn(`Failed to write storage key: ${key}`, error);
   }
 };
+const normalizeId = (value) => String(value);
+const matchAlertId = (alert, targetId) => String(alert.id) === String(targetId);
+
+const normalizeUsers = (users = []) => {
+  if (!Array.isArray(users)) return [];
+  return users.map(user => ({
+    isActive: true,
+    role: 'user',
+    department: '未分配',
+    lastSeen: '刚刚',
+    ...user
+  }));
+};
+
+const defaultAlerts = [
+  { 
+    id: 1, 
+    level: 'warning', 
+    title: '高内存使用率', 
+    message: '内存使用率超过80%。', 
+    timestamp: Date.now() - 2 * 60 * 60 * 1000,
+    source: '系统监控', 
+    acknowledged: false, 
+    acknowledgedAt: null,
+    muted: false, 
+    archived: false,
+    resolvedAt: null
+  },
+  { 
+    id: 2, 
+    level: 'error', 
+    title: '数据库连接失败', 
+    message: '无法连接到数据库。', 
+    timestamp: Date.now() - 1 * 60 * 60 * 1000,
+    source: '数据库服务', 
+    acknowledged: false, 
+    acknowledgedAt: null,
+    muted: false, 
+    archived: false,
+    resolvedAt: null
+  },
+  { 
+    id: 3, 
+    level: 'info', 
+    title: '系统维护通知', 
+    message: '系统维护将在今晚12点开始。', 
+    timestamp: Date.now() - 25 * 60 * 60 * 1000,
+    source: '系统通知', 
+    acknowledged: true, 
+    acknowledgedAt: Date.now() - 24 * 60 * 60 * 1000,
+    muted: false, 
+    archived: false,
+    resolvedAt: null
+  },
+  {
+    id: 4,
+    level: 'critical',
+    title: '核心链路中断',
+    message: '主业务链路出现不可达，请立即排查。',
+    timestamp: Date.now() - 30 * 60 * 1000,
+    source: '链路探测',
+    acknowledged: false,
+    acknowledgedAt: null,
+    muted: false,
+    archived: false,
+    resolvedAt: null
+  }
+];
 
 export const useMonitorStore = defineStore('monitor', {
   state: () => ({
@@ -31,11 +99,11 @@ export const useMonitorStore = defineStore('monitor', {
     activeTab: null, // 当前活动的标签名称
 
     // 用户管理
-    users: readStorage('users', [
+    users: normalizeUsers(readStorage('users', [
       { id: 1, username: 'admin', role: 'admin', isActive: true, lastSeen: '2025-12-20 09:12', department: 'SRE' },
       { id: 2, username: 'observer', role: 'user', isActive: true, lastSeen: '2025-12-20 08:45', department: 'NOC' },
       { id: 3, username: 'analyst', role: 'user', isActive: false, lastSeen: '2025-12-19 22:10', department: 'Security' }
-    ]),
+    ])),
     user: readStorage('user', null), // 当前登录用户
 
     // 主题状态
@@ -130,42 +198,7 @@ export const useMonitorStore = defineStore('monitor', {
       { id: 4, level: 'info', message: '用户登录成功。', timestamp: '2024-04-27 11:00:00' },
       { id: 5, level: 'error', message: '无法连接到数据库。', timestamp: '2024-04-27 12:15:00' }
     ],
-    alerts: [
-      { 
-        id: 1, 
-        level: 'warning', 
-        title: '高内存使用率', 
-        message: '内存使用率超过80%。', 
-        timestamp: Date.now() - 2 * 60 * 60 * 1000, // 2小时前
-        source: '系统监控', 
-        acknowledged: false, 
-        muted: false, 
-        archived: false 
-      },
-      { 
-        id: 2, 
-        level: 'error', 
-        title: '数据库连接失败', 
-        message: '无法连接到数据库。', 
-        timestamp: Date.now() - 1 * 60 * 60 * 1000, // 1小时前
-        source: '数据库服务', 
-        acknowledged: false, 
-        muted: false, 
-        archived: false 
-      },
-      { 
-        id: 3, 
-        level: 'info', 
-        title: '系统维护通知', 
-        message: '系统维护将在今晚12点开始。', 
-        timestamp: Date.now() - 25 * 60 * 60 * 1000, // 25小时前
-        source: '系统通知', 
-        acknowledged: true, 
-        muted: false, 
-        archived: false 
-      },
-      // 可以添加更多静态警报
-    ],
+    alerts: readStorage('alerts', defaultAlerts),
     securityLogs: [
       { id: 1, level: 'high', source: '防火墙', message: '检测到异常登录尝试。', timestamp: '2024-04-27 10:30:00' },
       { id: 2, level: 'medium', source: '入侵检测系统', message: '发现可疑流量模式。', timestamp: '2024-04-27 11:15:00' },
@@ -646,34 +679,150 @@ export const useMonitorStore = defineStore('monitor', {
       writeStorage('users', this.users);
       // 在实际项目中，应同步删除到后端
     },
+    deleteUsers(userIds = []) {
+      const ids = new Set(userIds.map(normalizeId));
+      if (!ids.size) return;
+      this.users = this.users.filter(user => !ids.has(normalizeId(user.id)));
+      writeStorage('users', this.users);
+    },
+    toggleUserStatus(userId) {
+      const index = this.users.findIndex(user => normalizeId(user.id) === normalizeId(userId));
+      if (index !== -1) {
+        const target = this.users[index];
+        const isActive = !target.isActive;
+        this.users = [
+          ...this.users.slice(0, index),
+          { ...target, isActive, lastSeen: isActive ? '刚刚' : target.lastSeen },
+          ...this.users.slice(index + 1)
+        ];
+        writeStorage('users', this.users);
+      }
+    },
+    setUserStatusBatch(userIds = [], isActive = true) {
+      const ids = new Set(userIds.map(normalizeId));
+      if (!ids.size) return;
+      this.users = this.users.map(user =>
+        ids.has(normalizeId(user.id))
+          ? { ...user, isActive, lastSeen: isActive ? '刚刚' : user.lastSeen }
+          : user
+      );
+      writeStorage('users', this.users);
+    },
+    applyRoleTemplate(userIds = [], template = {}) {
+      const ids = new Set(userIds.map(normalizeId));
+      if (!ids.size) return;
+      this.users = this.users.map(user =>
+        ids.has(normalizeId(user.id))
+          ? {
+              ...user,
+              role: template.role || user.role,
+              department: template.department || user.department,
+              lastSeen: '刚刚'
+            }
+          : user
+      );
+      writeStorage('users', this.users);
+    },
 
     setUiPreferences(preferences) {
       this.uiPreferences = { ...this.uiPreferences, ...preferences };
       writeStorage('uiPreferences', this.uiPreferences);
     },
 
+    persistAlerts() {
+      writeStorage('alerts', this.alerts);
+    },
+
     // 警报管理动作
     acknowledgeAlert(alertId) {
-      const alertIndex = this.alerts.findIndex(a => a.id === alertId);
+      const alertIndex = this.alerts.findIndex(a => matchAlertId(a, alertId));
       if (alertIndex !== -1) {
+        const current = this.alerts[alertIndex];
         this.alerts = [
           ...this.alerts.slice(0, alertIndex),
-          { ...this.alerts[alertIndex], acknowledged: true },
+          {
+            ...current,
+            acknowledged: true,
+            acknowledgedAt: current.acknowledgedAt || Date.now()
+          },
           ...this.alerts.slice(alertIndex + 1)
         ];
-        // 在实际项目中，应同步更新到后端
+        this.persistAlerts();
       }
     },
     muteAlert(alertId) {
-      const alertIndex = this.alerts.findIndex(a => a.id === alertId);
+      const alertIndex = this.alerts.findIndex(a => matchAlertId(a, alertId));
       if (alertIndex !== -1) {
         this.alerts = [
           ...this.alerts.slice(0, alertIndex),
           { ...this.alerts[alertIndex], muted: !this.alerts[alertIndex].muted },
           ...this.alerts.slice(alertIndex + 1)
         ];
-        // 在实际项目中，应同步更新到后端
+        this.persistAlerts();
       }
+    },
+    archiveAlert(alertId) {
+      const alertIndex = this.alerts.findIndex(a => matchAlertId(a, alertId));
+      if (alertIndex !== -1) {
+        const current = this.alerts[alertIndex];
+        this.alerts = [
+          ...this.alerts.slice(0, alertIndex),
+          {
+            ...current,
+            archived: true,
+            resolvedAt: current.resolvedAt || Date.now()
+          },
+          ...this.alerts.slice(alertIndex + 1)
+        ];
+        this.persistAlerts();
+      }
+    },
+    restoreAlert(alertId) {
+      const alertIndex = this.alerts.findIndex(a => matchAlertId(a, alertId));
+      if (alertIndex !== -1) {
+        this.alerts = [
+          ...this.alerts.slice(0, alertIndex),
+          { ...this.alerts[alertIndex], archived: false, resolvedAt: null },
+          ...this.alerts.slice(alertIndex + 1)
+        ];
+        this.persistAlerts();
+      }
+    },
+    acknowledgeAlerts(alertIds = []) {
+      const ids = new Set(alertIds.map(id => String(id)));
+      if (!ids.size) return;
+      this.alerts = this.alerts.map(alert =>
+        ids.has(String(alert.id))
+          ? {
+              ...alert,
+              acknowledged: true,
+              acknowledgedAt: alert.acknowledgedAt || Date.now()
+            }
+          : alert
+      );
+      this.persistAlerts();
+    },
+    muteAlerts(alertIds = [], muted = true) {
+      const ids = new Set(alertIds.map(id => String(id)));
+      if (!ids.size) return;
+      this.alerts = this.alerts.map(alert =>
+        ids.has(String(alert.id)) ? { ...alert, muted } : alert
+      );
+      this.persistAlerts();
+    },
+    archiveAlerts(alertIds = []) {
+      const ids = new Set(alertIds.map(id => String(id)));
+      if (!ids.size) return;
+      this.alerts = this.alerts.map(alert =>
+        ids.has(String(alert.id))
+          ? {
+              ...alert,
+              archived: true,
+              resolvedAt: alert.resolvedAt || Date.now()
+            }
+          : alert
+      );
+      this.persistAlerts();
     },
   }
 });

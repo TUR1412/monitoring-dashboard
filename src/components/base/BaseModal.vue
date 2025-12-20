@@ -83,13 +83,16 @@
   
   <style scoped>
   .modal-overlay {
-    @apply fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50;
+    @apply fixed inset-0 flex items-center justify-center z-50;
+    background: rgba(2, 6, 23, 0.55);
+    backdrop-filter: blur(8px);
   }
   
   .modal-content {
-    @apply rounded-lg shadow-xl w-full mx-4 overflow-hidden;
-    background-color: var(--surface-1);
-    border: 1px solid var(--border);
+    @apply rounded-2xl shadow-xl w-full mx-4 overflow-hidden;
+    background-color: var(--surface-0);
+    border: 1px solid var(--border-strong);
+    backdrop-filter: blur(18px);
   }
   
   .modal-header {
