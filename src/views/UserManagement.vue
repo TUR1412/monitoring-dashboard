@@ -49,6 +49,8 @@
             <th>ID</th>
             <th>用户名</th>
             <th>角色</th>
+            <th>部门</th>
+            <th>最近在线</th>
             <th>状态</th>
             <th>操作</th>
           </tr>
@@ -62,6 +64,8 @@
                 {{ user.role }}
               </span>
             </td>
+            <td>{{ user.department || '未分配' }}</td>
+            <td>{{ user.lastSeen || '刚刚' }}</td>
             <td>
               <span :class="['status-indicator', user.isActive ? 'active' : 'inactive']">
                 {{ user.isActive ? '活跃' : '禁用' }}

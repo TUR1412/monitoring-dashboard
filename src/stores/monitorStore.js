@@ -619,7 +619,12 @@ export const useMonitorStore = defineStore('monitor', {
 
     // 用户管理动作
     addUser(newUser) {
-      const payload = { isActive: true, ...newUser };
+      const payload = {
+        isActive: true,
+        department: '未分配',
+        lastSeen: '刚刚',
+        ...newUser
+      };
       this.users = [...this.users, { id: Date.now(), ...payload }];
       writeStorage('users', this.users);
       // 在实际项目中，应同步添加到后端
