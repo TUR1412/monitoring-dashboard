@@ -1,83 +1,100 @@
 <!-- src/components/security/Compliance.vue -->
 <template>
-  <div class="compliance-dashboard">
-    <h2 class="text-2xl font-bold mb-6">合规仪表盘</h2>
-    
-    <!-- 状态卡片网格 -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div v-for="(status, key) in complianceData" 
-           :key="key"
-           class="compliance-card"
-           :class="getCardClass(status.status)">
-        <div class="flex flex-col items-center p-6">
-          <component 
-            :is="status.icon" 
-            class="w-8 h-8 mb-4"
-            :class="getIconClass(status.status)"
-          />
-          <h3 class="text-lg font-semibold mb-3">{{ status.title }}</h3>
-          <div class="status-indicator" :class="status.status"></div>
-          <p class="mt-3 text-center">{{ status.description }}</p>
-          <span class="mt-2 text-sm" :class="getStatusTextClass(status.status)">
-            {{ getStatusText(status.status) }}
+  <div class="compliance-dashboard fade-in">
+    <header class="header">
+      <div>
+        <h2 class="page-title">合规审计</h2>
+        <p class="subtitle">核心框架与控制项的达标状态一览。</p>
+      </div>
+      <div class="header-actions">
+        <span class="stat-chip">
+          <i class="fas fa-clipboard-check"></i>
+          审计覆盖 3 项框架
+        </span>
+        <BaseButton type="primary" @click="refreshAudit">
+          <i class="fas fa-rotate"></i>
+          刷新评估
+        </BaseButton>
+      </div>
+    </header>
+
+    <div class="compliance-grid">
+      <div v-for="card in complianceCards" :key="card.title" class="card compliance-card pressable">
+        <div class="card-head">
+          <component :is="card.icon" class="card-icon" :class="getIconClass(card.status)" />
+          <div>
+            <h3 class="card-title">{{ card.title }}</h3>
+            <p class="card-desc">{{ card.description }}</p>
+          </div>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" :style="{ width: `${card.progress}%`, background: getStatusColor(card.status) }"></div>
+        </div>
+        <div class="card-foot">
+          <span class="status-pill" :class="getStatusClass(card.status)">
+            {{ getStatusText(card.status) }}
           </span>
+          <span class="card-progress">{{ card.progress }}%</span>
         </div>
       </div>
     </div>
 
-    <!-- 合规详细信息 -->
-    <div class="compliance-details p-6">
-      <h3 class="text-xl font-semibold mb-4">详细合规信息</h3>
-      <div class="space-y-4">
-        <div v-for="item in complianceDetails" 
-             :key="item.id"
-             class="detail-item p-4"
-             :class="getDetailItemClass(item.status)">
-          <div class="flex justify-between items-center">
-            <span class="font-medium">{{ item.description }}</span>
-            <span :class="getStatusBadgeClass(item.status)">
-              {{ item.status }}
+    <section class="card compliance-details">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="icon-badge">
+            <i class="fas fa-clipboard-list"></i>
+          </span>
+          详细合规信息
+        </div>
+        <span class="section-meta">共 {{ complianceDetails.length }} 项控制</span>
+      </div>
+      <div class="detail-list">
+        <div v-for="item in complianceDetails" :key="item.id" class="detail-item">
+          <div class="detail-top">
+            <span class="detail-label">{{ item.description }}</span>
+            <span class="status-pill" :class="getStatusClass(item.status)">
+              {{ getStatusText(item.status) }}
             </span>
           </div>
-          <div class="mt-2">
-            <div class="progress-bar" :style="{ width: item.progress + '%' }"></div>
+          <div class="progress-track">
+            <div class="progress-fill" :style="{ width: `${item.progress}%`, background: getStatusColor(item.status) }"></div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { ShieldCheck, AlertTriangle, XCircle } from 'lucide-vue-next'
+import BaseButton from '@/components/base/BaseButton.vue'
 
-// 合规数据
-const complianceData = ref({
-  gdpr: {
+const complianceData = ref([
+  {
     title: 'GDPR 合规',
     status: 'compliant',
     description: '数据保护与隐私合规',
     icon: ShieldCheck,
     progress: 100
   },
-  iso: {
+  {
     title: 'ISO 27001',
     status: 'in-progress',
     description: '信息安全管理体系认证',
     icon: AlertTriangle,
     progress: 75
   },
-  soc: {
+  {
     title: 'SOC 2',
     status: 'non-compliant',
     description: '服务机构控制报告',
     icon: XCircle,
     progress: 30
   }
-})
+])
 
-// 合规详细信息
 const complianceDetails = ref([
   {
     id: 1,
@@ -99,124 +116,217 @@ const complianceDetails = ref([
   }
 ])
 
-// 获取卡片的样式
-const getCardClass = (status) => ({
-  'border border-green-400': status === 'compliant',
-  'border border-yellow-400': status === 'in-progress',
-  'border border-red-400': status === 'non-compliant'
-})
+const complianceCards = computed(() => complianceData.value)
 
-// 获取图标的样式
-const getIconClass = (status) => ({
-  'text-green-400': status === 'compliant',
-  'text-yellow-400': status === 'in-progress',
-  'text-red-400': status === 'non-compliant'
-})
+const refreshAudit = () => {
+  complianceData.value = complianceData.value.map(item => ({
+    ...item,
+    progress: Math.max(20, Math.min(100, item.progress + (Math.random() * 20 - 10)))
+  }))
+}
 
-// 根据状态获取合规文本
 const getStatusText = (status) => ({
   compliant: '完全合规',
   'in-progress': '进行中',
   'non-compliant': '未合规'
 }[status])
 
-// 获取状态文本的样式
-const getStatusTextClass = (status) => ({
+const getStatusColor = (status) => ({
+  compliant: 'var(--neon-green)',
+  'in-progress': 'var(--neon-yellow)',
+  'non-compliant': 'var(--neon-red)'
+}[status])
+
+const getStatusClass = (status) => ({
+  compliant: 'status-ok',
+  'in-progress': 'status-warning',
+  'non-compliant': 'status-critical'
+}[status])
+
+const getIconClass = (status) => ({
   'text-green-400': status === 'compliant',
   'text-yellow-400': status === 'in-progress',
   'text-red-400': status === 'non-compliant'
 })
-
-// 获取详细项的样式
-const getDetailItemClass = (status) => ({
-  'border-l-4 border-green-400': status === 'compliant',
-  'border-l-4 border-yellow-400': status === 'in-progress',
-  'border-l-4 border-red-400': status === 'non-compliant'
-})
-
-// 获取状态徽章的样式
-const getStatusBadgeClass = (status) => {
-  const baseClasses = 'px-3 py-1 rounded-full text-sm'
-  const statusClasses = {
-    compliant: 'bg-green-100 bg-opacity-20 text-green-400',
-    'in-progress': 'bg-yellow-100 bg-opacity-20 text-yellow-400',
-    'non-compliant': 'bg-red-100 bg-opacity-20 text-red-400'
-  }
-  return `${baseClasses} ${statusClasses[status]}`
-}
 </script>
 
 <style scoped>
 .compliance-dashboard {
-  padding: 1.5rem;
-  background: var(--card-background-color);
-  border-radius: 0.5rem;
+  padding: var(--container-padding);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.compliance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.2rem;
 }
 
 .compliance-card {
-  background: rgba(44, 62, 80, 0.6);
-  backdrop-filter: blur(10px);
-  border-radius: 0.5rem;
-  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: rgba(15, 23, 42, 0.3);
 }
 
-.compliance-card:hover {
-  transform: translateY(-4px);
+.card-head {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
 }
 
-.status-indicator {
-  width: 1rem;
-  height: 1rem;
-  border-radius: 9999px;
+.card-icon {
+  width: 44px;
+  height: 44px;
+  padding: 0.5rem;
+  border-radius: 16px;
+  background: rgba(46, 196, 182, 0.16);
+  border: 1px solid rgba(46, 196, 182, 0.3);
 }
 
-.status-indicator.compliant {
-  background-color: rgb(74, 222, 128);
-  box-shadow: 0 0 10px rgb(74, 222, 128);
+.card-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
 }
 
-.status-indicator.in-progress {
-  background-color: rgb(250, 204, 21);
-  box-shadow: 0 0 10px rgb(250, 204, 21);
+.card-desc {
+  margin: 0.2rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
 }
 
-.status-indicator.non-compliant {
-  background-color: rgb(248, 113, 113);
-  box-shadow: 0 0 10px rgb(248, 113, 113);
+.progress-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
 }
 
-.detail-item {
-  background: rgba(44, 62, 80, 0.4);
-  border-radius: 0.5rem;
-  transition: all 0.3s ease;
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
 }
 
-.progress-bar {
-  height: 0.25rem;
-  border-radius: 9999px;
-  background: linear-gradient(90deg, 
-    var(--neon-blue) 0%,
-    var(--neon-pink) 100%
-  );
+.card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-progress {
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }
 
 .compliance-details {
-  background: rgba(44, 62, 80, 0.3);
-  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-@keyframes fadeIn {
-  from { 
-    opacity: 0; 
-    transform: translateY(10px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.fade-in {
-  animation: fadeIn 0.5s ease-in-out;
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.section-meta {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.icon-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(46, 196, 182, 0.18);
+  color: var(--neon-blue);
+  border: 1px solid rgba(46, 196, 182, 0.4);
+}
+
+.detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.detail-item {
+  padding: 1rem 1.2rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.detail-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.detail-label {
+  font-weight: 600;
+}
+
+.status-pill {
+  padding: 0.25rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.status-pill.status-ok {
+  color: var(--neon-green);
+  background: rgba(6, 214, 160, 0.12);
+  border-color: rgba(6, 214, 160, 0.45);
+}
+
+.status-pill.status-warning {
+  color: var(--neon-yellow);
+  background: rgba(246, 189, 96, 0.12);
+  border-color: rgba(246, 189, 96, 0.45);
+}
+
+.status-pill.status-critical {
+  color: var(--neon-red);
+  background: rgba(231, 111, 81, 0.12);
+  border-color: rgba(231, 111, 81, 0.45);
 }
 </style>

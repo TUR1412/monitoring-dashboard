@@ -1,142 +1,124 @@
 <!-- src/views/Dashboard.vue -->
 <template>
-  <div class="dashboard-page fade-in">
-    <section class="hero surface-glass">
+  <div class="dashboard">
+    <section class="dashboard-hero card glow-background">
       <div class="hero-main">
-        <div class="hero-title">
-          <h1>系统总览</h1>
-          <span class="badge">实时态势</span>
-        </div>
+        <p class="eyebrow">实时态势</p>
+        <h1 class="page-title">系统全景 · 今日运行摘要</h1>
         <p class="hero-subtitle">
-          一眼掌控关键资源、风险波动与业务脉搏，确保核心链路稳定。
+          聚焦关键性能指标、告警状态与资源分布，让每一次决策更快更稳。
         </p>
-        <div class="hero-actions">
-          <BaseButton type="primary" size="default">
-            <i class="fas fa-bolt"></i>
-            立即巡检
-          </BaseButton>
-          <BaseButton type="ghost" size="default">
-            <i class="fas fa-file-alt"></i>
-            生成日报
-          </BaseButton>
+        <div class="hero-chips">
+          <span class="stat-chip">
+            <span class="status-dot"></span>
+            平台运行中
+          </span>
+          <span class="stat-chip">告警 {{ alertCount }} 条</span>
+          <span class="stat-chip">活跃进程 {{ processCount }}</span>
         </div>
       </div>
       <div class="hero-metrics">
-        <div class="metric-card surface-card">
-          <div class="metric-label">CPU 峰值</div>
-          <div class="metric-value">{{ latestCpu }}%</div>
-          <div class="metric-meta">{{ cpuToneLabel }} · 过去 1 小时</div>
-          <div class="metric-progress">
-            <span class="metric-progress-bar" :class="cpuTone" :style="{ width: `${latestCpu}%` }"></span>
-          </div>
+        <div class="metric-tile">
+          <span class="metric-label">CPU 峰值</span>
+          <span class="metric-value">{{ cpuPeak }}%</span>
         </div>
-        <div class="metric-card surface-card">
-          <div class="metric-label">内存占用</div>
-          <div class="metric-value">{{ memoryPercent }}%</div>
-          <div class="metric-meta">{{ memoryToneLabel }} · {{ memoryUsage.used }} MB / {{ memoryTotal }} MB</div>
-          <div class="metric-progress">
-            <span class="metric-progress-bar" :class="memoryTone" :style="{ width: `${memoryPercent}%` }"></span>
-          </div>
+        <div class="metric-tile">
+          <span class="metric-label">内存占用</span>
+          <span class="metric-value">{{ memoryUsed }} MB</span>
         </div>
-        <div class="metric-card surface-card">
-          <div class="metric-label">健康评分</div>
-          <div class="metric-value">{{ healthScore }}</div>
-          <div class="metric-meta">{{ healthLabel }}</div>
-          <div class="metric-progress">
-            <span class="metric-progress-bar" :class="healthTone" :style="{ width: `${healthScore}%` }"></span>
-          </div>
+        <div class="metric-tile">
+          <span class="metric-label">磁盘使用</span>
+          <span class="metric-value">{{ diskUsed }} GB</span>
         </div>
       </div>
     </section>
 
-    <section class="bento-grid">
-      <div class="bento-card surface-card bento-span-8">
-        <div class="section-header">
-          <div>
-            <div class="section-title">CPU 使用率</div>
-            <div class="section-subtitle">关键节点实时负载</div>
-          </div>
-          <span class="pill">实时监控</span>
+    <section class="card ops-overview">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">运营层总览</h2>
+          <p class="subtitle">跨模块 KPI 汇总与智能摘要，辅助当班快速判断。</p>
         </div>
+        <div class="header-actions">
+          <span class="stat-chip">SLA {{ sla }}%</span>
+          <BaseButton type="default" @click="exportOpsReport">
+            <i class="fas fa-file-export"></i>
+            导出摘要
+          </BaseButton>
+        </div>
+      </div>
+      <div class="ops-grid">
+        <div class="ops-card">
+          <span class="label">可用性</span>
+          <span class="value">{{ availability }}%</span>
+          <span class="trend up">+0.02%</span>
+        </div>
+        <div class="ops-card">
+          <span class="label">未确认告警</span>
+          <span class="value">{{ unacknowledgedCount }}</span>
+          <span class="trend" :class="unacknowledgedCount > 3 ? 'down' : 'up'">
+            {{ unacknowledgedCount > 3 ? '风险上升' : '可控' }}
+          </span>
+        </div>
+        <div class="ops-card">
+          <span class="label">平均响应</span>
+          <span class="value">{{ avgResponse }} ms</span>
+          <span class="trend up">持续优化</span>
+        </div>
+        <div class="ops-card">
+          <span class="label">已确认告警</span>
+          <span class="value">{{ acknowledgedCount }}</span>
+          <span class="trend up">当班已处理</span>
+        </div>
+      </div>
+      <div class="ops-summary">
+        <div class="summary-header">
+          <h3>智能摘要</h3>
+          <span class="summary-tag" :class="riskLevelClass">{{ riskLevel }}</span>
+        </div>
+        <p>{{ opsSummary }}</p>
+        <div class="summary-tags">
+          <span v-for="tag in summaryTags" :key="tag" class="stat-chip">{{ tag }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="bento-grid dashboard-grid">
+      <div class="bento-item span-8">
         <CpuUsage />
       </div>
-
-      <div class="bento-card surface-card bento-span-4">
-        <div class="section-header">
-          <div>
-            <div class="section-title">内存趋势</div>
-            <div class="section-subtitle">24 小时波动</div>
-          </div>
-          <span class="pill">峰值 {{ memoryPeak }} MB</span>
-        </div>
+      <div class="bento-item span-4">
         <MemoryUsage />
       </div>
-
-      <div class="bento-card surface-card bento-span-4">
-        <div class="section-header">
-          <div>
-            <div class="section-title">磁盘压力</div>
-            <div class="section-subtitle">多盘位占用</div>
-          </div>
-          <span class="pill">剩余 {{ diskUsage.free }} GB</span>
-        </div>
+      <div class="bento-item span-4">
         <DiskUsage />
       </div>
-
-      <div class="bento-card surface-card bento-span-4">
-        <div class="section-header">
-          <div>
-            <div class="section-title">当前警报</div>
-            <div class="section-subtitle">尚未确认的事件</div>
-          </div>
-          <span class="pill">{{ activeAlerts.length }} 条待处理</span>
-        </div>
-        <div class="alert-list">
-          <div v-for="alert in activeAlerts" :key="alert.id" class="alert-item">
-            <span :class="['alert-level', alert.level]">{{ levelLabel(alert.level) }}</span>
-            <div class="alert-info">
-              <div class="alert-title">{{ alert.title }}</div>
-              <div class="alert-meta">{{ alert.source }}</div>
-            </div>
-            <span class="alert-time">{{ formatDateTime(alert.timestamp) }}</span>
-          </div>
-          <div v-if="!activeAlerts.length" class="empty-hint">
-            暂无未确认警报，系统运行平稳。
-          </div>
-        </div>
-      </div>
-
-      <div class="bento-card surface-card bento-span-4">
-        <div class="section-header">
-          <div>
-            <div class="section-title">核心流程</div>
-            <div class="section-subtitle">运行态与瓶颈</div>
-          </div>
-          <span class="pill">实时刷新</span>
-        </div>
-        <div class="process-list">
-          <div v-for="process in hotProcesses" :key="process.pid" class="process-item">
-            <div>
-              <div class="process-name">{{ process.name }}</div>
-              <div class="process-meta">PID {{ process.pid }}</div>
-            </div>
-            <div class="process-metrics">
-              <span>{{ process.cpu }}% CPU</span>
-              <span>{{ process.memory }} MB</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="bento-card surface-card bento-span-8">
-        <div class="section-header">
-          <div>
-            <div class="section-title">网络流量</div>
-            <div class="section-subtitle">入站 / 出站 / 总量</div>
-          </div>
-          <span class="pill">边缘链路</span>
-        </div>
+      <div class="bento-item span-4">
         <NetworkTraffic />
+      </div>
+      <div class="bento-item span-4">
+        <Temperature />
+      </div>
+      <div class="bento-item span-12">
+        <div class="card alert-summary">
+          <div class="alert-header">
+            <h2 class="section-title">最新告警</h2>
+            <span class="text-muted">实时更新 · 仅展示最近 5 条</span>
+          </div>
+          <div class="alert-list">
+            <div v-for="alert in recentAlerts" :key="alert.id" class="alert-item">
+              <div class="alert-dot" :class="alert.level"></div>
+              <div class="alert-body">
+                <div class="alert-title">{{ alert.title }}</div>
+                <div class="alert-meta">{{ alert.source }} · {{ formatAlertTime(alert.timestamp) }}</div>
+              </div>
+              <span class="alert-tag" :class="alert.level">{{ alert.level }}</span>
+            </div>
+            <div v-if="recentAlerts.length === 0" class="empty-state">
+              当前暂无告警，系统运行良好。
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </div>
@@ -145,310 +127,387 @@
 <script setup>
 import { computed } from 'vue'
 import { useMonitorStore } from '@/stores/monitorStore'
+import { notify } from '@/utils/notify'
+import BaseButton from '@/components/base/BaseButton.vue'
 import CpuUsage from '@/components/charts/CpuUsage.vue'
 import MemoryUsage from '@/components/charts/MemoryUsage.vue'
 import DiskUsage from '@/components/charts/DiskUsage.vue'
 import NetworkTraffic from '@/components/charts/NetworkTraffic.vue'
-import BaseButton from '@/components/base/BaseButton.vue'
-import { formatDateTime, sortByTimestamp } from '@/utils/logs'
+import Temperature from '@/components/charts/Temperature.vue'
 
 const store = useMonitorStore()
 
-const latestCpu = computed(() => store.cpuUsage?.[store.cpuUsage.length - 1]?.usage ?? 0)
-const memoryUsage = computed(() => store.memoryUsage)
-const memoryTotal = computed(() => (memoryUsage.value.used || 0) + (memoryUsage.value.free || 0))
-const memoryPercent = computed(() =>
-  memoryTotal.value ? Math.round((memoryUsage.value.used / memoryTotal.value) * 100) : 0
+const alertCount = computed(() => (store.alerts || []).length)
+const processCount = computed(() => (store.processes || []).length)
+const acknowledgedCount = computed(() => (store.alerts || []).filter(alert => alert.acknowledged).length)
+const unacknowledgedCount = computed(() =>
+  (store.alerts || []).filter(alert => !alert.acknowledged && !alert.archived).length
 )
-const memoryPeak = computed(() => {
-  const values = store.memoryUsageHistory?.map(item => item.value) || []
+
+const cpuPeak = computed(() => {
+  const values = (store.cpuUsage || []).map(entry => entry.usage)
   return values.length ? Math.max(...values) : 0
 })
 
-const diskTotal = computed(() =>
-  (store.diskUsage.usedDisk1 || 0) + (store.diskUsage.usedDisk2 || 0) + (store.diskUsage.usedDisk3 || 0) + (store.diskUsage.free || 0)
-)
-const diskPercent = computed(() =>
-  diskTotal.value ? Math.round(((diskTotal.value - store.diskUsage.free) / diskTotal.value) * 100) : 0
-)
-
-const healthScore = computed(() => {
-  const score = 100 - (latestCpu.value * 0.4 + memoryPercent.value * 0.35 + diskPercent.value * 0.25)
-  return Math.max(0, Math.round(score))
+const memoryUsed = computed(() => store.memoryUsage?.used || 0)
+const diskUsed = computed(() => {
+  const disk = store.diskUsage || {}
+  return (disk.usedDisk1 || 0) + (disk.usedDisk2 || 0) + (disk.usedDisk3 || 0)
 })
 
-const healthLabel = computed(() => {
-  if (healthScore.value >= 85) return '稳定'
-  if (healthScore.value >= 70) return '可控'
-  if (healthScore.value >= 50) return '预警'
-  return '高风险'
+const recentAlerts = computed(() => (store.alerts || []).slice(0, 5))
+
+const sla = computed(() => {
+  const base = 99.98
+  const penalty = Math.min(unacknowledgedCount.value * 0.01, 0.3)
+  return (base - penalty).toFixed(2)
 })
 
-const cpuTone = computed(() => {
-  if (latestCpu.value >= 85) return 'danger'
-  if (latestCpu.value >= 65) return 'warning'
-  return 'safe'
+const availability = computed(() => {
+  const base = 99.96
+  const penalty = Math.min(unacknowledgedCount.value * 0.02, 0.5)
+  return (base - penalty).toFixed(2)
 })
 
-const memoryTone = computed(() => {
-  if (memoryPercent.value >= 85) return 'danger'
-  if (memoryPercent.value >= 65) return 'warning'
-  return 'safe'
+const avgResponse = computed(() => {
+  const data = store.frontendPerformanceData || []
+  if (!data.length) return 0
+  const total = data.reduce((sum, item) => sum + (item.responseTime || 0), 0)
+  return Math.round((total / data.length) * 1000)
 })
 
-const healthTone = computed(() => {
-  if (healthScore.value >= 85) return 'safe'
-  if (healthScore.value >= 70) return 'warning'
-  return 'danger'
-})
-
-const cpuToneLabel = computed(() => {
-  if (cpuTone.value === 'danger') return '高负载'
-  if (cpuTone.value === 'warning') return '偏高'
+const riskLevel = computed(() => {
+  if (unacknowledgedCount.value >= 4) return '高风险'
+  if (unacknowledgedCount.value >= 2) return '中风险'
   return '平稳'
 })
 
-const memoryToneLabel = computed(() => {
-  if (memoryTone.value === 'danger') return '高占用'
-  if (memoryTone.value === 'warning') return '偏高'
-  return '健康'
+const riskLevelClass = computed(() => ({
+  'tag-high': riskLevel.value === '高风险',
+  'tag-medium': riskLevel.value === '中风险',
+  'tag-low': riskLevel.value === '平稳'
+}))
+
+const opsSummary = computed(() => {
+  return `今日系统保持 ${availability.value}% 可用性，当前未确认告警 ${unacknowledgedCount.value} 条，
+  前端平均响应 ${avgResponse.value} ms。建议关注高频资源占用并复盘异常峰值时段。`
 })
 
-const severityRank = {
-  critical: 4,
-  error: 3,
-  warning: 2,
-  info: 1
+const summaryTags = computed(() => [
+  `SLA ${sla.value}%`,
+  `告警 ${alertCount.value}`,
+  `进程 ${processCount.value}`
+])
+
+const exportOpsReport = () => {
+  const rows = [
+    ['指标', '数值'],
+    ['可用性', `${availability.value}%`],
+    ['SLA', `${sla.value}%`],
+    ['未确认告警', `${unacknowledgedCount.value}`],
+    ['已确认告警', `${acknowledgedCount.value}`],
+    ['平均响应(ms)', `${avgResponse.value}`]
+  ]
+  const csvContent = rows.map(row => row.join(',')).join('\n')
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `运营摘要_${new Date().toISOString().slice(0, 10)}.csv`
+  link.click()
+  URL.revokeObjectURL(link.href)
+  notify.success('运营摘要已导出')
 }
 
-const activeAlerts = computed(() => {
-  const data = store.alerts.filter(alert => !alert.acknowledged && !alert.archived)
-  const sorted = [...data].sort((a, b) => {
-    const severityDiff = (severityRank[b.level] || 0) - (severityRank[a.level] || 0)
-    if (severityDiff !== 0) return severityDiff
-    const timeSorted = sortByTimestamp([a, b], 'desc', (item) => item.timestamp)
-    return timeSorted[0]?.id === a.id ? -1 : 1
-  })
-  return sorted.slice(0, 4)
-})
-
-const hotProcesses = computed(() => store.processes.slice(0, 4))
-
-const levelLabel = (level) => {
-  if (level === 'critical') return '严重'
-  if (level === 'error') return '错误'
-  if (level === 'warning') return '警告'
-  return '信息'
+const formatAlertTime = (timestamp) => {
+  const date = new Date(timestamp)
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+  return `${hours}:${minutes}`
 }
 </script>
 
 <style scoped>
-.dashboard-page {
+.dashboard {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 1.8rem;
+  width: 100%;
 }
 
-.hero {
+.dashboard-hero {
   display: grid;
-  grid-template-columns: minmax(260px, 1.2fr) minmax(320px, 1fr);
-  gap: 1.5rem;
-  padding: 1.75rem;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: center;
 }
 
-.hero-title {
+.ops-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  background: rgba(15, 23, 42, 0.32);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.header-actions {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ops-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.ops-card {
+  padding: 1rem 1.2rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ops-card .label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.ops-card .value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.trend {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.trend.up {
+  color: var(--neon-green);
+}
+
+.trend.down {
+  color: var(--neon-red);
+}
+
+.ops-summary {
+  padding: 1rem 1.2rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(46, 196, 182, 0.3);
+  background: rgba(46, 196, 182, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.summary-tag {
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  border: 1px solid transparent;
+}
+
+.summary-tag.tag-high {
+  color: var(--neon-red);
+  border-color: rgba(231, 111, 81, 0.5);
+  background: rgba(231, 111, 81, 0.12);
+}
+
+.summary-tag.tag-medium {
+  color: var(--neon-yellow);
+  border-color: rgba(246, 189, 96, 0.5);
+  background: rgba(246, 189, 96, 0.12);
+}
+
+.summary-tag.tag-low {
+  color: var(--neon-green);
+  border-color: rgba(6, 214, 160, 0.5);
+  background: rgba(6, 214, 160, 0.12);
+}
+
+.summary-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
 }
 
 .hero-subtitle {
+  color: var(--text-muted);
   margin-top: 0.75rem;
-  font-size: 0.95rem;
-  color: var(--text-2);
-  max-width: 480px;
+  max-width: 520px;
 }
 
-.hero-actions {
+.hero-chips {
   display: flex;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.2rem;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--neon-green);
+  box-shadow: 0 0 8px rgba(6, 214, 160, 0.6);
 }
 
 .hero-metrics {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 0.8rem;
 }
 
-.metric-card {
-  padding: 1rem;
+.metric-tile {
+  padding: 1rem 1.2rem;
+  border-radius: var(--radius-md);
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(46, 196, 182, 0.2);
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .metric-label {
   font-size: 0.8rem;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .metric-value {
   font-size: 1.6rem;
-  font-weight: 700;
-  color: var(--text-0);
+  font-weight: 600;
+  color: var(--text-strong);
 }
 
-.metric-meta {
-  font-size: 0.75rem;
-  color: var(--text-3);
+.dashboard-grid {
+  margin-top: 0.5rem;
 }
 
-.metric-progress {
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(148, 163, 184, 0.18);
-  overflow: hidden;
+.alert-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.metric-progress-bar {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, rgba(34, 211, 238, 0.8), rgba(20, 241, 217, 0.5));
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
 }
 
-.metric-progress-bar.warning {
-  background: linear-gradient(90deg, rgba(245, 158, 11, 0.85), rgba(251, 191, 36, 0.5));
+.section-title {
+  font-size: 1.25rem;
+  margin: 0;
 }
 
-.metric-progress-bar.danger {
-  background: linear-gradient(90deg, rgba(239, 68, 68, 0.85), rgba(248, 113, 113, 0.5));
-}
-
-.metric-progress-bar.safe {
-  background: linear-gradient(90deg, rgba(34, 197, 94, 0.85), rgba(74, 222, 128, 0.5));
+.text-muted {
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }
 
 .alert-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  display: grid;
+  gap: 0.85rem;
 }
 
 .alert-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 12px;
-  background: rgba(148, 163, 184, 0.08);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background: rgba(12, 17, 24, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.alert-level {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  padding: 0.2rem 0.5rem;
+.alert-dot {
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
-  border: 1px solid transparent;
+  background: var(--neon-blue);
 }
 
-.alert-level.error {
-  background: rgba(239, 68, 68, 0.15);
-  color: #fecaca;
-  border-color: rgba(239, 68, 68, 0.4);
+.alert-dot.warning {
+  background: var(--neon-yellow);
 }
 
-.alert-level.warning {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fde68a;
-  border-color: rgba(245, 158, 11, 0.4);
+.alert-dot.error,
+.alert-dot.critical {
+  background: var(--neon-red);
 }
 
-.alert-level.critical {
-  background: rgba(239, 68, 68, 0.2);
-  color: #fecaca;
-  border-color: rgba(239, 68, 68, 0.5);
-}
-
-.alert-level.info {
-  background: rgba(56, 189, 248, 0.15);
-  color: #bae6fd;
-  border-color: rgba(56, 189, 248, 0.4);
-}
-
-.alert-info {
+.alert-body {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
 .alert-title {
-  font-size: 0.9rem;
-  color: var(--text-0);
+  font-size: 0.95rem;
+  color: var(--text-strong);
 }
 
 .alert-meta {
   font-size: 0.75rem;
-  color: var(--text-3);
+  color: var(--text-muted);
 }
 
-.alert-time {
-  font-size: 0.75rem;
-  color: var(--text-2);
-}
-
-.empty-hint {
-  padding: 1rem 0;
-  color: var(--text-3);
-  text-align: center;
-}
-
-.process-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.process-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem;
-  border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  background: rgba(148, 163, 184, 0.08);
-}
-
-.process-name {
-  font-size: 0.9rem;
-  color: var(--text-0);
-}
-
-.process-meta {
+.alert-tag {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
   font-size: 0.7rem;
-  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1px solid rgba(46, 196, 182, 0.4);
+  color: var(--text-strong);
 }
 
-.process-metrics {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.75rem;
-  color: var(--text-2);
-  text-align: right;
+.alert-tag.warning {
+  border-color: rgba(246, 189, 96, 0.6);
 }
 
-@media (max-width: 1100px) {
-  .hero {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-metrics {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.alert-tag.error,
+.alert-tag.critical {
+  border-color: rgba(231, 111, 81, 0.6);
 }
 
-@media (max-width: 768px) {
-  .hero-metrics {
+.empty-state {
+  text-align: center;
+  padding: 1rem 0;
+  color: var(--text-muted);
+}
+
+@media (max-width: 1024px) {
+  .dashboard-hero {
     grid-template-columns: 1fr;
   }
 }

@@ -1,22 +1,22 @@
 <!-- src/components/UserExperience/Surveys.vue -->
 <template>
     <div class="surveys">
-      <h2 class="text-2xl font-bold mb-4">调查问卷</h2>
-      <div class="survey-controls mb-4">
-        <BaseButton type="primary" size="small" @click="createNewSurvey">
+      <h2 class="section-title">调查问卷</h2>
+    <div class="survey-controls">
+        <BaseButton type="primary" @click="createNewSurvey">
           创建新调查
         </BaseButton>
-        <select v-model="filterStatus">
+        <select v-model="filterStatus" class="filter-select">
           <option value="all">全部调查</option>
           <option value="active">进行中</option>
           <option value="completed">已完成</option>
         </select>
       </div>
       <div class="survey-list">
-        <div v-for="survey in filteredSurveys" :key="survey.id" class="survey-card">
-          <h3 class="text-lg font-semibold">{{ survey.title }}</h3>
-          <p class="text-gray-600">{{ survey.description }}</p>
-          <div class="survey-stats flex justify-between mt-4">
+        <div v-for="survey in filteredSurveys" :key="survey.id" class="card survey-card">
+          <h3>{{ survey.title }}</h3>
+          <p class="survey-desc">{{ survey.description }}</p>
+          <div class="survey-stats">
             <span>响应数: {{ survey.responses }}</span>
             <span>状态: {{ survey.status }}</span>
           </div>
@@ -27,8 +27,6 @@
   
   <script>
   import BaseButton from '@/components/base/BaseButton.vue'
-  import { notify } from '@/utils/notify'
-
   export default {
     name: 'Surveys',
     components: {
@@ -50,7 +48,8 @@
     methods: {
       // 创建新的调查问卷
       createNewSurvey() {
-        notify.info('创建新调查问卷功能尚未实现')
+        // 实现创建新调查问卷的逻辑
+        alert('创建新调查问卷功能尚未实现。')
       }
     },
     created() {
@@ -91,87 +90,57 @@
   
   <style scoped>
   .surveys {
-    background-color: var(--background-color);
-    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
   }
   
-  .surveys h2 {
-    margin-bottom: 1.5rem;
+  .section-title {
+    font-size: 1.3rem;
+    margin: 0;
   }
   
   .survey-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
   
-  .survey-controls select {
-    max-width: 240px;
+  .filter-select {
+    min-width: 180px;
   }
   
   .survey-list {
     margin-top: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
   }
   
   .survey-card {
-    padding: 1rem;
-    background-color: rgba(148, 163, 184, 0.08);
-    border: 1px solid var(--border);
-    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
   
   .survey-card h3 {
     margin-bottom: 0.5rem;
   }
   
-  .survey-card p {
-    color: var(--text-2);
+  .survey-desc {
+    color: var(--text-muted);
   }
   
   .survey-stats {
     margin-top: 1rem;
     font-size: 0.875rem;
-    color: var(--text-3);
-  }
-  
-  .flex {
+    color: var(--text-muted);
     display: flex;
-  }
-  
-  .justify-between {
     justify-content: space-between;
-  }
-  
-  .bg-green-600 {
-    background-color: #38a169;
-  }
-  
-  .hover\:bg-green-700:hover {
-    background-color: #2f855a;
-  }
-  
-  .text-gray-600 {
-    color: var(--text-2);
-  }
-  
-  .text-lg {
-    font-size: 1.125rem;
-  }
-  
-  .font-semibold {
-    font-weight: 600;
-  }
-  
-  .bg-white {
-    background-color: transparent;
-  }
-  
-  .rounded-lg {
-    border-radius: 0.5rem;
-  }
-  
-  .shadow {
-    box-shadow: none;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
   </style>
   

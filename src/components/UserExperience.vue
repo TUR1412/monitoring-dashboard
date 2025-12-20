@@ -1,15 +1,12 @@
 <!-- src/components/UserExperience.vue -->
 <template>
   <div class="user-experience">
-    <div class="section-header">
-      <div>
-        <div class="section-title">用户体验</div>
-        <div class="section-subtitle">满意度、使用路径与体验反馈</div>
-      </div>
+    <div>
+      <h1 class="page-title">用户体验</h1>
     </div>
 
     <!-- 图表展示区域 -->
-    <div class="surface-card chart-block">
+    <div class="card chart-card">
       <ChartComponent 
         type="bar"
         :data="experienceData" 
@@ -17,26 +14,26 @@
     </div>
     
     <!-- 导航区域 -->
-    <div class="nav-block surface-glass">
-      <nav class="nav-links">
+    <div>
+      <nav class="subnav">
         <router-link 
           to="/dashboard/user-experience/feedback"
-          class="nav-link"
-          :class="{ 'nav-active': isActive('feedback') }"
+          class="subnav-link"
+          :class="{ active: isActive('feedback') }"
         >
           用户反馈
         </router-link>
         <router-link 
           to="/dashboard/user-experience/surveys"
-          class="nav-link"
-          :class="{ 'nav-active': isActive('surveys') }"
+          class="subnav-link"
+          :class="{ active: isActive('surveys') }"
         >
           调查问卷
         </router-link>
         <router-link 
           to="/dashboard/user-experience/metrics"
-          class="nav-link"
-          :class="{ 'nav-active': isActive('metrics') }"
+          class="subnav-link"
+          :class="{ active: isActive('metrics') }"
         >
           用户指标
         </router-link>
@@ -44,7 +41,7 @@
     </div>
 
     <!-- 子路由渲染区域 -->
-    <div class="surface-card content-block">
+    <div class="card content-card">
       <router-view></router-view>
     </div>
   </div>
@@ -69,8 +66,8 @@ export default {
         {
           label: '用户行为',
           data: store.userBehavior.data,
-          backgroundColor: 'rgba(34, 211, 238, 0.35)',
-          borderColor: 'rgb(34, 211, 238)',
+          backgroundColor: 'rgba(46, 196, 182, 0.35)',
+          borderColor: 'rgba(46, 196, 182, 0.9)',
           borderWidth: 1
         }
       ]
@@ -95,40 +92,11 @@ export default {
   gap: 1.5rem;
 }
 
-.chart-block {
-  padding: 1.5rem;
+.chart-card {
+  min-height: 320px;
 }
 
-.nav-block {
-  padding: 0.75rem 1rem;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-}
-
-.nav-links {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.nav-link {
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-  color: var(--text-2);
-  transition: all 0.2s ease;
-}
-
-.nav-link:hover {
-  background: rgba(34, 211, 238, 0.12);
-  color: var(--text-0);
-}
-
-.nav-active {
-  background: rgba(34, 211, 238, 0.18);
-  color: var(--text-0);
-}
-
-.content-block {
-  padding: 1.5rem;
+.content-card {
+  min-height: 320px;
 }
 </style>

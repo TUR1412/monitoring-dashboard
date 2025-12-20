@@ -1,75 +1,94 @@
 <!-- src/components/UserManagement/UserForm.vue -->
 <template>
-  <div class="user-form">
-    <h2>{{ title }}</h2>
+  <div class="card user-form">
+    <div class="form-header">
+      <div>
+        <h2 class="page-title">{{ title }}</h2>
+        <p class="subtitle">{{ subtitle }}</p>
+      </div>
+      <span class="stat-chip">
+        <i class="fas fa-user-shield"></i>
+        权限即刻生效
+      </span>
+    </div>
+
     <form @submit.prevent="handleSubmit" class="form">
-      <div class="form-group">
-        <label for="username">用户名</label>
-        <BaseInput
-          id="username"
-          v-model="form.username"
-          :invalid="v$.form.username.$error"
-          @blur="v$.form.username.$touch()"
-          required
-          placeholder="输入用户名"
-        />
-        <span v-if="v$.form.username.$error" class="error-text">
-          {{ v$.form.username.$errors[0].$message }}
-        </span>
-      </div>
-      
-      <div class="form-group">
-        <label for="role">角色</label>
-        <select
-          id="role"
-          v-model="form.role"
-          :class="{ 'error-input': v$.form.role.$error }"
-          @blur="v$.form.role.$touch()"
-          required
-        >
-          <option value="admin">管理员</option>
-          <option value="user">普通用户</option>
-        </select>
-        <span v-if="v$.form.role.$error" class="error-text">
-          {{ v$.form.role.$errors[0].$message }}
-        </span>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="username">用户名</label>
+          <BaseInput
+            id="username"
+            v-model="form.username"
+            :invalid="v$.form.username.$error"
+            @blur="v$.form.username.$touch()"
+            required
+            placeholder="输入用户名"
+          />
+          <span v-if="v$.form.username.$error" class="error-text">
+            {{ v$.form.username.$errors[0].$message }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="role">角色</label>
+          <select
+            id="role"
+            v-model="form.role"
+            @blur="v$.form.role.$touch()"
+            required
+          >
+            <option value="ADMIN">管理员</option>
+            <option value="USER">普通用户</option>
+          </select>
+          <span v-if="v$.form.role.$error" class="error-text">
+            {{ v$.form.role.$errors[0].$message }}
+          </span>
+        </div>
       </div>
 
-      <BaseButton
-        type="primary"
-        native-type="submit"
-        :loading="loading"
-        :disabled="loading || v$.$invalid"
-      >
-        {{ loading ? '处理中...' : submitText }}
-      </BaseButton>
-
-      <div v-if="successMessage" class="success">{{ successMessage }}</div>
-      <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
+      <div class="form-actions">
+        <BaseButton type="primary" native-type="submit" :disabled="loading || v$.$invalid">
+          {{ loading ? '处理中...' : submitText }}
+        </BaseButton>
+        <span class="hint">提交后自动保存至本地存储。</span>
+      </div>
     </form>
   </div>
 </template>
 
 <script>
-import { ref, reactive, computed } from 'vue'
+import { reactive, computed } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
 import { required, minLength } from '@vuelidate/validators'
-import BaseInput from '@/components/base/BaseInput.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import BaseInput from '@/components/base/BaseInput.vue'
+
+const normalizeRole = (role) => {
+  if (!role || typeof role !== 'string') return 'USER'
+  return role.toUpperCase()
+}
 
 export default {
   name: 'UserForm',
+  components: {
+    BaseButton,
+    BaseInput
+  },
   props: {
     initialData: {
       type: Object,
       default: () => ({
         username: '',
-        role: 'user'
+        role: 'USER'
       })
     },
     title: {
       type: String,
       required: true
+    },
+    subtitle: {
+      type: String,
+      default: '请完善用户信息并选择权限角色'
     },
     submitText: {
       type: String,
@@ -80,23 +99,19 @@ export default {
       default: false
     }
   },
-  
+
   emits: ['submit'],
-  components: {
-    BaseInput,
-    BaseButton
-  },
 
   setup(props, { emit }) {
     const form = reactive({
-      username: props.initialData.username,
-      role: props.initialData.role
+      username: props.initialData.username ?? '',
+      role: normalizeRole(props.initialData.role)
     })
 
     const rules = computed(() => ({
       form: {
-        username: { 
-          required, 
+        username: {
+          required,
           minLength: minLength(3)
         },
         role: { required }
@@ -104,30 +119,20 @@ export default {
     }))
 
     const v$ = useVuelidate(rules, { form })
-    
-    const successMessage = ref('')
-    const errorMessage = ref('')
 
     const handleSubmit = async () => {
-      errorMessage.value = ''
-      successMessage.value = ''
-      
       const isValid = await v$.value.$validate()
       if (!isValid) return
 
-      try {
-        emit('submit', { ...form })
-        successMessage.value = '操作成功！'
-      } catch (err) {
-        errorMessage.value = err.message || '操作失败'
-      }
+      emit('submit', {
+        ...form,
+        role: normalizeRole(form.role)
+      })
     }
 
     return {
       form,
       v$,
-      successMessage,
-      errorMessage,
       handleSubmit
     }
   }
@@ -136,25 +141,23 @@ export default {
 
 <style scoped>
 .user-form {
-  padding: 20px;
-  background-color: var(--surface-1);
-  color: var(--text-1);
-  max-width: 500px;
-  margin: 0 auto;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  color: var(--accent-0);
-}
-
-.form {
   display: flex;
   flex-direction: column;
+  gap: 1.5rem;
+  background: rgba(15, 23, 42, 0.28);
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
 }
 
@@ -162,63 +165,24 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-label {
-  font-weight: 500;
-  color: var(--text-2);
-}
-
-select {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  background-color: rgba(148, 163, 184, 0.08);
-  color: var(--text-1);
-  box-sizing: border-box;
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-select::placeholder {
-  color: var(--paragraph-color);
-}
-
-select:focus {
-  outline: none;
-  border-color: var(--accent-0);
-  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.4);
-}
-
-.error-input {
-  border-color: rgba(239, 68, 68, 0.6);
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+  font-size: 0.9rem;
+  color: var(--text-muted);
 }
 
 .error-text {
-  color: #fecaca;
-  font-size: 0.875rem;
+  color: var(--neon-red);
+  font-size: 0.8rem;
 }
 
-/* BaseButton 已负责按钮样式 */
-
-.success,
-.error {
-  margin-top: 1rem;
-  padding: 0.75rem;
-  border-radius: 0.375rem;
-  text-align: center;
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.success {
-  background-color: rgba(34, 197, 94, 0.12);
-  color: #bbf7d0;
-  border-left: 4px solid rgba(34, 197, 94, 0.6);
-}
-
-.error {
-  background-color: rgba(239, 68, 68, 0.12);
-  color: #fecaca;
-  border-left: 4px solid rgba(239, 68, 68, 0.6);
+.hint {
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }
 </style>

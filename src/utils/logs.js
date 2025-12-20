@@ -63,25 +63,6 @@ export const sortByTimestamp = (items = [], order = 'desc', accessor = (item) =>
   })
 }
 
-export const filterByRange = (items = [], range = 'all', accessor = (item) => item?.timestamp) => {
-  if (range === 'all') return items
-  const latest = getLatestDate(items, accessor)
-  if (!latest) return items
-  const rangeMap = {
-    '24h': 24 * 60 * 60 * 1000,
-    '7d': 7 * 24 * 60 * 60 * 1000,
-    '30d': 30 * 24 * 60 * 60 * 1000
-  }
-  const duration = rangeMap[range]
-  if (!duration) return items
-  const start = new Date(latest.getTime() - duration)
-  return items.filter((item) => {
-    const date = parseTimestamp(accessor(item))
-    if (!date) return false
-    return date >= start && date <= latest
-  })
-}
-
 export const buildCsv = (rows = [], columns = []) => {
   const header = columns.map((column) => escapeCsv(column.label)).join(',')
   const lines = rows.map((row) => {

@@ -1,105 +1,224 @@
 <!-- src/components/security/AccessControl.vue -->
 <template>
   <div class="access-control">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      
-      <!-- 访问策略区域 -->
-      <div class="policy-section card glassmorphism p-6">
-        <h2 class="section-title">
-          <span class="icon-wrapper">
-            <i class="fas fa-shield-alt neon-icon" aria-hidden="true"></i>
-          </span>
-          访问策略配置
-        </h2>
-        
-        <div class="policies-grid">
-          <div v-for="policy in policies" 
-               :key="policy.id" 
-               class="policy-card"
-               :class="policy.status === '启用' ? 'enabled' : 'disabled'">
-            <div class="card-glitch-effect"></div>
-            <div class="policy-content">
-              <div class="policy-header">
+    <div class="section-header">
+      <div>
+        <div class="section-title">访问控制</div>
+        <div class="section-subtitle">策略护栏、会话追踪与安全边界</div>
+      </div>
+      <span class="pill">{{ policies.length }} 项策略 · {{ activeSessions.length }} 个会话</span>
+    </div>
+
+    <section class="bento-grid access-overview">
+      <div class="surface-card bento-card bento-span-3 overview-card">
+        <div class="overview-label">启用策略</div>
+        <div class="overview-value">{{ enabledPolicies }}</div>
+        <div class="overview-meta">最近更新 {{ policyUpdatedLabel }}</div>
+      </div>
+      <div class="surface-card bento-card bento-span-3 overview-card warning">
+        <div class="overview-label">禁用策略</div>
+        <div class="overview-value">{{ disabledPolicies }}</div>
+        <div class="overview-meta">需复核</div>
+      </div>
+      <div class="surface-card bento-card bento-span-3 overview-card info">
+        <div class="overview-label">远程会话</div>
+        <div class="overview-value">{{ remoteSessions }}</div>
+        <div class="overview-meta">重点关注</div>
+      </div>
+      <div class="surface-card bento-card bento-span-3 overview-card success">
+        <div class="overview-label">最近刷新</div>
+        <div class="overview-value">{{ sessionRefreshLabel }}</div>
+        <div class="overview-meta">会话视图</div>
+      </div>
+    </section>
+
+    <section class="access-panels">
+      <div class="surface-card access-panel">
+        <div class="panel-header">
+          <div>
+            <h3>访问策略</h3>
+            <p>应用级、系统级与网络级策略统一治理</p>
+          </div>
+          <div class="panel-actions">
+            <BaseButton type="ghost" size="small" @click="exportPoliciesCsv">CSV</BaseButton>
+            <BaseButton type="ghost" size="small" @click="exportPoliciesJson">JSON</BaseButton>
+          </div>
+        </div>
+
+        <div class="filter-grid">
+          <div class="filter-group">
+            <span class="filter-label">关键字</span>
+            <BaseInput v-model="policyQuery" placeholder="搜索策略名称或描述" />
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">状态</span>
+            <select v-model="policyStatus" aria-label="策略状态">
+              <option value="all">全部</option>
+              <option value="enabled">启用</option>
+              <option value="disabled">禁用</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">类型</span>
+            <select v-model="policyType" aria-label="策略类型">
+              <option value="all">全部</option>
+              <option v-for="type in policyTypeOptions" :key="type" :value="type">{{ type }}</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">排序</span>
+            <select v-model="policySort" aria-label="策略排序">
+              <option value="latest">最近更新</option>
+              <option value="oldest">最早更新</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-meta">
+          <span>筛选结果 {{ filteredPolicies.length }} 条</span>
+          <span>更新：{{ policyUpdatedLabel }}</span>
+        </div>
+
+        <div class="policy-list">
+          <article v-for="policy in filteredPolicies" :key="policy.id" class="policy-item">
+            <div class="policy-main">
+              <div class="policy-title">
                 <span class="policy-name">{{ policy.name }}</span>
-                <span class="policy-type">{{ policy.type }}</span>
+                <span :class="['status-badge', policy.status === '启用' ? 'success' : 'danger']">
+                  {{ policy.status }}
+                </span>
               </div>
               <p class="policy-description">{{ policy.description }}</p>
-              <div class="policy-footer">
-                <span class="policy-updated">最后更新: {{ policy.lastUpdated }}</span>
-                <BaseButton
-                  type="ghost"
-                  size="small"
-                  class="cyber-button"
-                  :class="policy.status === '启用' ? 'enabled' : 'disabled'"
-                  @click="togglePolicy(policy.id)"
-                >
-                  <span class="button-content">{{ policy.status }}</span>
-                  <span class="button-glitch"></span>
-                </BaseButton>
+              <div class="policy-meta">
+                <span class="meta-pill">{{ policy.type }}</span>
+                <span>更新 {{ formatDateTime(policy.lastUpdated) }}</span>
               </div>
             </div>
-          </div>
+            <BaseButton type="ghost" size="small" @click="togglePolicy(policy.id)">
+              {{ policy.status === '启用' ? '停用' : '启用' }}
+            </BaseButton>
+          </article>
+          <div v-if="!filteredPolicies.length" class="empty-state">暂无匹配策略</div>
         </div>
       </div>
 
-      <!-- 活动会话区域 -->
-      <div class="sessions-section card glassmorphism p-6">
-        <div class="section-header">
-          <h2 class="section-title">
-            <span class="icon-wrapper">
-              <i class="fas fa-user-shield neon-icon" aria-hidden="true"></i>
-            </span>
-            活动会话
-          </h2>
-          <BaseButton type="ghost" size="small" class="cyber-button refresh" @click="refreshSessions">
-            <span class="button-content">
-              <i class="fas fa-rotate refresh-icon" aria-hidden="true"></i>
+      <div class="surface-card access-panel">
+        <div class="panel-header">
+          <div>
+            <h3>活动会话</h3>
+            <p>实时访问与设备分布状态</p>
+          </div>
+          <div class="panel-actions">
+            <BaseButton type="ghost" size="small" @click="refreshSessions">
               刷新
-            </span>
-          </BaseButton>
-        </div>
-        
-        <div class="session-cards">
-          <div v-for="session in activeSessions" 
-               :key="session.id" 
-               class="session-card">
-            <div class="session-header">
-              <div class="user-info">
-                <span class="user-avatar">
-                  <i class="fas fa-user-circle" aria-hidden="true"></i>
-                </span>
-                <div class="user-details">
-                  <h4 class="username">{{ session.username }}</h4>
-                  <span class="user-ip">{{ session.ip }}</span>
-                </div>
-              </div>
-              <BaseButton type="danger" size="small" class="cyber-button danger" @click="terminateSession(session.id)">
-                <span class="button-content">终止会话</span>
-              </BaseButton>
-            </div>
-            <div class="session-details">
-              <div class="detail-item">
-                <span class="detail-label">登录位置</span>
-                <span class="detail-value">{{ session.location }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">登录时间</span>
-                <span class="detail-value">{{ formatTime(session.loginTime) }}</span>
-              </div>
-            </div>
+            </BaseButton>
+            <BaseButton type="ghost" size="small" @click="exportSessionsCsv">CSV</BaseButton>
+            <BaseButton type="ghost" size="small" @click="exportSessionsJson">JSON</BaseButton>
           </div>
         </div>
+
+        <div class="filter-grid">
+          <div class="filter-group">
+            <span class="filter-label">关键字</span>
+            <BaseInput v-model="sessionQuery" placeholder="搜索用户、IP 或地点" />
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">设备</span>
+            <select v-model="sessionDevice" aria-label="设备类型">
+              <option value="all">全部</option>
+              <option v-for="device in deviceTypeOptions" :key="device" :value="device">{{ device }}</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">排序</span>
+            <select v-model="sessionSort" aria-label="会话排序">
+              <option value="latest">最新登录</option>
+              <option value="oldest">最早登录</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">数量</span>
+            <select v-model="sessionLimit" aria-label="会话数量">
+              <option value="5">最近5条</option>
+              <option value="10">最近10条</option>
+              <option value="20">最近20条</option>
+              <option value="all">全部</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-meta">
+          <span>筛选结果 {{ filteredSessions.length }} 条</span>
+          <span>最近刷新 {{ sessionRefreshLabel }}</span>
+        </div>
+
+        <div class="session-list">
+          <article v-for="session in filteredSessions" :key="session.id" class="session-item">
+            <div class="session-main">
+              <div class="session-title">
+                <span class="session-user">{{ session.username }}</span>
+                <span class="status-badge info">{{ session.deviceType }}</span>
+              </div>
+              <div class="session-meta">
+                <span class="meta-pill">{{ session.ip }}</span>
+                <span class="meta-pill">{{ session.location }}</span>
+              </div>
+              <div class="session-time">登录 {{ formatDateTime(session.loginTime) }}</div>
+            </div>
+            <BaseButton type="danger" size="small" @click="terminateSession(session.id)">终止</BaseButton>
+          </article>
+          <div v-if="!filteredSessions.length" class="empty-state">暂无匹配会话</div>
+        </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { format } from 'date-fns'
+import { computed, onMounted, ref, watch } from 'vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import BaseInput from '@/components/base/BaseInput.vue'
+import { exportCsv, exportJson, formatDateTime, getLatestDate, sortByTimestamp } from '@/utils/logs'
 
-// 策略数据
+const STORAGE_KEY = 'monitoring-dashboard:access-control:filters'
+const canUseStorage = typeof window !== 'undefined' && typeof localStorage !== 'undefined'
+
+const defaultFilters = {
+  policyQuery: '',
+  policyStatus: 'all',
+  policyType: 'all',
+  policySort: 'latest',
+  sessionQuery: '',
+  sessionDevice: 'all',
+  sessionSort: 'latest',
+  sessionLimit: '10'
+}
+
+const readFilters = () => {
+  if (!canUseStorage) return { ...defaultFilters }
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return { ...defaultFilters }
+    const parsed = JSON.parse(raw)
+    return { ...defaultFilters, ...parsed }
+  } catch (error) {
+    console.warn('读取访问控制筛选配置失败', error)
+    return { ...defaultFilters }
+  }
+}
+
+const initialFilters = readFilters()
+
+const policyQuery = ref(initialFilters.policyQuery ?? defaultFilters.policyQuery)
+const policyStatus = ref(initialFilters.policyStatus ?? defaultFilters.policyStatus)
+const policyType = ref(initialFilters.policyType ?? defaultFilters.policyType)
+const policySort = ref(initialFilters.policySort ?? defaultFilters.policySort)
+const sessionQuery = ref(initialFilters.sessionQuery ?? defaultFilters.sessionQuery)
+const sessionDevice = ref(initialFilters.sessionDevice ?? defaultFilters.sessionDevice)
+const sessionSort = ref(initialFilters.sessionSort ?? defaultFilters.sessionSort)
+const sessionLimit = ref(initialFilters.sessionLimit ?? defaultFilters.sessionLimit)
+const lastRefreshAt = ref(Date.now())
+
 const policies = ref([
   { 
     id: 1, 
@@ -135,7 +254,6 @@ const policies = ref([
   }
 ])
 
-// 会话数据
 const activeSessions = ref([
   { 
     id: 1, 
@@ -163,12 +281,65 @@ const activeSessions = ref([
   }
 ])
 
-// 功能方法
+const policyTypeOptions = computed(() => {
+  const types = policies.value.map(policy => policy.type)
+  return Array.from(new Set(types))
+})
+
+const deviceTypeOptions = computed(() => {
+  const types = activeSessions.value.map(session => session.deviceType)
+  return Array.from(new Set(types))
+})
+
+const filteredPolicies = computed(() => {
+  const keyword = policyQuery.value.trim().toLowerCase()
+  let data = policies.value.filter(policy => {
+    if (policyStatus.value === 'enabled' && policy.status !== '启用') return false
+    if (policyStatus.value === 'disabled' && policy.status !== '禁用') return false
+    if (policyType.value !== 'all' && policy.type !== policyType.value) return false
+    if (keyword) {
+      const haystack = `${policy.name} ${policy.description}`.toLowerCase()
+      if (!haystack.includes(keyword)) return false
+    }
+    return true
+  })
+  data = sortByTimestamp(data, policySort.value === 'oldest' ? 'asc' : 'desc', (policy) => policy.lastUpdated)
+  return data
+})
+
+const filteredSessions = computed(() => {
+  const keyword = sessionQuery.value.trim().toLowerCase()
+  let data = activeSessions.value.filter(session => {
+    if (sessionDevice.value !== 'all' && session.deviceType !== sessionDevice.value) return false
+    if (keyword) {
+      const haystack = `${session.username} ${session.ip} ${session.location}`.toLowerCase()
+      if (!haystack.includes(keyword)) return false
+    }
+    return true
+  })
+  data = sortByTimestamp(data, sessionSort.value === 'oldest' ? 'asc' : 'desc', (session) => session.loginTime)
+  const limit = sessionLimit.value === 'all' ? Number.POSITIVE_INFINITY : Number(sessionLimit.value) || 10
+  return Number.isFinite(limit) ? data.slice(0, limit) : data
+})
+
+const enabledPolicies = computed(() => policies.value.filter(policy => policy.status === '启用').length)
+const disabledPolicies = computed(() => policies.value.filter(policy => policy.status === '禁用').length)
+const remoteSessions = computed(() =>
+  activeSessions.value.filter(session => session.location === '远程').length
+)
+
+const policyUpdatedLabel = computed(() => {
+  const latest = getLatestDate(policies.value, (policy) => policy.lastUpdated)
+  return latest ? formatDateTime(latest) : '暂无数据'
+})
+
+const sessionRefreshLabel = computed(() => formatDateTime(lastRefreshAt.value))
+
 const togglePolicy = (id) => {
-  const policy = policies.value.find(p => p.id === id)
-  if (policy) {
-    policy.status = policy.status === '启用' ? '禁用' : '启用'
-  }
+  const policy = policies.value.find(item => item.id === id)
+  if (!policy) return
+  policy.status = policy.status === '启用' ? '禁用' : '启用'
+  policy.lastUpdated = formatDateTime(Date.now())
 }
 
 const terminateSession = (id) => {
@@ -176,13 +347,56 @@ const terminateSession = (id) => {
 }
 
 const refreshSessions = async () => {
-  // 模拟异步刷新
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise(resolve => setTimeout(resolve, 600))
+  lastRefreshAt.value = Date.now()
 }
 
-const formatTime = (time) => {
-  return format(new Date(time), 'yyyy-MM-dd HH:mm:ss')
-}
+const policyColumns = [
+  { key: 'id', label: 'ID' },
+  { key: 'name', label: '名称' },
+  { key: 'type', label: '类型' },
+  { key: 'status', label: '状态' },
+  { key: 'description', label: '描述' },
+  { key: 'lastUpdated', label: '更新时间', format: (value) => formatDateTime(value) }
+]
+
+const sessionColumns = [
+  { key: 'id', label: 'ID' },
+  { key: 'username', label: '用户' },
+  { key: 'ip', label: 'IP' },
+  { key: 'location', label: '位置' },
+  { key: 'deviceType', label: '设备' },
+  { key: 'loginTime', label: '登录时间', format: (value) => formatDateTime(value) }
+]
+
+const exportPoliciesCsv = () => exportCsv(filteredPolicies.value, policyColumns, 'access-policies')
+const exportPoliciesJson = () => exportJson(filteredPolicies.value, 'access-policies')
+const exportSessionsCsv = () => exportCsv(filteredSessions.value, sessionColumns, 'active-sessions')
+const exportSessionsJson = () => exportJson(filteredSessions.value, sessionColumns, 'active-sessions')
+
+watch(
+  [policyQuery, policyStatus, policyType, policySort, sessionQuery, sessionDevice, sessionSort, sessionLimit],
+  ([pQuery, pStatus, pType, pSort, sQuery, sDevice, sSort, sLimit]) => {
+    if (!canUseStorage) return
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          policyQuery: pQuery,
+          policyStatus: pStatus,
+          policyType: pType,
+          policySort: pSort,
+          sessionQuery: sQuery,
+          sessionDevice: sDevice,
+          sessionSort: sSort,
+          sessionLimit: sLimit
+        })
+      )
+    } catch (error) {
+      console.warn('写入访问控制筛选配置失败', error)
+    }
+  }
+)
 
 onMounted(() => {
   refreshSessions()
@@ -191,128 +405,202 @@ onMounted(() => {
 
 <style scoped>
 .access-control {
-  @apply p-8;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-/* 标题样式 */
-.section-title {
-  @apply text-2xl font-bold mb-8 flex items-center;
-  color: var(--neon-pink);
-  text-shadow: 0 0 10px var(--neon-pink),
-               0 0 20px var(--neon-pink),
-               0 0 30px var(--neon-blue);
-  animation: textPulse 2s infinite;
+.access-overview {
+  align-items: stretch;
 }
 
-@keyframes textPulse {
-  0%, 100% { text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink); }
-  50% { text-shadow: 0 0 15px var(--neon-pink), 0 0 30px var(--neon-pink), 0 0 45px var(--neon-blue); }
+.overview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
-/* 图标样式 */
-.icon-wrapper {
-  @apply inline-flex items-center justify-center mr-3;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255, 110, 199, 0.1);
-  border: 2px solid var(--neon-pink);
-  box-shadow: 0 0 10px var(--neon-pink);
+.overview-card.warning {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.08);
 }
 
-.neon-icon {
-  @apply text-2xl;
-  filter: drop-shadow(0 0 5px var(--neon-pink));
+.overview-card.info {
+  border-color: rgba(46, 196, 182, 0.35);
+  background: rgba(46, 196, 182, 0.08);
 }
 
-/* 策略卡片样式 */
-.policies-grid {
-  @apply grid gap-6;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+.overview-card.success {
+  border-color: rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.08);
 }
 
-.policy-card {
-  @apply p-6 rounded-lg relative overflow-hidden;
-  background: linear-gradient(135deg, 
-    rgba(44, 62, 80, 0.8),
-    rgba(44, 62, 80, 0.6));
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.overview-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
 }
 
-.policy-card.enabled {
-  border-left: 5px solid var(--neon-green);
+.overview-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-strong);
 }
 
-.policy-card.disabled {
-  border-left: 5px solid var(--neon-red);
+.overview-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
-.card-glitch-effect {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 300%;
-  height: 300%;
-  background: rgba(255, 0, 0, 0.2);
-  filter: blur(10px);
-  transform: translate(-50%, -50%);
-  animation: glitch 1.5s infinite linear;
+.access-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
 }
 
-@keyframes glitch {
-  0% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -50%) scale(1.05); }
-  100% { transform: translate(-50%, -50%) scale(1); }
+.access-panel {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.policy-footer {
-  @apply flex justify-between items-center mt-4;
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.policy-updated {
-  @apply text-sm text-gray-400;
+.panel-header p {
+  margin-top: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }
 
-/* 按钮样式 */
-.cyber-button {
-  position: relative;
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  color: var(--neon-pink);
-  background: transparent;
-  border: 2px solid var(--neon-pink);
-  border-radius: 10px;
-  overflow: hidden;
-  cursor: pointer;
-  box-shadow: 0 0 10px var(--neon-pink);
-  transition: 0.3s;
+.panel-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
-.cyber-button:hover {
-  color: var(--neon-blue);
-  border-color: var(--neon-blue);
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
 }
 
-.cyber-button .button-glitch {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--neon-pink);
-  opacity: 0.2;
-  animation: glitch 1.5s infinite linear;
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
-.cyber-button.refresh {
-  @apply bg-gray-900 hover:bg-gray-800;
+.filter-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
 }
 
-.cyber-button.danger {
-  @apply bg-red-900 hover:bg-red-800;
+.filter-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.policy-list,
+.session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.policy-item,
+.session-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.policy-main,
+.session-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.policy-title,
+.session-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.policy-name,
+.session-user {
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.policy-description {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.policy-meta,
+.session-meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.session-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.meta-pill {
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.72rem;
+}
+
+.status-badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  border: 1px solid transparent;
+}
+
+.status-badge.success {
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #bbf7d0;
+}
+
+.status-badge.danger {
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fecaca;
+}
+
+.status-badge.info {
+  border-color: rgba(46, 196, 182, 0.4);
+  color: #99f6e4;
+}
+
+.empty-state {
+  padding: 1rem 0;
+  text-align: center;
+  color: var(--text-muted);
 }
 </style>

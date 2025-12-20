@@ -1,63 +1,105 @@
-// src/views/Logs.vue
+<!-- src/views/Logs.vue -->
 <template>
   <div class="logs">
-    <div class="section-header">
+    <header class="logs-header card glow-background">
       <div>
-        <div class="section-title">日志中心</div>
-        <div class="section-subtitle">统一查看运行、审计与安全事件</div>
+        <h1 class="page-title">日志中心</h1>
+        <p class="subtitle">全域运行事件、威胁轨迹与审计链路的一体化视图。</p>
       </div>
-      <span class="pill">数据实时同步</span>
-    </div>
-    <div class="log-overview-grid">
-      <div class="log-summary-card">
-        <span class="log-summary-label">系统日志</span>
-        <strong class="log-summary-value">{{ systemCount }}</strong>
-        <span class="log-summary-meta">最新更新：{{ systemLatest }}</span>
+      <div class="header-meta">
+        <span class="chip">最近事件: {{ latestLabel }}</span>
+        <span class="chip">日志总量: {{ totalCount }}</span>
       </div>
-      <div class="log-summary-card is-alert">
-        <span class="log-summary-label">安全日志</span>
-        <strong class="log-summary-value">{{ securityCount }}</strong>
-        <span class="log-summary-meta">最新更新：{{ securityLatest }}</span>
+    </header>
+
+    <section class="bento-grid logs-bento">
+      <div class="bento-item span-4 card">
+        <p class="card-label">系统日志</p>
+        <p class="card-value">{{ systemCount }}</p>
+        <p class="card-meta">错误占比 {{ systemErrorRate }}%</p>
       </div>
-      <div class="log-summary-card is-warning">
-        <span class="log-summary-label">审计日志</span>
-        <strong class="log-summary-value">{{ auditCount }}</strong>
-        <span class="log-summary-meta">最新更新：{{ auditLatest }}</span>
+      <div class="bento-item span-4 card">
+        <p class="card-label">安全日志</p>
+        <p class="card-value">{{ securityCount }}</p>
+        <p class="card-meta">高危事件 {{ criticalCount }}</p>
       </div>
-    </div>
-    <div class="logs-nav surface-glass">
-      <router-link to="/dashboard/logs/system" class="nav-link">系统日志</router-link>
-      <router-link to="/dashboard/logs/security" class="nav-link">安全日志</router-link>
-      <router-link to="/dashboard/logs/audit" class="nav-link">审计日志</router-link>
-    </div>
+      <div class="bento-item span-4 card">
+        <p class="card-label">审计日志</p>
+        <p class="card-value">{{ auditCount }}</p>
+        <p class="card-meta">高权限动作 {{ privilegedCount }}</p>
+      </div>
+    </section>
+
+    <nav class="subnav logs-nav">
+      <router-link to="/dashboard/logs/system" class="subnav-link">
+        <span class="link-title">系统日志</span>
+        <span class="link-meta">运行状态与基础事件</span>
+      </router-link>
+      <router-link to="/dashboard/logs/security" class="subnav-link">
+        <span class="link-title">安全日志</span>
+        <span class="link-meta">威胁检测与防护轨迹</span>
+      </router-link>
+      <router-link to="/dashboard/logs/audit" class="subnav-link">
+        <span class="link-title">审计日志</span>
+        <span class="link-meta">关键操作与合规留痕</span>
+      </router-link>
+    </nav>
+
     <router-view></router-view>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useMonitorStore } from '@/stores/monitorStore'
-import { formatDateTime, getLatestDate } from '@/utils/logs'
+import { computed, onMounted, watch } from "vue"
+import { useRoute, useRouter } from "vue-router"
+import { useMonitorStore } from "@/stores/monitorStore"
+import { formatDateTime, getLatestDate } from "@/utils/logs"
 
 const store = useMonitorStore()
+const route = useRoute()
+const router = useRouter()
+const isBrowser = typeof window !== "undefined"
+const NAV_KEY = "monitoring-dashboard:logs:last-route"
 
-const systemCount = computed(() => store.logs?.length ?? 0)
-const securityCount = computed(() => store.securityLogs?.length ?? 0)
-const auditCount = computed(() => store.auditLogs?.length ?? 0)
+const systemCount = computed(() => store.logs?.length || 0)
+const securityCount = computed(() => store.securityLogs?.length || 0)
+const auditCount = computed(() => store.auditLogs?.length || 0)
+const totalCount = computed(() => systemCount.value + securityCount.value + auditCount.value)
 
-const systemLatest = computed(() => {
-  const latest = getLatestDate(store.logs ?? [])
-  return latest ? formatDateTime(latest) : '暂无数据'
+const criticalCount = computed(
+  () => store.securityLogs?.filter((log) => ["high", "critical"].includes(log.level)).length || 0
+)
+const privilegedCount = computed(
+  () => store.auditLogs?.filter((log) => ["delete", "update"].includes(log.action)).length || 0
+)
+const systemErrorRate = computed(() => {
+  if (!systemCount.value) return 0
+  const errorCount = store.logs.filter((log) => log.level === "error").length
+  return Number(((errorCount / systemCount.value) * 100).toFixed(1))
 })
 
-const securityLatest = computed(() => {
-  const latest = getLatestDate(store.securityLogs ?? [])
-  return latest ? formatDateTime(latest) : '暂无数据'
+const latestLabel = computed(() => {
+  const allLogs = [...(store.logs || []), ...(store.securityLogs || []), ...(store.auditLogs || [])]
+  const latest = getLatestDate(allLogs, (item) => item.timestamp)
+  return latest ? formatDateTime(latest) : "暂无记录"
 })
 
-const auditLatest = computed(() => {
-  const latest = getLatestDate(store.auditLogs ?? [])
-  return latest ? formatDateTime(latest) : '暂无数据'
+watch(
+  () => route.path,
+  (path) => {
+    if (!isBrowser) return
+    if (path.startsWith("/dashboard/logs/")) {
+      localStorage.setItem(NAV_KEY, path)
+    }
+  }
+)
+
+onMounted(() => {
+  if (!isBrowser) return
+  if (route.path === "/dashboard/logs") {
+    const saved = localStorage.getItem(NAV_KEY)
+    router.replace(saved || "/dashboard/logs/system")
+  }
 })
 </script>
 
@@ -68,42 +110,66 @@ const auditLatest = computed(() => {
   gap: 1.5rem;
 }
 
-.log-overview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-}
-
-.log-summary-meta {
-  margin-top: 0.35rem;
-  font-size: 0.75rem;
-  color: var(--text-3);
-}
-
-.logs-nav {
-  padding: 0.75rem 1rem;
+.logs-header {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
   gap: 1rem;
-  border-radius: 14px;
-  border: 1px solid var(--border);
+  align-items: center;
 }
 
-.nav-link {
-  text-decoration: none;
-  color: var(--text-2);
-  padding: 6px 12px;
+.header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.chip {
+  padding: 0.3rem 0.75rem;
   border-radius: 999px;
-  transition: all 0.3s ease;
+  font-size: 0.75rem;
+  color: var(--text-strong);
+  background: rgba(46, 196, 182, 0.18);
+  border: 1px solid rgba(46, 196, 182, 0.35);
 }
 
-.nav-link:hover {
-  background-color: rgba(34, 211, 238, 0.12);
-  color: var(--text-0);
+.logs-bento .card {
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
-.nav-link.router-link-active {
-  color: var(--text-0);
-  font-weight: bold;
-  background-color: rgba(34, 211, 238, 0.18);
+.card-label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.card-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.card-meta {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.logs-nav .subnav-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.link-title {
+  font-weight: 600;
+}
+
+.link-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 </style>

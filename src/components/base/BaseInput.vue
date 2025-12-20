@@ -12,81 +12,86 @@
       :required="required"
       :disabled="disabled"
       :type="type"
-      :aria-invalid="invalid || undefined"
       v-bind="$attrs"
     />
   </div>
 </template>
   
   <script setup>
-defineProps({
-  modelValue: {
-    type: [String, Number],
-    default: ''
-  },
-  placeholder: {
-    type: String,
-    default: ''
-  },
-  required: {
-    type: Boolean,
-    default: false
-  },
-  disabled: {
-    type: Boolean,
-    default: false
-  },
-  invalid: {
-    type: Boolean,
-    default: false
-  },
-  type: {
-    type: String,
-    default: 'text'
+  import { onMounted, onUnmounted } from 'vue'
+  
+  defineProps({
+    modelValue: {
+      type: [String, Number],
+      default: ''
+    },
+    placeholder: {
+      type: String,
+      default: ''
+    },
+    required: {
+      type: Boolean,
+      default: false
+    },
+    disabled: {
+      type: Boolean,
+      default: false
+    },
+    type: {
+      type: String,
+      default: 'text'
+    },
+    invalid: {
+      type: Boolean,
+      default: false
+    }
+  })
+  
+  const emit = defineEmits(['update:modelValue'])
+  
+  const updateValue = (event) => {
+    emit('update:modelValue', event.target.value)
   }
-})
-
-const emit = defineEmits(['update:modelValue'])
-
-const updateValue = (event) => {
-  emit('update:modelValue', event.target.value)
-}
-</script>
-
+  </script>
+  
 <style scoped>
 .base-input-wrapper {
-  @apply relative w-full;
+  width: 100%;
+  position: relative;
 }
 
 .base-input {
-  @apply w-full px-4 py-2 rounded-lg border outline-none transition-colors;
-  background-color: var(--surface-1);
-  color: var(--text-1);
-  border-color: var(--border);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 12px 24px rgba(2, 6, 23, 0.18);
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.28);
+  color: var(--text-color);
+  font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .base-input:focus {
-  border-color: var(--accent-0);
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.18);
-}
-
-.base-input::placeholder {
-  color: var(--text-3);
-}
-
-.input-disabled {
-  @apply cursor-not-allowed;
-  background-color: rgba(148, 163, 184, 0.08);
+  border-color: rgba(46, 196, 182, 0.7);
+  box-shadow: 0 0 0 3px rgba(46, 196, 182, 0.15);
+  outline: none;
 }
 
 .input-invalid {
-  border-color: rgba(239, 68, 68, 0.6);
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+  border-color: rgba(231, 111, 81, 0.7);
+  box-shadow: 0 0 0 3px rgba(231, 111, 81, 0.18);
+}
+
+.base-input::placeholder {
+  color: var(--text-muted);
+}
+
+.input-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .base-input:disabled::placeholder {
-  color: var(--text-3);
+  color: var(--text-muted);
 }
 </style>

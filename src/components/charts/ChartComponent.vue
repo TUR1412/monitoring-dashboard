@@ -7,20 +7,9 @@
 
 <script>
 import { onMounted, ref, watch, onBeforeUnmount, nextTick } from 'vue'
-import {
-  Chart,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js'
+import { Chart, registerables } from 'chart.js'
 
-Chart.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend)
+Chart.register(...registerables)
 
 export default {
   name: 'ChartComponent',
@@ -47,65 +36,12 @@ export default {
   setup(props) {
     const canvas = ref(null)
     let chartInstance = null
-    let themeObserver = null
+    let observer = null
 
-    const toRgba = (color, alpha = 0.18) => {
-      if (!color) return color
-      if (color.startsWith('#')) {
-        const hex = color.replace('#', '')
-        const value = hex.length === 3
-          ? hex.split('').map(char => char + char).join('')
-          : hex
-        const intVal = parseInt(value, 16)
-        const r = (intVal >> 16) & 255
-        const g = (intVal >> 8) & 255
-        const b = intVal & 255
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`
-      }
-      if (color.startsWith('rgb(')) {
-        return color.replace('rgb(', 'rgba(').replace(')', `, ${alpha})`)
-      }
-      return color
-    }
-
-    const getThemeTokens = () => {
-      const styles = getComputedStyle(document.documentElement)
-      const accent = styles.getPropertyValue('--accent-0').trim() || '#22d3ee'
-      const accentAlt = styles.getPropertyValue('--accent-3').trim() || '#fb7185'
-      const accentWarm = styles.getPropertyValue('--accent-2').trim() || '#f59e0b'
-      const accentCool = styles.getPropertyValue('--info').trim() || '#38bdf8'
-      const textColor = styles.getPropertyValue('--text-2').trim() || '#94a3b8'
-      const headingColor = styles.getPropertyValue('--text-1').trim() || '#cbd5e1'
-      const gridColor = styles.getPropertyValue('--border').trim() || 'rgba(148, 163, 184, 0.2)'
-      const borderStrong = styles.getPropertyValue('--border-strong').trim() || 'rgba(148, 163, 184, 0.35)'
-      const tooltipBg = styles.getPropertyValue('--surface-2').trim() || 'rgba(15, 23, 42, 0.9)'
-      return {
-        palette: [accent, accentAlt, accentWarm, accentCool],
-        textColor,
-        headingColor,
-        gridColor,
-        borderStrong,
-        tooltipBg
-      }
-    }
-
-    const normalizeDatasets = (datasets) => {
-      const { palette } = getThemeTokens()
-      return datasets.map((dataset, index) => {
-        const fallbackColor = palette[index % palette.length]
-        const baseColor = dataset.borderColor || fallbackColor
-        return {
-          borderColor: dataset.borderColor ?? baseColor,
-          backgroundColor: dataset.backgroundColor ?? toRgba(baseColor, 0.18),
-          pointBackgroundColor: dataset.pointBackgroundColor ?? baseColor,
-          pointBorderColor: dataset.pointBorderColor ?? baseColor,
-          borderWidth: dataset.borderWidth ?? 2,
-          pointRadius: dataset.pointRadius ?? 3,
-          pointHoverRadius: dataset.pointHoverRadius ?? 5,
-          tension: dataset.tension ?? 0.3,
-          ...dataset
-        }
-      })
+    const getCssVar = (name, fallback) => {
+      if (typeof window === 'undefined') return fallback
+      const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+      return value || fallback
     }
 
     const initializeChart = () => {
@@ -117,36 +53,13 @@ export default {
 
       const ctx = canvas.value.getContext('2d')
 
-      const { textColor, gridColor, headingColor, borderStrong, tooltipBg } = getThemeTokens()
-      const reducedMotion = typeof window !== 'undefined'
-        && window.matchMedia
-        && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
       // 定义默认选项
+      const textColor = getCssVar('--text-muted', '#9fb0c2')
+      const gridColor = getCssVar('--border-color', 'rgba(255,255,255,0.08)')
+
       const defaultOptions = {
         responsive: true,
         maintainAspectRatio: false,
-        color: textColor,
-        animation: {
-          duration: reducedMotion ? 0 : 800
-        },
-        plugins: {
-          legend: {
-            labels: {
-              color: headingColor,
-              usePointStyle: true
-            }
-          },
-          tooltip: {
-            backgroundColor: tooltipBg,
-            borderColor: borderStrong,
-            borderWidth: 1,
-            titleColor: headingColor,
-            bodyColor: textColor,
-            displayColors: false,
-            padding: 10
-          }
-        },
         scales: {
           x: {
             type: 'category',
@@ -168,6 +81,13 @@ export default {
               color: gridColor
             },
             ticks: {
+              color: textColor
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
               color: textColor
             }
           }
@@ -194,7 +114,7 @@ export default {
         type: props.type,
         data: {
           labels: [...props.data.labels],
-          datasets: normalizeDatasets(props.data.datasets)
+          datasets: props.data.datasets.map(dataset => ({ ...dataset }))
         },
         options: mergedOptions
       })
@@ -203,14 +123,17 @@ export default {
     onMounted(() => {
       nextTick(() => {
         initializeChart()
-        if (typeof MutationObserver !== 'undefined') {
-          themeObserver = new MutationObserver(() => initializeChart())
-          themeObserver.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['class']
-          })
-        }
       })
+
+      if (typeof MutationObserver !== 'undefined') {
+        observer = new MutationObserver(() => {
+          initializeChart()
+        })
+        observer.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ['class']
+        })
+      }
     })
 
     watch(
@@ -219,7 +142,7 @@ export default {
         if (chartInstance) {
           // 仅更新图表实例的数据，不修改 props.data
           chartInstance.data.labels = [...newData.labels]
-          chartInstance.data.datasets = normalizeDatasets(newData.datasets)
+          chartInstance.data.datasets = newData.datasets.map(dataset => ({ ...dataset }))
           chartInstance.update()
         }
       },
@@ -235,12 +158,11 @@ export default {
     )
 
     onBeforeUnmount(() => {
+      if (observer) {
+        observer.disconnect()
+      }
       if (chartInstance) {
         chartInstance.destroy()
-      }
-      if (themeObserver) {
-        themeObserver.disconnect()
-        themeObserver = null
       }
     })
 

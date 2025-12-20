@@ -93,7 +93,7 @@ const lastUpdateLabel = computed(() => {
   return latest ? formatDateTime(latest) : '暂无数据'
 })
 </script>
-  
+
 <style scoped>
 .security-center {
   display: flex;
@@ -123,18 +123,18 @@ const lastUpdateLabel = computed(() => {
 
 .security-label {
   font-size: 0.8rem;
-  color: var(--text-2);
+  color: var(--text-muted);
 }
 
 .security-value {
   font-size: 1.6rem;
   font-weight: 700;
-  color: var(--text-0);
+  color: var(--text-strong);
 }
 
 .security-meta {
   font-size: 0.75rem;
-  color: var(--text-3);
+  color: var(--text-muted);
 }
 
 .security-content {
@@ -145,8 +145,8 @@ const lastUpdateLabel = computed(() => {
 
 .security-nav {
   padding: 0.75rem 1rem;
-  border-radius: 14px;
-  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
@@ -155,18 +155,18 @@ const lastUpdateLabel = computed(() => {
 .nav-link {
   padding: 6px 12px;
   text-decoration: none;
-  color: var(--text-2);
+  color: var(--text-muted);
   border-radius: 999px;
   transition: background-color 0.3s, color 0.3s;
 }
 
 .nav-link:hover {
-  background-color: rgba(34, 211, 238, 0.12);
-  color: var(--text-0);
+  background-color: rgba(46, 196, 182, 0.12);
+  color: var(--text-strong);
 }
 
 .active-link {
-  color: var(--text-0);
-  background-color: rgba(34, 211, 238, 0.18);
+  color: var(--text-strong);
+  background-color: rgba(46, 196, 182, 0.18);
 }
 </style>

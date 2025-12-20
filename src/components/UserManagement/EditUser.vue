@@ -1,11 +1,27 @@
 <!-- src/components/UserManagement/EditUser.vue -->
 <template>
-  <div class="edit-user">
-    <div v-if="error" class="error">{{ error }}</div>
+  <div class="user-form-page fade-in">
+    <header class="header">
+      <div>
+        <h1 class="page-title">编辑用户</h1>
+        <p class="subtitle">更新用户信息与角色权限配置。</p>
+      </div>
+      <BaseButton type="default" @click="goBack">
+        <i class="fas fa-arrow-left"></i>
+        返回用户管理
+      </BaseButton>
+    </header>
+
+    <div v-if="error" class="card error-card">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>{{ error }}</span>
+    </div>
+
     <UserForm
       v-if="user"
-      title="编辑用户"
-      submit-text="保存"
+      title="用户信息"
+      subtitle="调整用户名与角色后提交保存"
+      submit-text="保存更改"
       :initial-data="user"
       :loading="loading"
       @submit="handleEditUser"
@@ -17,12 +33,15 @@
 import { ref, onMounted } from 'vue'
 import { useMonitorStore } from '@/stores/monitorStore'
 import { useRouter, useRoute } from 'vue-router'
+import { notify } from '@/utils/notify'
+import BaseButton from '@/components/base/BaseButton.vue'
 import UserForm from './UserForm.vue'
 
 export default {
   name: 'EditUser',
   components: {
-    UserForm
+    UserForm,
+    BaseButton
   },
 
   setup() {
@@ -33,26 +52,17 @@ export default {
     const user = ref(null)
     const error = ref('')
 
-    const userId = parseInt(route.query.id)
+    const userId = Number(route.query.id)
 
     onMounted(() => {
       if (!userId) {
-        error.value = '用户ID无效'
-        setTimeout(() => {
-          router.push('/dashboard/user-management')
-        }, 1500)
+        error.value = '用户 ID 无效，请返回列表重试。'
         return
       }
 
       const foundUser = store.users.find(u => u.id === userId)
       if (!foundUser) {
-        error.value = '未找到指定用户'
-        setTimeout(() => {
-          router.push({ 
-            path: '/dashboard/user-management',
-            query: { error: 'user-not-found' }
-          })
-        }, 1500)
+        error.value = '未找到指定用户，请检查用户列表。'
         return
       }
 
@@ -66,66 +76,59 @@ export default {
     const handleEditUser = async (formData) => {
       loading.value = true
       try {
-        // 更新用户信息
         await store.editUser({
           id: userId,
           username: formData.username,
           role: formData.role
         })
-        
-        // 延迟跳转以显示成功状态
+        notify.success('用户信息已更新')
         setTimeout(() => {
-          router.push('/dashboard/user-management')
-        }, 1000)
+          router.push({ name: 'UserManagementParent' })
+        }, 600)
       } catch (err) {
-        error.value = '更新用户失败：' + (err.message || '未知错误')
+        notify.error('更新用户失败，请稍后重试')
       } finally {
         loading.value = false
       }
+    }
+
+    const goBack = () => {
+      router.push({ name: 'UserManagementParent' })
     }
 
     return {
       user,
       loading,
       error,
-      handleEditUser
+      handleEditUser,
+      goBack
     }
   }
 }
 </script>
 
 <style scoped>
-.edit-user {
-  padding: 20px;
-  max-width: 600px;
-  margin: 0 auto;
-  background-color: var(--surface-1);
-  color: var(--text-1);
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
+.user-form-page {
+  padding: var(--container-padding);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.error {
-  margin-bottom: 15px;
-  padding: 10px;
-  background-color: rgba(239, 68, 68, 0.12);
-  color: #fecaca;
-  border-left: 4px solid rgba(239, 68, 68, 0.6);
-  border-radius: 8px;
-  text-align: center;
-  animation: fadeIn 0.3s ease;
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.error-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--neon-red);
+  border-color: rgba(231, 111, 81, 0.5);
+  background: rgba(231, 111, 81, 0.12);
 }
-
 </style>

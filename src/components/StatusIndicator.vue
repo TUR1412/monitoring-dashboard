@@ -46,23 +46,26 @@ export default {
 }
 
 .status-badge.running {
-  background-color: #d1fae5;
+  background-color: var(--neon-green);
+  box-shadow: 0 0 8px rgba(6, 214, 160, 0.5);
 }
 
 .status-badge.warning {
-  background-color: #fef3c7;
+  background-color: var(--neon-yellow);
+  box-shadow: 0 0 8px rgba(246, 189, 96, 0.5);
 }
 
 .status-badge.critical {
-  background-color: #fee2e2;
+  background-color: var(--neon-red);
+  box-shadow: 0 0 8px rgba(231, 111, 81, 0.5);
 }
 
 .status-badge.stopped {
-  background-color: #fca5a5;
+  background-color: var(--gray-600);
 }
 
 .label {
   font-size: 0.875rem;
-  color: #4b5563;
+  color: var(--text-muted);
 }
 </style>

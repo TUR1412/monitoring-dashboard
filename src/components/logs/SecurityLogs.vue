@@ -1,333 +1,289 @@
 <!-- src/components/logs/SecurityLogs.vue -->
 <template>
-  <div class="logs-panel surface-card">
-    <div class="panel-header">
+  <section class="log-panel">
+    <header class="panel-header">
       <div>
-        <h3>安全日志</h3>
-        <p>高危事件与安全设备输出</p>
+        <h2 class="section-title">安全日志</h2>
+        <span class="text-muted">威胁检测、异常行为与防护动作追踪</span>
       </div>
-      <div class="panel-actions">
-        <BaseInput
-          v-model="keyword"
-          type="search"
-          placeholder="搜索来源或描述"
-          aria-label="搜索来源或描述"
-        />
-        <select v-model="levelFilter" aria-label="安全等级">
-          <option value="all">全部级别</option>
-          <option value="critical">严重</option>
-          <option value="high">高</option>
-          <option value="medium">中</option>
-          <option value="low">低</option>
-        </select>
-        <select v-model="rangeFilter" aria-label="时间范围">
-          <option value="all">全部时间</option>
-          <option value="24h">最近24小时</option>
-          <option value="7d">最近7天</option>
-          <option value="30d">最近30天</option>
-        </select>
-        <select v-model="limitFilter" aria-label="展示数量">
-          <option value="20">最近20条</option>
-          <option value="50">最近50条</option>
-          <option value="100">最近100条</option>
-          <option value="200">最近200条</option>
-          <option value="all">全部</option>
-        </select>
-        <select v-model="sortOrder" aria-label="排序方式">
-          <option value="desc">最新优先</option>
-          <option value="asc">最早优先</option>
-        </select>
-        <BaseButton type="ghost" size="small" @click="exportCsvLogs">
-          <i class="fas fa-file-csv"></i>
-          CSV
-        </BaseButton>
-        <BaseButton type="ghost" size="small" @click="exportJsonLogs">
-          <i class="fas fa-download"></i>
-          JSON
-        </BaseButton>
-        <BaseButton v-if="hasActiveFilters" type="ghost" size="small" @click="resetFilters">
-          <i class="fas fa-undo"></i>
-          重置
-        </BaseButton>
+      <div class="header-actions">
+        <BaseButton size="small" type="info" @click="exportLogCsv">导出 CSV</BaseButton>
+        <BaseButton size="small" type="default" @click="exportLogJson">导出 JSON</BaseButton>
       </div>
-    </div>
+    </header>
 
-    <div class="log-summary-grid">
-      <div class="log-summary-card">
-        <span class="log-summary-label">安全事件</span>
-        <strong class="log-summary-value">{{ summary.total }}</strong>
-      </div>
-      <div class="log-summary-card is-danger">
-        <span class="log-summary-label">严重</span>
-        <strong class="log-summary-value">{{ summary.critical }}</strong>
-      </div>
-      <div class="log-summary-card is-alert">
-        <span class="log-summary-label">高风险</span>
-        <strong class="log-summary-value">{{ summary.high }}</strong>
-      </div>
-      <div class="log-summary-card is-warning">
-        <span class="log-summary-label">中风险</span>
-        <strong class="log-summary-value">{{ summary.medium }}</strong>
-      </div>
-      <div class="log-summary-card is-info">
-        <span class="log-summary-label">低风险</span>
-        <strong class="log-summary-value">{{ summary.low }}</strong>
-      </div>
-      <div class="log-summary-card is-muted">
-        <span class="log-summary-label">最新更新</span>
-        <strong class="log-summary-value">{{ latestLabel }}</strong>
-      </div>
-    </div>
-
-    <div class="log-meta">
-      <span>筛选结果 {{ filteredLogs.length }} 条</span>
-      <span>时间范围：{{ rangeLabel }}</span>
-      <span>排序：{{ sortOrderLabel }}</span>
-    </div>
-
-    <div class="log-grid">
-      <div v-for="log in filteredLogs" :key="log.id" class="log-card">
-        <div class="log-card-top">
-          <span :class="['log-level', log.level]">{{ log.level }}</span>
-          <span class="log-time">{{ formatDateTime(log.timestamp) }}</span>
+    <div class="card filter-panel">
+      <div class="filter-grid">
+        <div class="filter-item">
+          <label>关键字</label>
+          <BaseInput v-model="filters.query" placeholder="搜索威胁描述..." />
         </div>
-        <div class="log-title">{{ log.source }}</div>
-        <div class="log-message">{{ log.message }}</div>
-      </div>
-      <div v-if="!filteredLogs.length" class="empty-state">
-        <div>暂无安全事件</div>
-        <BaseButton type="ghost" size="small" @click="resetFilters">清除筛选</BaseButton>
+        <div class="filter-item">
+          <label>严重等级</label>
+          <select v-model="filters.level">
+            <option value="all">全部</option>
+            <option value="low">低</option>
+            <option value="medium">中</option>
+            <option value="high">高</option>
+            <option value="critical">严重</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label>事件来源</label>
+          <select v-model="filters.source">
+            <option value="all">全部</option>
+            <option value="firewall">防火墙</option>
+            <option value="ids">入侵检测</option>
+            <option value="audit">安全审计</option>
+            <option value="antivirus">反病毒</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label>排序</label>
+          <select v-model="filters.sort">
+            <option value="desc">最新优先</option>
+            <option value="asc">最早优先</option>
+          </select>
+        </div>
       </div>
     </div>
-  </div>
+
+    <section class="bento-grid log-bento">
+      <div class="bento-item span-4 card">
+        <p class="card-label">事件总量</p>
+        <p class="card-value">{{ filteredLogs.length }}</p>
+        <p class="card-meta">高危事件 {{ highRiskCount }}</p>
+      </div>
+      <div class="bento-item span-4 card">
+        <p class="card-label">关键威胁</p>
+        <p class="card-value">{{ criticalCount }}</p>
+        <p class="card-meta">需立即响应</p>
+      </div>
+      <div class="bento-item span-4 card">
+        <p class="card-label">防护覆盖</p>
+        <p class="card-value">98.6%</p>
+        <p class="card-meta">策略与规则已同步</p>
+      </div>
+    </section>
+
+    <div class="card table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>来源</th>
+            <th>等级</th>
+            <th>描述</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="log in filteredLogs" :key="log.id">
+            <td>{{ formatDateTime(log.timestamp) }}</td>
+            <td>{{ log.source }}</td>
+            <td>
+              <span class="log-tag" :class="log.level">{{ log.level }}</span>
+            </td>
+            <td>{{ log.message }}</td>
+          </tr>
+          <tr v-if="filteredLogs.length === 0">
+            <td colspan="4" class="empty-state">暂无安全事件</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import { useMonitorStore } from '@/stores/monitorStore'
-import { exportCsv, exportJson, filterByRange, formatDateTime, getLatestDate, sortByTimestamp } from '@/utils/logs'
-import BaseInput from '@/components/base/BaseInput.vue'
-import BaseButton from '@/components/base/BaseButton.vue'
+import { computed, reactive, watch } from "vue"
+import { useMonitorStore } from "@/stores/monitorStore"
+import BaseInput from "@/components/base/BaseInput.vue"
+import BaseButton from "@/components/base/BaseButton.vue"
+import { exportCsv, exportJson, formatDateTime, sortByTimestamp } from "@/utils/logs"
 
 const store = useMonitorStore()
-const keyword = ref('')
-const levelFilter = ref('all')
-const rangeFilter = ref('all')
-const limitFilter = ref('50')
-const sortOrder = ref('desc')
+const isBrowser = typeof window !== "undefined"
+const STORAGE_KEY = "monitoring-dashboard:logs:security-filters"
 
-const csvColumns = [
-  { key: 'timestamp', label: '时间' },
-  { key: 'level', label: '级别' },
-  { key: 'source', label: '来源' },
-  { key: 'message', label: '事件' }
-]
+const filters = reactive({
+  query: "",
+  level: "all",
+  source: "all",
+  sort: "desc"
+})
 
-const summary = computed(() => {
-  const data = store.securityLogs ?? []
-  return {
-    total: data.length,
-    critical: data.filter(item => item.level === 'critical').length,
-    high: data.filter(item => item.level === 'high').length,
-    medium: data.filter(item => item.level === 'medium').length,
-    low: data.filter(item => item.level === 'low').length
+const restoreFilters = () => {
+  if (!isBrowser) return
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return
+    Object.assign(filters, JSON.parse(raw))
+  } catch (error) {
+    // ignore restore error
   }
-})
+}
 
-const latestLabel = computed(() => {
-  const latest = getLatestDate(store.securityLogs ?? [])
-  return latest ? formatDateTime(latest) : '暂无数据'
-})
+const persistFilters = () => {
+  if (!isBrowser) return
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(filters))
+}
 
-const rangeLabel = computed(() => {
-  const map = {
-    all: '全部',
-    '24h': '最近24小时',
-    '7d': '最近7天',
-    '30d': '最近30天'
-  }
-  return map[rangeFilter.value] || '全部'
-})
+restoreFilters()
 
-const sortOrderLabel = computed(() => (sortOrder.value === 'asc' ? '最早优先' : '最新优先'))
-
-const hasActiveFilters = computed(() =>
-  keyword.value.trim() ||
-  levelFilter.value !== 'all' ||
-  rangeFilter.value !== 'all' ||
-  limitFilter.value !== '50' ||
-  sortOrder.value !== 'desc'
+watch(
+  () => ({ ...filters }),
+  () => {
+    persistFilters()
+  },
+  { deep: true }
 )
 
+const logs = computed(() => store.securityLogs || [])
+
 const filteredLogs = computed(() => {
-  const query = keyword.value.trim().toLowerCase()
-  let data = (store.securityLogs ?? [])
-    .filter(log => levelFilter.value === 'all' || log.level === levelFilter.value)
-    .filter(log => {
-      if (!query) return true
-      const message = log.message?.toLowerCase?.() || ''
-      const source = log.source?.toLowerCase?.() || ''
-      return message.includes(query) || source.includes(query)
-    })
+  const query = filters.query.trim().toLowerCase()
+  let items = logs.value.map((log) => ({ ...log }))
 
-  data = filterByRange(data, rangeFilter.value, (log) => log.timestamp)
+  if (filters.level !== "all") {
+    items = items.filter((log) => log.level === filters.level)
+  }
+  if (filters.source !== "all") {
+    const sourceMap = {
+      firewall: "防火墙",
+      ids: "入侵检测系统",
+      audit: "安全审计",
+      antivirus: "防病毒软件"
+    }
+    items = items.filter((log) => log.source === sourceMap[filters.source])
+  }
+  if (query) {
+    items = items.filter((log) => log.message.toLowerCase().includes(query))
+  }
 
-  const ordered = sortByTimestamp(data, sortOrder.value, (log) => log.timestamp)
-  const limit = limitFilter.value === 'all' ? Number.POSITIVE_INFINITY : Number(limitFilter.value) || 50
-  return Number.isFinite(limit) ? ordered.slice(0, limit) : ordered
+  return sortByTimestamp(items, filters.sort, (item) => item.timestamp)
 })
 
-const exportJsonLogs = () => exportJson(filteredLogs.value, 'security-logs')
-const exportCsvLogs = () => exportCsv(filteredLogs.value, csvColumns, 'security-logs')
+const highRiskCount = computed(
+  () => filteredLogs.value.filter((log) => ["high", "critical"].includes(log.level)).length
+)
+const criticalCount = computed(() => filteredLogs.value.filter((log) => log.level === "critical").length)
 
-const resetFilters = () => {
-  keyword.value = ''
-  levelFilter.value = 'all'
-  rangeFilter.value = 'all'
-  limitFilter.value = '50'
-  sortOrder.value = 'desc'
+const exportColumns = [
+  { key: "timestamp", label: "时间", format: (value) => formatDateTime(value) },
+  { key: "source", label: "来源" },
+  { key: "level", label: "等级" },
+  { key: "message", label: "描述" }
+]
+
+const exportLogCsv = () => {
+  exportCsv(filteredLogs.value, exportColumns, "security-logs")
+}
+
+const exportLogJson = () => {
+  exportJson(filteredLogs.value, "security-logs")
 }
 </script>
 
 <style scoped>
-.logs-panel {
-  padding: 1.5rem;
+.log-panel {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
-  gap: 1.5rem;
-  align-items: center;
-}
-
-.panel-header p {
-  margin-top: 0.35rem;
-  font-size: 0.85rem;
-  color: var(--text-2);
-}
-
-.panel-actions {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.panel-actions input,
-.panel-actions select,
-.panel-actions .base-input-wrapper {
-  min-width: 180px;
-}
-
-.log-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.75rem;
-}
-
-.log-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  align-items: baseline;
   gap: 1rem;
 }
 
-.log-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  color: var(--text-3);
-  font-size: 0.75rem;
+.text-muted {
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }
 
-.log-card {
-  padding: 1rem;
-  border-radius: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  background: rgba(148, 163, 184, 0.08);
+.header-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.filter-panel {
+  padding: 1.25rem;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1rem;
+}
+
+.filter-item {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
-.log-card-top {
+.filter-item label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.log-bento .card {
+  min-height: auto;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
-.log-level {
-  padding: 0.2rem 0.55rem;
+.card-label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.card-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.card-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.table-card {
+  padding: 0;
+}
+
+.log-tag {
+  padding: 0.2rem 0.6rem;
   border-radius: 999px;
   font-size: 0.7rem;
   text-transform: uppercase;
-  border: 1px solid transparent;
+  letter-spacing: 0.08em;
+  border: 1px solid rgba(46, 196, 182, 0.4);
+  color: var(--text-strong);
 }
 
-.log-level.critical,
-.log-level.high {
-  background: rgba(239, 68, 68, 0.12);
-  color: #fecaca;
-  border-color: rgba(239, 68, 68, 0.4);
+.log-tag.low {
+  border-color: rgba(46, 196, 182, 0.5);
 }
 
-.log-level.medium {
-  background: rgba(245, 158, 11, 0.12);
-  color: #fde68a;
-  border-color: rgba(245, 158, 11, 0.4);
+.log-tag.medium {
+  border-color: rgba(246, 189, 96, 0.6);
 }
 
-.log-level.low {
-  background: rgba(56, 189, 248, 0.12);
-  color: #bae6fd;
-  border-color: rgba(56, 189, 248, 0.4);
-}
-
-.log-title {
-  font-size: 0.95rem;
-  color: var(--text-0);
-}
-
-.log-message {
-  font-size: 0.85rem;
-  color: var(--text-2);
-}
-
-.log-time {
-  font-size: 0.75rem;
-  color: var(--text-3);
-}
-
-.empty-hint {
-  grid-column: 1 / -1;
-  text-align: center;
-  color: var(--text-3);
-  padding: 1.5rem 0;
+.log-tag.high,
+.log-tag.critical {
+  border-color: rgba(231, 111, 81, 0.6);
 }
 
 .empty-state {
-  grid-column: 1 / -1;
   text-align: center;
-  color: var(--text-3);
-  padding: 1.5rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-@media (max-width: 900px) {
-  .panel-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .panel-actions {
-    width: 100%;
-    flex-wrap: wrap;
-  }
+  color: var(--text-muted);
+  padding: 1rem 0;
 }
 </style>

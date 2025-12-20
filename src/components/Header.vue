@@ -1,112 +1,89 @@
 <!-- src/components/Header.vue -->
 <template>
-  <header class="dashboard-header surface-glass" v-bind="$attrs">
-    <div class="header-left">
-      <div class="brand-mark">
-        <span class="brand-dot"></span>
-      </div>
+  <header :class="['dashboard-header', theme]" v-bind="$attrs">
+    <div class="header-content glassmorphism">
       <div class="header-title">
-        <h1 class="title animate-text-shimmer">
-          {{ title }}
+        <div class="brand-line">
+          <h1 class="title animate-text-shimmer">
+            {{ title }}
+          </h1>
           <span class="version-badge">v{{ version }}</span>
-        </h1>
+        </div>
         <p class="subtitle" v-if="subtitle">{{ subtitle }}</p>
-        <p class="subtitle" v-else>实时态势 · 风险预警 · 业务脉搏</p>
-      </div>
-    </div>
-
-    <div class="header-center">
-      <div class="search-box">
-        <i class="fas fa-search" aria-hidden="true"></i>
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="输入关键词，回车打开命令面板"
-          aria-label="搜索"
-          @keydown="handleSearchKeydown"
-        />
-        <span class="search-hint">Ctrl + K</span>
-      </div>
-      <div class="status-row">
-        <div class="status-pill">
-          <span class="status-dot"></span>
-          <span>系统运行良好</span>
-        </div>
-        <div class="time-pill">
-          <i class="fas fa-clock"></i>
-          <span>{{ currentTime }}</span>
+        <div class="header-status">
+          <span class="stat-chip">
+            <span class="status-dot"></span>
+            系统在线
+          </span>
+          <span class="stat-chip">今日告警 {{ alertCount }}</span>
         </div>
       </div>
-    </div>
-
-    <div class="header-actions">
-      <div class="user-info" v-if="user">
-        <span class="user-name">{{ user.name }}</span>
-        <img
-          v-if="!avatarError"
-          :src="userAvatar"
-          :alt="user?.name || 'User Avatar'"
-          class="user-avatar"
-          @error="handleAvatarError"
-          @load="handleImageLoad"
-        >
-        <div v-else class="avatar-placeholder">
-          {{ user?.name?.[0]?.toUpperCase() || 'U' }}
+      
+      <div class="header-actions">
+        <div class="user-info" v-if="user">
+          <span class="user-name">{{ user.name }}</span>
+          <img 
+            v-if="!avatarError"
+            :src="userAvatar" 
+            :alt="user?.name || 'User Avatar'"
+            class="user-avatar"
+            @error="handleAvatarError"
+          >
+          <div v-else class="avatar-placeholder">
+            {{ user?.name?.[0]?.toUpperCase() || 'U' }}
+          </div>
         </div>
-      </div>
-
-      <div class="actions-group">
-        <BaseButton
-          type="ghost"
-          size="small"
-          :class="{ 'active': theme === 'dark' }"
-          @click="toggleTheme"
-          :title="themeButtonTitle"
-        >
-          <i :class="themeIcon" aria-hidden="true"></i>
-          <span class="button-text">{{ themeButtonText }}</span>
-        </BaseButton>
-
-        <BaseButton
-          type="danger"
-          size="small"
-          @click="handleLogout"
-          :title="logoutButtonTitle"
-        >
-          <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
-          <span class="button-text">退出</span>
-        </BaseButton>
+        
+        <div class="actions-group">
+          <button 
+            class="action-button"
+            :class="{ 'active': theme === 'dark' }"
+            @click="toggleTheme"
+            :title="themeButtonTitle"
+          >
+            <i :class="themeIcon" aria-hidden="true"></i>
+            <span class="button-text">{{ themeButtonText }}</span>
+          </button>
+          
+          <button 
+            class="action-button logout-button"
+            @click="handleLogout"
+            :title="logoutButtonTitle"
+          >
+            <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+            <span class="button-text">退出</span>
+          </button>
+        </div>
       </div>
     </div>
   </header>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useMonitorStore } from '@/stores/monitorStore'
 import { useRouter } from 'vue-router'
-import BaseButton from '@/components/base/BaseButton.vue'
 
 // Props
-const props = defineProps({
+defineProps({
   title: {
     type: String,
-    default: '监控仪表盘'
+    default: 'Quantum Ops'
   },
   subtitle: {
     type: String,
-    default: ''
+    default: '实时态势 · 风险预警 · 性能洞察'
   },
   version: {
     type: String,
-    default: '1.0.0'
+    default: '1.2.0'
   }
 })
 
 // Emits
-const emit = defineEmits(['theme-changed', 'logout', 'open-command'])
+const emit = defineEmits(['theme-changed', 'logout'])
 
-import defaultAvatar from '@/assets/default-avatar.svg'
+import defaultAvatar from '@/assets/default-avatar.jpg'
 
 // Store and Router
 const store = useMonitorStore()
@@ -115,11 +92,10 @@ const router = useRouter()
 // State
 const theme = computed(() => store.theme)
 const user = computed(() => store.user)
-const avatarLoading = ref(true)
 const avatarError = ref(false)
-const searchQuery = ref('')
-const currentTime = ref('')
-let timerId = null
+const alertCount = computed(() =>
+  (store.alerts || []).filter(alert => !alert.archived).length
+)
 
 const userAvatar = computed(() => {
   if (user.value?.avatar?.startsWith('http')) {
@@ -153,11 +129,6 @@ const toggleTheme = () => {
   emit('theme-changed', store.theme)
 }
 
-const openCommandPalette = () => {
-  emit('open-command', searchQuery.value)
-  searchQuery.value = ''
-}
-
 const handleLogout = async () => {
   try {
     await store.logout()
@@ -172,178 +143,95 @@ const handleLogout = async () => {
 const handleAvatarError = () => {
   console.error('Avatar failed to load')
   avatarError.value = true
-  avatarLoading.value = false
 }
 
-const handleImageLoad = () => {
-  avatarLoading.value = false
-  avatarError.value = false
-}
-
-const handleSearchKeydown = (event) => {
-  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
-    event.preventDefault()
-    openCommandPalette()
-    return
-  }
-  if (event.key === 'Enter') {
-    event.preventDefault()
-    openCommandPalette()
-  }
-}
-
-const updateTime = () => {
-  const now = new Date()
-  currentTime.value = now.toLocaleTimeString('zh-CN', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
+// Lifecycle
 onMounted(() => {
-  updateTime()
-  timerId = setInterval(updateTime, 60000)
-})
-
-onBeforeUnmount(() => {
-  if (timerId) clearInterval(timerId)
+  // 可以在这里添加初始化逻辑
 })
 </script>
 
 <style scoped>
 .dashboard-header {
-  display: grid;
-  grid-template-columns: 1fr minmax(280px, 420px) auto;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1.25rem 2rem;
-  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  height: var(--header-height);
+  background-color: rgba(12, 17, 24, 0.7);
+  backdrop-filter: blur(18px);
+  transition: all 0.3s ease;
 }
 
-.header-left {
+:global(.light) .dashboard-header {
+  background-color: rgba(255, 255, 255, 0.78);
+}
+
+.header-content {
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  height: 100%;
+  padding: 0 2rem;
   gap: 1rem;
-}
-
-.brand-mark {
-  width: 44px;
-  height: 44px;
-  border-radius: 16px;
-  background: rgba(34, 211, 238, 0.16);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(34, 211, 238, 0.4);
-  box-shadow: inset 0 0 16px rgba(34, 211, 238, 0.2);
-}
-
-.brand-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--accent-0);
-  box-shadow: 0 0 12px rgba(34, 211, 238, 0.8);
 }
 
 .header-title {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.45rem;
+}
+
+.brand-line {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
 }
 
 .title {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  font-size: 1.4rem;
-  font-weight: 700;
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--heading-color);
+  letter-spacing: 0.05em;
 }
 
 .version-badge {
   font-size: 0.75rem;
-  padding: 0.2rem 0.55rem;
-  background: rgba(34, 211, 238, 0.18);
-  color: var(--text-0);
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(46, 196, 182, 0.15);
+  color: var(--text-strong);
   border-radius: 999px;
-  border: 1px solid rgba(34, 211, 238, 0.35);
+  font-weight: normal;
+  border: 1px solid rgba(46, 196, 182, 0.35);
 }
 
 .subtitle {
-  font-size: 0.85rem;
-  color: var(--text-2);
+  font-size: 0.875rem;
+  color: var(--paragraph-color);
+  margin: 0;
 }
 
-.header-center {
+.header-status {
   display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.status-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.search-box {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid var(--border);
-}
-
-.search-box input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  padding: 0;
-  color: var(--text-0);
-}
-
-.search-hint {
-  font-size: 0.7rem;
-  color: var(--text-3);
-  white-space: nowrap;
-}
-
-.search-box input:focus {
-  box-shadow: none;
-}
-
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  color: var(--text-1);
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  padding: 0.3rem 0.6rem;
+.status-dot {
+  width: 6px;
+  height: 6px;
   border-radius: 999px;
-  width: fit-content;
-}
-
-.time-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8rem;
-  color: var(--text-1);
-  background: rgba(148, 163, 184, 0.12);
-  border: 1px solid var(--border);
-  padding: 0.3rem 0.6rem;
-  border-radius: 999px;
+  background: var(--neon-green);
+  box-shadow: 0 0 8px rgba(6, 214, 160, 0.6);
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 .user-info {
@@ -353,65 +241,128 @@ onBeforeUnmount(() => {
 }
 
 .user-name {
-  font-size: 0.85rem;
-  color: var(--text-1);
-}
-
-.user-avatar,
-.avatar-placeholder {
-  width: 2.4rem;
-  height: 2.4rem;
-  border-radius: 50%;
+  font-size: 0.875rem;
+  color: var(--text-color);
 }
 
 .user-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
   object-fit: cover;
-  border: 1px solid rgba(34, 211, 238, 0.45);
+  border: 2px solid var(--neon-blue);
+  transition: border-color 0.3s ease;
+}
+
+.user-avatar:hover {
+  border-color: var(--neon-pink);
 }
 
 .avatar-placeholder {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: var(--neon-blue);
+  color: var(--text-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(34, 211, 238, 0.2);
-  color: var(--text-0);
-  border: 1px solid rgba(34, 211, 238, 0.4);
+  font-weight: bold;
+  font-size: 1rem;
+  border: 2px solid var(--neon-pink);
 }
 
 .actions-group {
   display: flex;
-  gap: 0.6rem;
+  gap: 0.75rem;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-strong);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-button:hover {
+  background-color: rgba(46, 196, 182, 0.22);
+  transform: translateY(-2px);
+}
+
+.action-button.active {
+  background-color: rgba(244, 162, 97, 0.25);
+}
+
+.logout-button {
+  background-color: rgba(231, 111, 81, 0.3);
+}
+
+.logout-button:hover {
+  background-color: rgba(231, 111, 81, 0.45);
 }
 
 .button-text {
   display: inline-block;
 }
 
-@media (max-width: 1200px) {
-  .dashboard-header {
-    grid-template-columns: 1fr;
-    padding: 1rem 1.5rem;
-  }
-
-  .header-center {
-    width: 100%;
-  }
-}
-
+/* Responsive Design */
 @media (max-width: 768px) {
-  .header-actions {
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
+  .header-content {
+    padding: 0 1rem;
   }
 
-  .actions-group {
+  .header-actions {
     width: 100%;
     justify-content: space-between;
   }
 
   .button-text {
     display: none;
+  }
+
+  .action-button {
+    padding: 0.5rem;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .header-status {
+    display: none;
+  }
+}
+
+/* Dark theme specific styles */
+:root[data-theme='dark'] .dashboard-header {
+  background-color: var(--background-color);
+}
+
+/* Animation classes */
+.animate-text-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--neon-pink) 0%,
+    var(--neon-blue) 50%,
+    var(--neon-pink) 100%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: 200% center;
   }
 }
 </style>

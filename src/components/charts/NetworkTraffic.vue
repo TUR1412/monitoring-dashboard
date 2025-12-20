@@ -1,4 +1,4 @@
-<!--src/components/charts/NetworkTraffic.vue-->>
+<!-- src/components/charts/NetworkTraffic.vue -->
 <template>
   <div class="network-traffic">
     <h4>网络流量</h4>
@@ -26,29 +26,29 @@ export default {
           label: '入站 (Mbps)',
           data: store.networkTraffic.inbound,
           fill: false,
-          borderColor: 'rgb(54, 162, 235)',
-          tension: 0.1
+          borderColor: 'rgba(46, 196, 182, 0.9)',
+          tension: 0.3
         },
         {
           label: '出站 (Mbps)',
           data: store.networkTraffic.outbound,
           fill: false,
-          borderColor: 'rgb(255, 99, 132)',
-          tension: 0.1
+          borderColor: 'rgba(231, 111, 81, 0.9)',
+          tension: 0.3
         },
         {
           label: '总流量 (Mbps)',
           data: store.networkTraffic.total,
           fill: false,
-          borderColor: 'rgb(75, 192, 192)',
-          tension: 0.1
+          borderColor: 'rgba(244, 162, 97, 0.9)',
+          tension: 0.3
         }
       ]
     }))
 
     const chartOptions = {
       responsive: true,
-      maintainAspectRatio: true,
+      maintainAspectRatio: false,
       scales: {
         y: {
           type: 'linear', // 添加类型声明

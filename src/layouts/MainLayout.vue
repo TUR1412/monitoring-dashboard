@@ -1,16 +1,11 @@
 <!-- src/layouts/MainLayout.vue -->
 <template>
-  <div class="app-shell">
-    <Header class="app-header" @open-command="openPalette" />
+  <div class="main-layout">
+    <Header />
     <TabBar />
-    <CommandPalette
-      :open="paletteOpen"
-      :initial-query="paletteQuery"
-      @close="closePalette"
-    />
-    <div class="app-content">
+    <div class="layout-body">
       <Sidebar />
-      <main class="app-main">
+      <main class="layout-main">
         <router-view />
       </main>
     </div>
@@ -18,48 +13,52 @@
   </div>
 </template>
 
-<script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import Header from '@/components/Header.vue'
-import Sidebar from '@/components/Sidebar.vue'
-import Footer from '@/components/Footer.vue'
-import TabBar from '@/components/TabBar.vue'
-import CommandPalette from '@/components/CommandPalette.vue'
+<script>
+import Header from '@/components/Header.vue';
+import Sidebar from '@/components/Sidebar.vue';
+import Footer from '@/components/Footer.vue';
+import TabBar from '@/components/TabBar.vue'; // 导入 TabBar 组件
 
-const paletteOpen = ref(false)
-const paletteQuery = ref('')
-
-const openPalette = (initialQuery = '') => {
-  paletteQuery.value = initialQuery || ''
-  paletteOpen.value = true
-}
-
-const closePalette = () => {
-  paletteOpen.value = false
-  paletteQuery.value = ''
-}
-
-const handleGlobalShortcut = (event) => {
-  const key = event.key?.toLowerCase()
-  if ((event.ctrlKey || event.metaKey) && key === 'k') {
-    event.preventDefault()
-    openPalette()
+export default {
+  name: 'MainLayout',
+  components: {
+    Header,
+    Sidebar,
+    Footer,
+    TabBar // 注册 TabBar 组件
   }
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', handleGlobalShortcut)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleGlobalShortcut)
-})
+};
 </script>
 
 <style scoped>
-.app-header {
-  position: sticky;
-  top: 0;
-  z-index: 90;
+.main-layout {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  min-height: 100vh;
+}
+
+.layout-body {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 0;
+}
+
+.layout-main {
+  padding: calc(var(--container-padding) + 8px) var(--container-padding) calc(var(--container-padding) + 12px);
+  background-color: transparent;
+  color: var(--text-color);
+  overflow-y: auto;
+  min-width: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .layout-body {
+    grid-template-columns: 1fr;
+  }
+
+  .layout-main {
+    padding: var(--container-padding);
+  }
 }
 </style>

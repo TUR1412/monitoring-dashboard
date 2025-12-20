@@ -10,12 +10,16 @@ export default defineConfig({
     }
   },
   build: {
+    chunkSizeWarningLimit: 900,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vue: ['vue', 'vue-router', 'pinia'],
-          charts: ['chart.js'],
-          icons: ['@fortawesome/fontawesome-free', 'lucide-vue-next']
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          if (id.includes('chart.js')) return 'vendor-charts'
+          if (id.includes('element-plus')) return 'vendor-element'
+          if (id.includes('@fortawesome')) return 'vendor-icons'
+          if (id.includes('vue')) return 'vendor-vue'
+          return 'vendor'
         }
       }
     }

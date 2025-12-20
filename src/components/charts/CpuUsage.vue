@@ -28,16 +28,16 @@ export default {
           label: 'CPU 使用率 (%)',
           data: store.cpuUsage.map(entry => entry.usage),
           fill: false,
-          borderColor: 'rgb(75, 192, 192)',
-          tension: 0.1
+          borderColor: 'rgba(46, 196, 182, 0.9)',
+          backgroundColor: 'rgba(46, 196, 182, 0.15)',
+          tension: 0.3
         }
       ]
     }))
 
     const chartOptions = {
       responsive: true,
-      maintainAspectRatio: true,
-      aspectRatio: 1.5,
+      maintainAspectRatio: false,
       scales: {
         y: {
           type: 'linear', // 添加类型声明

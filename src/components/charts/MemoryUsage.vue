@@ -27,8 +27,8 @@ export default {
         {
           label: '内存使用 (MB)',
           data: [store.memoryUsage.used, store.memoryUsage.free],
-          backgroundColor: ['rgba(54, 162, 235, 0.5)', 'rgba(255, 206, 86, 0.5)'],
-          borderColor: ['rgb(54, 162, 235)', 'rgb(255, 206, 86)'],
+          backgroundColor: ['rgba(46, 196, 182, 0.45)', 'rgba(244, 162, 97, 0.45)'],
+          borderColor: ['rgba(46, 196, 182, 0.9)', 'rgba(244, 162, 97, 0.9)'],
           borderWidth: 1
         }
       ]
@@ -36,8 +36,7 @@ export default {
 
     const chartOptions = {
       responsive: true,
-      maintainAspectRatio: true,
-      aspectRatio: 1.5,
+      maintainAspectRatio: false,
       scales: {
         y: {
           type: 'linear', // 添加类型声明

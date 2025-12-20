@@ -28,14 +28,14 @@ export default {
           label: '磁盘使用 (GB)',
           data: [store.diskUsage.usedDisk1, store.diskUsage.usedDisk2, store.diskUsage.usedDisk3],
           backgroundColor: [
-            'rgba(255, 99, 132, 0.6)',
-            'rgba(54, 162, 235, 0.6)',
-            'rgba(255, 206, 86, 0.6)'
+            'rgba(231, 111, 81, 0.5)',
+            'rgba(46, 196, 182, 0.5)',
+            'rgba(244, 162, 97, 0.5)'
           ],
           borderColor: [
-            'rgb(255, 99, 132)',
-            'rgb(54, 162, 235)',
-            'rgb(255, 206, 86)'
+            'rgba(231, 111, 81, 0.9)',
+            'rgba(46, 196, 182, 0.9)',
+            'rgba(244, 162, 97, 0.9)'
           ],
           borderWidth: 1
         }
@@ -44,8 +44,7 @@ export default {
 
     const chartOptions = {
       responsive: true,
-      maintainAspectRatio: true,
-      aspectRatio: 1.5,
+      maintainAspectRatio: false,
       plugins: {
         legend: {
           position: 'top'

@@ -1,9 +1,11 @@
 <!-- src/components/common/MetricCard.vue -->
 <template>
-  <div class="metric-card surface-card">
-    <h3>{{ title }}</h3>
+  <div class="metric-card card">
+    <div class="metric-header">
+      <h3 class="metric-title">{{ title }}</h3>
+      <span class="metric-trend" :class="trendClass">{{ trendLabel }}</span>
+    </div>
     <p class="metric-value">{{ value }} {{ unit }}</p>
-    <p :class="trendClass">{{ trend }}</p>
   </div>
 </template>
 
@@ -39,28 +41,58 @@ const trendClass = computed(() => {
       return 'text-gray-500'
   }
 })
+
+const trendLabel = computed(() => {
+  switch (props.trend) {
+    case 'up':
+      return '上升'
+    case 'down':
+      return '下降'
+    default:
+      return '稳定'
+  }
+})
 </script>
 
 <style scoped>
 .metric-card {
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
+}
+
+.metric-header {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 1rem;
+  gap: 1rem;
 }
-.text-green-500 {
-  color: #bbf7d0;
-}
-.text-red-500 {
-  color: #fecaca;
-}
-.text-gray-500 {
-  color: var(--text-3);
+
+.metric-title {
+  font-size: 1rem;
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
 .metric-value {
   font-size: 1.6rem;
-  color: var(--text-0);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.metric-trend {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.text-green-500 {
+  color: var(--neon-green);
+}
+.text-red-500 {
+  color: var(--neon-red);
+}
+.text-gray-500 {
+  color: var(--text-muted);
 }
 </style>

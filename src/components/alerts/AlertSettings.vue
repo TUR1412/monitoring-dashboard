@@ -1,136 +1,83 @@
 <!-- src/components/alerts/AlertSettings.vue -->
 <template>
-  <div class="alert-settings">
-    <div class="section-header">
+  <div class="alert-settings fade-in">
+    <header class="header">
       <div>
-        <div class="section-title">警报设置</div>
-        <div class="section-subtitle">通知策略、阈值规则与静默窗口</div>
+        <h2 class="page-title">警报设置</h2>
+        <p class="subtitle">配置通知偏好与阈值策略，设置即时生效并持久化。</p>
       </div>
-      <span class="pill">最近保存：{{ lastSavedLabel }}</span>
-    </div>
+      <span class="stat-chip">
+        <i class="fas fa-sliders"></i>
+        本地保存
+      </span>
+    </header>
 
-    <div class="bento-grid settings-grid">
-      <section class="surface-card bento-card bento-span-7">
-        <div class="panel-header">
-          <div>
-            <h3>通知策略</h3>
-            <p>根据场景开启邮件、Slack 等通知渠道</p>
-          </div>
-        </div>
-        <div class="panel-grid">
-          <div class="panel-block">
-            <div class="block-header">
-              <div>
-                <h4>电子邮件通知</h4>
-                <p>用于关键告警与日报推送</p>
-              </div>
-              <label class="toggle">
-                <input type="checkbox" v-model="settings.email.enabled" />
-                <span>{{ settings.email.enabled ? '已启用' : '已关闭' }}</span>
-              </label>
-            </div>
-            <div class="block-body">
+    <div class="card section-card">
+      <div class="section-title">
+        <span class="icon-badge"><i class="fas fa-bell"></i></span>
+        通知偏好设置
+      </div>
+      <div class="section-grid">
+        <div class="panel">
+          <h4>电子邮件通知</h4>
+          <label class="toggle-row">
+            <input type="checkbox" v-model="settings.email.enabled" />
+            <span>启用电子邮件通知</span>
+          </label>
+          <transition name="fade">
+            <div v-if="settings.email.enabled" class="input-stack">
               <BaseInput
-                v-model="settings.email.address"
                 type="email"
-                placeholder="运维邮箱地址"
-                :disabled="!settings.email.enabled"
-                :invalid="settings.email.enabled && !isEmailValid"
+                v-model="settings.email.address"
+                placeholder="电子邮件地址"
+                :invalid="!isEmailValid && settings.email.address"
+                @update:modelValue="validateEmail"
               />
-              <p v-if="settings.email.enabled && !isEmailValid" class="error-text">
-                邮箱格式无效，请检查输入
+              <p v-if="!isEmailValid && settings.email.address" class="hint error">
+                请输入有效的电子邮件地址
               </p>
             </div>
-          </div>
+          </transition>
+        </div>
 
-          <div class="panel-block">
-            <div class="block-header">
-              <div>
-                <h4>Slack 通知</h4>
-                <p>用于团队协作与即时提醒</p>
-              </div>
-              <label class="toggle">
-                <input type="checkbox" v-model="settings.slack.enabled" />
-                <span>{{ settings.slack.enabled ? '已启用' : '已关闭' }}</span>
-              </label>
-            </div>
-            <div class="block-body">
+        <div class="panel">
+          <h4>Slack 通知</h4>
+          <label class="toggle-row">
+            <input type="checkbox" v-model="settings.slack.enabled" />
+            <span>启用 Slack 通知</span>
+          </label>
+          <transition name="fade">
+            <div v-if="settings.slack.enabled" class="input-stack">
               <BaseInput
+                type="text"
                 v-model="settings.slack.webhook"
                 placeholder="Webhook URL"
-                :disabled="!settings.slack.enabled"
-                :invalid="settings.slack.enabled && !isWebhookValid"
+                :invalid="!isWebhookValid && settings.slack.webhook"
+                @update:modelValue="validateWebhook"
               />
               <BaseInput
+                type="text"
                 v-model="settings.slack.channel"
-                placeholder="频道名称（如 #ops-alerts）"
-                :disabled="!settings.slack.enabled"
+                placeholder="频道名称"
+                pattern="^#?[a-zA-Z0-9_-]+$"
               />
-              <p v-if="settings.slack.enabled && !isWebhookValid" class="error-text">
-                Webhook 地址格式不正确
-              </p>
             </div>
-          </div>
+          </transition>
         </div>
-      </section>
+      </div>
+    </div>
 
-      <section class="surface-card bento-card bento-span-5">
-        <div class="panel-header">
-          <div>
-            <h3>静默与去重</h3>
-            <p>降低噪音、减少重复警报</p>
-          </div>
-        </div>
-        <div class="panel-block compact">
-          <label class="toggle">
-            <input type="checkbox" v-model="settings.quietHours.enabled" />
-            <span>开启静默时段</span>
-          </label>
-          <div class="quiet-grid">
-            <BaseInput
-              v-model="settings.quietHours.start"
-              type="time"
-              :disabled="!settings.quietHours.enabled"
-            />
-            <BaseInput
-              v-model="settings.quietHours.end"
-              type="time"
-              :disabled="!settings.quietHours.enabled"
-            />
-          </div>
-          <div class="dedupe-row">
-            <span>去重窗口（分钟）</span>
-            <BaseInput
-              v-model="settings.dedupeWindow"
-              type="number"
-              min="1"
-              max="120"
-            />
-          </div>
-          <div class="dedupe-row">
-            <span>升级延迟（分钟）</span>
-            <BaseInput
-              v-model="settings.escalationDelay"
-              type="number"
-              min="0"
-              max="60"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section class="surface-card bento-card bento-span-12">
-        <div class="panel-header">
-          <div>
-            <h3>阈值设置</h3>
-            <p>定义 CPU 与内存的告警触发门槛</p>
-          </div>
-        </div>
-        <div class="threshold-grid">
-          <div class="threshold-item">
-            <h4>CPU 使用率</h4>
-            <div class="threshold-row">
-              <label>警告阈值</label>
+    <div class="card section-card">
+      <div class="section-title">
+        <span class="icon-badge"><i class="fas fa-sliders"></i></span>
+        警报阈值设置
+      </div>
+      <div class="section-grid">
+        <div class="panel">
+          <h4>CPU 使用率</h4>
+          <div class="range-block">
+            <label>警告阈值 (%)</label>
+            <div class="range-row">
               <input
                 type="range"
                 v-model.number="settings.thresholds.cpu.warning"
@@ -140,8 +87,10 @@
               />
               <span>{{ settings.thresholds.cpu.warning }}%</span>
             </div>
-            <div class="threshold-row">
-              <label>严重阈值</label>
+          </div>
+          <div class="range-block">
+            <label>严重阈值 (%)</label>
+            <div class="range-row">
               <input
                 type="range"
                 v-model.number="settings.thresholds.cpu.critical"
@@ -152,11 +101,13 @@
               <span>{{ settings.thresholds.cpu.critical }}%</span>
             </div>
           </div>
+        </div>
 
-          <div class="threshold-item">
-            <h4>内存使用率</h4>
-            <div class="threshold-row">
-              <label>警告阈值</label>
+        <div class="panel">
+          <h4>内存使用率</h4>
+          <div class="range-block">
+            <label>警告阈值 (%)</label>
+            <div class="range-row">
               <input
                 type="range"
                 v-model.number="settings.thresholds.memory.warning"
@@ -166,8 +117,10 @@
               />
               <span>{{ settings.thresholds.memory.warning }}%</span>
             </div>
-            <div class="threshold-row">
-              <label>严重阈值</label>
+          </div>
+          <div class="range-block">
+            <label>严重阈值 (%)</label>
+            <div class="range-row">
               <input
                 type="range"
                 v-model.number="settings.thresholds.memory.critical"
@@ -179,630 +132,677 @@
             </div>
           </div>
         </div>
-      </section>
-
-      <section class="surface-card bento-card bento-span-12">
-        <div class="panel-header">
-          <div>
-            <h3>自动化规则</h3>
-            <p>快速生成降噪、分级、升级的自动化策略</p>
-          </div>
-          <BaseButton type="primary" size="small" @click="openRuleModal()">
-            <i class="fas fa-plus"></i>
-            新建规则
-          </BaseButton>
-        </div>
-        <div class="rules-list">
-          <div v-if="!rules.length" class="state-empty">
-            暂无自动化规则，点击右上角新增
-          </div>
-          <div v-else class="rule-row" v-for="rule in rules" :key="rule.id">
-            <div>
-              <div class="rule-title">{{ rule.name }}</div>
-              <div class="rule-meta">
-                当 {{ metricLabel(rule.metric) }} {{ rule.comparator }} {{ rule.threshold }}
-                <span class="rule-pill">{{ severityLabel(rule.severity) }}</span>
-              </div>
-            </div>
-            <div class="rule-actions">
-              <label class="toggle small">
-                <input type="checkbox" v-model="rule.enabled" @change="persistAll" />
-                <span>{{ rule.enabled ? '启用' : '停用' }}</span>
-              </label>
-              <BaseButton type="ghost" size="small" @click="openRuleModal(rule)">编辑</BaseButton>
-              <BaseButton type="danger" size="small" @click="deleteRule(rule.id)">删除</BaseButton>
-            </div>
-          </div>
-        </div>
-      </section>
+      </div>
     </div>
 
-    <div class="action-bar">
-      <BaseButton type="ghost" @click="resetSettings">重置为默认</BaseButton>
+    <div class="card section-card">
+      <div class="section-title">
+        <span class="icon-badge"><i class="fas fa-layer-group"></i></span>
+        策略模板
+      </div>
+      <div class="template-grid">
+        <div class="template-card" v-for="template in templates" :key="template.key">
+          <h4>{{ template.title }}</h4>
+          <p>{{ template.description }}</p>
+          <BaseButton type="default" size="small" @click="applyTemplate(template.key)">
+            应用模板
+          </BaseButton>
+        </div>
+      </div>
+    </div>
+
+    <div class="card section-card">
+      <div class="section-title">
+        <span class="icon-badge"><i class="fas fa-shield-alt"></i></span>
+        高级策略
+      </div>
+      <div class="section-grid">
+        <label class="toggle-row">
+          <input type="checkbox" v-model="settings.advanced.autoSuppress" />
+          <span>启用告警抑制（相同事件 5 分钟内合并）</span>
+        </label>
+        <label class="toggle-row">
+          <input type="checkbox" v-model="settings.advanced.autoEscalation" />
+          <span>启用自动升级（连续三次触发提升一级）</span>
+        </label>
+        <label class="toggle-row">
+          <input type="checkbox" v-model="settings.advanced.slaTracking" />
+          <span>启用 SLA 跟踪与提醒</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card section-card">
+      <div class="section-title">
+        <span class="icon-badge"><i class="fas fa-sitemap"></i></span>
+        告警规则引擎
+      </div>
+      <div class="rules-header">
+        <span class="stat-chip">
+          <i class="fas fa-bolt"></i>
+          已启用 {{ enabledRuleCount }} / {{ rules.length }}
+        </span>
+        <BaseButton type="primary" @click="openRuleModal">
+          <i class="fas fa-plus"></i>
+          新增规则
+        </BaseButton>
+      </div>
+      <div class="rules-grid">
+        <div v-for="rule in rules" :key="rule.id" class="rule-card">
+          <div class="rule-top">
+            <div>
+              <h4>{{ rule.name }}</h4>
+              <p>{{ rule.condition }}</p>
+            </div>
+            <span class="status-pill" :class="rule.enabled ? 'active' : 'inactive'">
+              {{ rule.enabled ? '启用' : '停用' }}
+            </span>
+          </div>
+          <div class="rule-meta">
+            <span class="meta-chip">{{ rule.severity }}</span>
+            <span class="meta-chip">{{ rule.channel }}</span>
+            <span class="meta-time">更新 {{ rule.lastUpdated }}</span>
+          </div>
+          <div class="rule-actions">
+            <BaseButton type="default" size="small" @click="toggleRule(rule)">
+              {{ rule.enabled ? '停用' : '启用' }}
+            </BaseButton>
+            <BaseButton type="default" size="small" @click="editRule(rule)">
+              编辑
+            </BaseButton>
+            <BaseButton type="danger" size="small" @click="removeRule(rule)">
+              删除
+            </BaseButton>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <BaseButton type="default" @click="resetSettings">重置</BaseButton>
       <BaseButton type="primary" :disabled="!isFormValid" @click="saveSettings">
         保存设置
       </BaseButton>
     </div>
 
-    <BaseModal v-model="ruleModalOpen" title="自动化规则" width="520px">
-      <div class="rule-editor">
-        <div class="form-group">
-          <span class="form-label">规则名称</span>
-          <BaseInput v-model="ruleDraft.name" placeholder="如：CPU 高负载升级" />
+    <BaseModal v-model="showRuleModal" :title="editingRule ? '编辑规则' : '新增规则'" width="520px">
+      <div class="rule-form">
+        <div class="form-row">
+          <label>规则名称</label>
+          <BaseInput v-model="ruleForm.name" placeholder="例如：CPU 高危" />
         </div>
-        <div class="form-group">
-          <span class="form-label">监控指标</span>
-          <select v-model="ruleDraft.metric">
-            <option v-for="option in metricOptions" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </option>
+        <div class="form-row">
+          <label>触发条件</label>
+          <BaseInput v-model="ruleForm.condition" placeholder="例如：CPU > 85% 持续 5 分钟" />
+        </div>
+        <div class="form-row">
+          <label>严重程度</label>
+          <select v-model="ruleForm.severity">
+            <option value="严重">严重</option>
+            <option value="高">高</option>
+            <option value="中">中</option>
+            <option value="低">低</option>
           </select>
         </div>
-        <div class="rule-matrix">
-          <div class="form-group">
-            <span class="form-label">条件</span>
-            <select v-model="ruleDraft.comparator">
-              <option v-for="option in comparatorOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
-          <div class="form-group">
-            <span class="form-label">阈值</span>
-            <BaseInput v-model="ruleDraft.threshold" type="number" min="1" max="1000" />
-          </div>
+        <div class="form-row">
+          <label>通知通道</label>
+          <select v-model="ruleForm.channel">
+            <option value="邮件">邮件</option>
+            <option value="Slack">Slack</option>
+            <option value="短信">短信</option>
+            <option value="Webhook">Webhook</option>
+          </select>
         </div>
-        <div class="rule-matrix">
-          <div class="form-group">
-            <span class="form-label">严重程度</span>
-            <select v-model="ruleDraft.severity">
-              <option v-for="option in severityOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
-          <div class="form-group">
-            <span class="form-label">通知渠道</span>
-            <select v-model="ruleDraft.channel">
-              <option v-for="option in channelOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
+        <label class="toggle-row">
+          <input type="checkbox" v-model="ruleForm.enabled" />
+          <span>启用该规则</span>
+        </label>
+        <div class="rule-actions">
+          <BaseButton type="default" @click="closeRuleModal">取消</BaseButton>
+          <BaseButton type="primary" @click="saveRule">保存规则</BaseButton>
         </div>
       </div>
-      <template #footer>
-        <div class="modal-actions">
-          <BaseButton type="ghost" @click="closeRuleModal">取消</BaseButton>
-          <BaseButton type="primary" :disabled="!isRuleValid" @click="saveRule">
-            保存规则
-          </BaseButton>
-        </div>
-      </template>
     </BaseModal>
   </div>
 </template>
 
-<script setup>
-import { computed, reactive, ref, watch } from 'vue'
-import BaseInput from '@/components/base/BaseInput.vue'
-import BaseButton from '@/components/base/BaseButton.vue'
-import BaseModal from '@/components/base/BaseModal.vue'
+<script>
 import { notify } from '@/utils/notify'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BaseInput from '@/components/base/BaseInput.vue'
+import BaseModal from '@/components/base/BaseModal.vue'
 
-const storageKey = 'monitoring-dashboard:alertSettings'
-const rulesKey = 'monitoring-dashboard:alertRules'
-const savedAtKey = 'monitoring-dashboard:alertSettings:savedAt'
-
-const canUseStorage = typeof window !== 'undefined' && typeof localStorage !== 'undefined'
-const clone = (value) => JSON.parse(JSON.stringify(value))
-
-const defaultSettings = {
-  email: {
-    enabled: false,
-    address: ''
+export default {
+  name: 'AlertSettings',
+  components: {
+    BaseButton,
+    BaseInput,
+    BaseModal
   },
-  slack: {
-    enabled: false,
-    webhook: '',
-    channel: ''
-  },
-  thresholds: {
-    cpu: {
-      warning: 70,
-      critical: 90
-    },
-    memory: {
-      warning: 80,
-      critical: 95
-    }
-  },
-  quietHours: {
-    enabled: false,
-    start: '23:00',
-    end: '07:00'
-  },
-  dedupeWindow: 15,
-  escalationDelay: 5
-}
 
-const defaultRules = [
-  {
-    id: `rule-${Date.now()}`,
-    name: 'CPU 负载升级',
-    metric: 'cpu',
-    comparator: '>',
-    threshold: 85,
-    severity: 'critical',
-    channel: 'phone',
-    enabled: true
-  },
-  {
-    id: `rule-${Date.now() + 1}`,
-    name: '内存高水位预警',
-    metric: 'memory',
-    comparator: '>',
-    threshold: 80,
-    severity: 'warning',
-    channel: 'email',
-    enabled: true
-  }
-]
-
-const loadStorage = (key, fallback) => {
-  if (!canUseStorage) return fallback
-  const raw = localStorage.getItem(key)
-  if (!raw) return fallback
-  try {
-    return JSON.parse(raw)
-  } catch (error) {
-    return fallback
-  }
-}
-
-const mergeSettings = (saved) => ({
-  ...defaultSettings,
-  ...saved,
-  email: {
-    ...defaultSettings.email,
-    ...(saved?.email || {})
-  },
-  slack: {
-    ...defaultSettings.slack,
-    ...(saved?.slack || {})
-  },
-  thresholds: {
-    ...defaultSettings.thresholds,
-    ...(saved?.thresholds || {}),
-    cpu: {
-      ...defaultSettings.thresholds.cpu,
-      ...(saved?.thresholds?.cpu || {})
-    },
-    memory: {
-      ...defaultSettings.thresholds.memory,
-      ...(saved?.thresholds?.memory || {})
-    }
-  },
-  quietHours: {
-    ...defaultSettings.quietHours,
-    ...(saved?.quietHours || {})
-  }
-})
-
-const normalizeRules = (items) => {
-  if (!Array.isArray(items)) return clone(defaultRules)
-  return items.map(rule => ({
-    enabled: true,
-    channel: 'email',
-    severity: 'warning',
-    comparator: '>',
-    ...rule
-  }))
-}
-
-const settings = ref(mergeSettings(loadStorage(storageKey, null)))
-const rules = ref(normalizeRules(loadStorage(rulesKey, defaultRules)))
-const lastSavedAt = ref(canUseStorage ? localStorage.getItem(savedAtKey) : null)
-
-const ruleModalOpen = ref(false)
-const editingRuleId = ref(null)
-const ruleDraft = reactive({
-  name: '',
-  metric: 'cpu',
-  comparator: '>',
-  threshold: 80,
-  severity: 'warning',
-  channel: 'email'
-})
-
-const metricOptions = [
-  { value: 'cpu', label: 'CPU 使用率' },
-  { value: 'memory', label: '内存使用率' },
-  { value: 'disk', label: '磁盘使用率' },
-  { value: 'network', label: '网络延迟' }
-]
-
-const severityOptions = [
-  { value: 'info', label: '信息' },
-  { value: 'warning', label: '警告' },
-  { value: 'critical', label: '严重' }
-]
-
-const channelOptions = [
-  { value: 'email', label: '邮件' },
-  { value: 'slack', label: 'Slack' },
-  { value: 'sms', label: '短信' },
-  { value: 'phone', label: '电话' }
-]
-
-const comparatorOptions = [
-  { value: '>', label: '大于' },
-  { value: '>=', label: '大于等于' },
-  { value: '<', label: '小于' },
-  { value: '<=', label: '小于等于' }
-]
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const webhookRegex = /^https:\/\/hooks\.slack\.com\/services\/T[A-Z0-9]+\/B[A-Z0-9]+\/[A-Za-z0-9]+$/
-
-const isEmailValid = computed(() => {
-  if (!settings.value.email.enabled) return true
-  return emailRegex.test(settings.value.email.address)
-})
-
-const isWebhookValid = computed(() => {
-  if (!settings.value.slack.enabled) return true
-  return webhookRegex.test(settings.value.slack.webhook)
-})
-
-const isFormValid = computed(() => isEmailValid.value && isWebhookValid.value)
-
-const isRuleValid = computed(() => {
-  return ruleDraft.name.trim().length > 0 && Number(ruleDraft.threshold) > 0
-})
-
-const lastSavedLabel = computed(() => {
-  if (!lastSavedAt.value) return '未保存'
-  const date = new Date(lastSavedAt.value)
-  if (Number.isNaN(date.getTime())) return '未保存'
-  return date.toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-})
-
-const persistAll = () => {
-  if (!canUseStorage) return
-  localStorage.setItem(storageKey, JSON.stringify(settings.value))
-  localStorage.setItem(rulesKey, JSON.stringify(rules.value))
-  const now = new Date().toISOString()
-  lastSavedAt.value = now
-  localStorage.setItem(savedAtKey, now)
-}
-
-const saveSettings = () => {
-  if (!isFormValid.value) {
-    notify.error('请完善通知信息后再保存')
-    return
-  }
-  persistAll()
-  notify.success('设置已保存')
-}
-
-const resetSettings = () => {
-  settings.value = clone(defaultSettings)
-  notify.info('已恢复默认设置')
-  persistAll()
-}
-
-const openRuleModal = (rule = null) => {
-  if (rule) {
-    editingRuleId.value = rule.id
-    Object.assign(ruleDraft, clone(rule))
-  } else {
-    editingRuleId.value = null
-    Object.assign(ruleDraft, {
-      name: '',
-      metric: 'cpu',
-      comparator: '>',
-      threshold: 80,
-      severity: 'warning',
-      channel: 'email'
-    })
-  }
-  ruleModalOpen.value = true
-}
-
-const closeRuleModal = () => {
-  ruleModalOpen.value = false
-}
-
-const saveRule = () => {
-  if (!isRuleValid.value) return
-  if (editingRuleId.value) {
-    rules.value = rules.value.map(rule =>
-      rule.id === editingRuleId.value ? { ...rule, ...clone(ruleDraft) } : rule
-    )
-  } else {
-    rules.value = [
-      ...rules.value,
-      {
-        id: `rule-${Date.now()}`,
-        ...clone(ruleDraft),
+  data() {
+    return {
+      settings: {
+        email: {
+          enabled: false,
+          address: ''
+        },
+        slack: {
+          enabled: false,
+          webhook: '',
+          channel: ''
+        },
+        thresholds: {
+          cpu: {
+            warning: 70,
+            critical: 90
+          },
+          memory: {
+            warning: 80,
+            critical: 95
+          }
+        },
+        advanced: {
+          autoSuppress: true,
+          autoEscalation: false,
+          slaTracking: true
+        }
+      },
+      isEmailValid: false,
+      isWebhookValid: false,
+      originalSettings: null,
+      templates: [
+        {
+          key: 'safe',
+          title: '稳健模式',
+          description: '适合生产环境，降低误报频率'
+        },
+        {
+          key: 'balanced',
+          title: '均衡模式',
+          description: '默认推荐，平衡告警敏感度'
+        },
+        {
+          key: 'sensitive',
+          title: '敏感模式',
+          description: '用于压力测试与早期预警'
+        }
+      ],
+      rules: [
+        {
+          id: 1,
+          name: 'CPU 高危',
+          condition: 'CPU > 85% 持续 5 分钟',
+          severity: '严重',
+          channel: '邮件',
+          enabled: true,
+          lastUpdated: '2025-12-20'
+        },
+        {
+          id: 2,
+          name: '内存预警',
+          condition: '内存 > 75% 持续 10 分钟',
+          severity: '中',
+          channel: 'Slack',
+          enabled: true,
+          lastUpdated: '2025-12-19'
+        }
+      ],
+      showRuleModal: false,
+      editingRule: null,
+      ruleForm: {
+        name: '',
+        condition: '',
+        severity: '中',
+        channel: '邮件',
         enabled: true
       }
-    ]
+    }
+  },
+
+  computed: {
+    isFormValid() {
+      if (this.settings.email.enabled && !this.isEmailValid) {
+        return false
+      }
+      if (this.settings.slack.enabled && !this.isWebhookValid) {
+        return false
+      }
+      return true
+    },
+    enabledRuleCount() {
+      return this.rules.filter(rule => rule.enabled).length
+    }
+  },
+
+  created() {
+    this.originalSettings = JSON.parse(JSON.stringify(this.settings))
+    this.loadSettings()
+    this.loadRules()
+  },
+
+  methods: {
+    validateEmail() {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      this.isEmailValid = emailRegex.test(this.settings.email.address)
+    },
+
+    validateWebhook() {
+      const webhookRegex = /^https:\/\/hooks\.slack\.com\/services\/T[A-Z0-9]+\/B[A-Z0-9]+\/[A-Za-z0-9]+$/
+      this.isWebhookValid = webhookRegex.test(this.settings.slack.webhook)
+    },
+
+    loadSettings() {
+      const savedSettings = localStorage.getItem('alertSettings')
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings)
+        this.settings = {
+          ...this.settings,
+          ...parsed,
+          advanced: {
+            ...this.settings.advanced,
+            ...(parsed.advanced || {})
+          }
+        }
+        this.validateEmail()
+        this.validateWebhook()
+      }
+    },
+
+    async saveSettings() {
+      if (!this.isFormValid) {
+        return
+      }
+
+      try {
+        localStorage.setItem('alertSettings', JSON.stringify(this.settings))
+        this.$emit('settings-saved', this.settings)
+        notify.success('设置已成功保存')
+      } catch (error) {
+        console.error('保存设置失败:', error)
+        notify.error('保存设置失败，请稍后重试')
+      }
+    },
+
+    resetSettings() {
+      this.settings = JSON.parse(JSON.stringify(this.originalSettings))
+      this.validateEmail()
+      this.validateWebhook()
+      notify.success('设置已重置为默认值')
+    },
+
+    applyTemplate(key) {
+      const mapping = {
+        safe: { cpu: { warning: 80, critical: 95 }, memory: { warning: 85, critical: 97 } },
+        balanced: { cpu: { warning: 70, critical: 90 }, memory: { warning: 80, critical: 95 } },
+        sensitive: { cpu: { warning: 60, critical: 80 }, memory: { warning: 70, critical: 90 } }
+      }
+      const preset = mapping[key]
+      if (preset) {
+        this.settings.thresholds = JSON.parse(JSON.stringify(preset))
+        notify.success('模板已应用')
+      }
+    },
+
+    persistRules() {
+      localStorage.setItem('alertRules', JSON.stringify(this.rules))
+    },
+
+    loadRules() {
+      const saved = localStorage.getItem('alertRules')
+      if (saved) {
+        try {
+          this.rules = JSON.parse(saved)
+        } catch (error) {
+          console.warn('规则加载失败，使用默认配置')
+        }
+      }
+    },
+
+    openRuleModal() {
+      this.editingRule = null
+      this.ruleForm = {
+        name: '',
+        condition: '',
+        severity: '中',
+        channel: '邮件',
+        enabled: true
+      }
+      this.showRuleModal = true
+    },
+
+    editRule(rule) {
+      this.editingRule = rule
+      this.ruleForm = { ...rule }
+      this.showRuleModal = true
+    },
+
+    closeRuleModal() {
+      this.showRuleModal = false
+      this.editingRule = null
+    },
+
+    saveRule() {
+      if (!this.ruleForm.name || !this.ruleForm.condition) {
+        notify.error('请填写规则名称与触发条件')
+        return
+      }
+
+      const now = new Date().toISOString().slice(0, 10)
+
+      if (this.editingRule) {
+        const index = this.rules.findIndex(rule => rule.id === this.editingRule.id)
+        if (index !== -1) {
+          this.rules.splice(index, 1, {
+            ...this.ruleForm,
+            id: this.editingRule.id,
+            lastUpdated: now
+          })
+        }
+        notify.success('规则已更新')
+      } else {
+        this.rules.unshift({
+          ...this.ruleForm,
+          id: Date.now(),
+          lastUpdated: now
+        })
+        notify.success('规则已添加')
+      }
+
+      this.persistRules()
+      this.closeRuleModal()
+    },
+
+    toggleRule(rule) {
+      rule.enabled = !rule.enabled
+      rule.lastUpdated = new Date().toISOString().slice(0, 10)
+      this.persistRules()
+      notify.success(rule.enabled ? '规则已启用' : '规则已停用')
+    },
+
+    async removeRule(rule) {
+      try {
+        await notify.confirm(`确定要删除规则 "${rule.name}" 吗？`)
+        this.rules = this.rules.filter(item => item.id !== rule.id)
+        this.persistRules()
+        notify.success('规则已删除')
+      } catch (error) {
+        if (error !== 'cancel') {
+          notify.error('删除失败，请稍后重试')
+        }
+      }
+    }
   }
-  persistAll()
-  notify.success('规则已保存')
-  closeRuleModal()
 }
-
-const deleteRule = (ruleId) => {
-  rules.value = rules.value.filter(rule => rule.id !== ruleId)
-  persistAll()
-  notify.info('规则已删除')
-}
-
-const metricLabel = (metric) => metricOptions.find(option => option.value === metric)?.label || metric
-const severityLabel = (severity) => severityOptions.find(option => option.value === severity)?.label || severity
-
-watch(
-  () => settings.value,
-  () => persistAll(),
-  { deep: true }
-)
-
-watch(
-  () => rules.value,
-  () => persistAll(),
-  { deep: true }
-)
 </script>
 
 <style scoped>
 .alert-settings {
+  padding: var(--container-padding);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.settings-grid {
-  align-items: stretch;
-}
-
-.panel-header {
+.header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
-.panel-header p {
-  color: var(--text-2);
-  margin-top: 0.35rem;
-}
-
-.panel-grid {
-  display: grid;
-  gap: 1rem;
-}
-
-.panel-block {
-  padding: 1rem 1.2rem;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: rgba(148, 163, 184, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.panel-block.compact {
-  gap: 0.75rem;
-}
-
-.block-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.block-header h4 {
-  margin: 0;
-}
-
-.block-header p {
-  margin-top: 0.3rem;
-  color: var(--text-2);
-  font-size: 0.85rem;
-}
-
-.block-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.error-text {
-  font-size: 0.8rem;
-  color: #fecaca;
-}
-
-.toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0.75rem;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(148, 163, 184, 0.12);
-  font-size: 0.8rem;
-  color: var(--text-2);
-}
-
-.toggle.small {
-  padding: 0.3rem 0.6rem;
-  font-size: 0.75rem;
-}
-
-.toggle input {
-  accent-color: var(--accent-0);
-}
-
-.quiet-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.6rem;
-}
-
-.dedupe-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  font-size: 0.85rem;
-  color: var(--text-2);
-}
-
-.threshold-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: flex-start;
   gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
-.threshold-item {
-  padding: 1rem 1.2rem;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: rgba(148, 163, 184, 0.08);
+.section-card {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.2rem;
+  background: rgba(15, 23, 42, 0.28);
 }
 
-.threshold-row {
-  display: grid;
-  grid-template-columns: 140px 1fr 60px;
+.section-title {
+  display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: var(--text-2);
-}
-
-.threshold-row input[type="range"] {
-  width: 100%;
-}
-
-.threshold-row span {
-  text-align: right;
-  color: var(--text-1);
-}
-
-.rules-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.rule-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem 1.2rem;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: rgba(148, 163, 184, 0.08);
-}
-
-.rule-title {
+  font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-0);
 }
 
-.rule-meta {
-  margin-top: 0.4rem;
-  color: var(--text-2);
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.rule-pill {
-  padding: 0.2rem 0.6rem;
+.icon-badge {
+  width: 40px;
+  height: 40px;
   border-radius: 999px;
-  border: 1px solid rgba(251, 113, 133, 0.4);
-  color: #fecaca;
-  font-size: 0.7rem;
-}
-
-.rule-actions {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
+  justify-content: center;
+  background: rgba(46, 196, 182, 0.18);
+  color: var(--neon-blue);
+  border: 1px solid rgba(46, 196, 182, 0.4);
 }
 
-.state-empty {
-  text-align: center;
-  padding: 1.5rem 0;
-  color: var(--text-3);
-}
-
-.action-bar {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.rule-editor {
-  display: flex;
-  flex-direction: column;
+.section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1rem;
 }
 
-.form-group {
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.template-card {
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.template-card h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.template-card p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.panel {
+  padding: 1.2rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.panel h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--text-muted);
+}
+
+.input-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.hint.error {
+  color: var(--neon-red);
+}
+
+.range-block {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
 }
 
-.form-label {
-  font-size: 0.8rem;
-  color: var(--text-2);
+.range-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: var(--text-muted);
 }
 
-.rule-matrix {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: rgba(46, 196, 182, 0.25);
+  border-radius: 999px;
+  outline: none;
 }
 
-.modal-actions {
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--neon-pink);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(244, 162, 97, 0.4);
+}
+
+.actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-@media (max-width: 1100px) {
-  .threshold-grid {
-    grid-template-columns: 1fr;
-  }
+.rules-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-@media (max-width: 900px) {
-  .settings-grid {
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-  }
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
 
-  .quiet-grid {
-    grid-template-columns: 1fr;
-  }
+.rule-card {
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
 
-  .rule-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+.rule-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.rule-top h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.rule-top p {
+  margin: 0.35rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.status-pill {
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  border: 1px solid transparent;
+  height: fit-content;
+}
+
+.status-pill.active {
+  color: var(--neon-green);
+  border-color: rgba(6, 214, 160, 0.5);
+  background: rgba(6, 214, 160, 0.12);
+}
+
+.status-pill.inactive {
+  color: var(--neon-red);
+  border-color: rgba(231, 111, 81, 0.5);
+  background: rgba(231, 111, 81, 0.12);
+}
+
+.rule-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.meta-chip {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  border: 1px solid rgba(46, 196, 182, 0.4);
+  color: var(--text-strong);
+}
+
+.meta-time {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.rule-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rule-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--text-muted);
+}
+
+.form-row select {
+  background: rgba(15, 23, 42, 0.3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.85rem;
+  color: var(--text-color);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

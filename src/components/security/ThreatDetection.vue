@@ -1,152 +1,111 @@
 <!-- src/components/security/ThreatDetection.vue -->
 <template>
-  <div class="threat-detection-container glassmorphism p-8 rounded-xl border border-opacity-20" 
-       :style="{ borderColor: 'var(--neon-blue)' }">
-    <!-- 标题区域 -->
-    <div class="flex justify-between items-center mb-8">
-      <div class="flex items-center space-x-4">
-        <h2 class="text-3xl font-bold tracking-wider animate-text-shimmer"
-            :style="{ 
-              color: 'var(--neon-pink)',
-              textShadow: '0 0 10px var(--neon-pink), 0 0 20px var(--neon-blue)'
-            }">
-          威胁检测系统
-        </h2>
-        <div class="status-indicator flex items-center px-4 py-2 rounded-full glassmorphism">
-          <span class="mr-3 text-sm" :style="{ color: 'var(--neon-green)' }">实时监控中</span>
-          <div class="flex space-x-1">
-            <div v-for="n in 3" :key="n" 
-                 class="w-2 h-2 rounded-full"
-                 :class="['animate-pulse', `delay-${(n-1)*200}`]"
-                 :style="{ backgroundColor: 'var(--neon-green)' }">
-            </div>
-          </div>
-        </div>
+  <div class="threat-detection fade-in">
+    <header class="threat-header">
+      <div>
+        <h2 class="page-title">威胁检测系统</h2>
+        <p class="subtitle">持续监测异常行为与攻击路径，实时协同响应。</p>
       </div>
-      <div class="timestamp text-sm" :style="{ color: 'var(--gray-400)' }">
-        最后更新: {{ currentTime }}
-      </div>
-    </div>
-
-    <!-- 威胁等级卡片 -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-      <div v-for="(priority, index) in priorities" 
-           :key="index"
-           class="threat-card glassmorphism p-6 rounded-xl transition-all duration-500 hover:scale-105"
-           :class="priority.cardClass">
-        <div class="flex flex-col items-center">
-          <div class="icon-wrapper mb-4">
-            <div class="w-12 h-12 rounded-full flex items-center justify-center"
-                 :style="{ 
-                   backgroundColor: `${priority.color}20`,
-                   border: `2px solid ${priority.color}`
-                 }">
-              <i class="text-2xl" :class="priority.icon" :style="{ color: priority.color }"></i>
-            </div>
-          </div>
-          <h3 class="text-xl font-medium mb-3" :style="{ color: priority.color }">
-            {{ priority.label }}
-          </h3>
-          <div class="count-wrapper relative">
-            <span class="text-5xl font-bold mb-4 transition-all duration-300"
-                  :style="{ color: priority.color }">
-              {{ priority.count }}
-            </span>
-            <span class="absolute -top-2 -right-4 text-sm"
-                  :style="{ color: `${priority.color}80` }">
-              {{ priority.trend }}
-            </span>
-          </div>
-          <div class="w-full h-1 rounded-full mt-4 overflow-hidden">
-            <div class="h-full animate-pulse"
-                 :style="{ 
-                   backgroundColor: priority.color,
-                   width: `${priority.percentage}%`
-                 }">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 威胁详情列表 -->
-    <div class="threat-details glassmorphism p-6 rounded-xl">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="text-xl font-semibold tracking-wide"
-            :style="{ 
-              color: 'var(--neon-blue)',
-              textShadow: '0 0 8px var(--neon-blue)'
-            }">
-          威胁详情
-        </h3>
-        <BaseButton
-          type="ghost"
-          size="small"
-          class="refresh-button px-6 py-2 rounded-lg transition-all duration-300 flex items-center space-x-2"
-          :class="{ 'animate-spin': isRefreshing }"
-          @click="refreshThreats"
-        >
-          <i class="fas fa-rotate text-lg"></i>
-          <span>刷新数据</span>
+      <div class="header-actions">
+        <span class="stat-chip">
+          <i class="fas fa-satellite-dish"></i>
+          实时监控
+        </span>
+        <BaseButton type="primary" @click="refreshThreats">
+          <i class="fas fa-rotate" :class="{ spin: isRefreshing }"></i>
+          刷新数据
         </BaseButton>
       </div>
+    </header>
 
-      <div class="threat-list space-y-4">
-        <div v-for="threat in threats" 
-             :key="threat.id"
-             class="threat-item p-4 rounded-xl transition-all duration-300 hover:translate-x-2"
-             :class="getThreatItemClass(threat.severity)">
-          <div class="flex justify-between items-start">
-            <div class="flex items-start space-x-4">
-              <div class="threat-indicator">
-                <div class="w-3 h-3 rounded-full animate-pulse"
-                     :style="{ backgroundColor: getThreatColor(threat.severity) }">
-                </div>
+    <div class="priority-grid">
+      <div
+        v-for="priority in priorities"
+        :key="priority.label"
+        class="card priority-card pressable"
+        :style="{ borderColor: `${priority.color}60` }"
+      >
+        <div class="priority-top">
+          <div class="priority-icon" :style="{ color: priority.color, background: `${priority.color}1A` }">
+            <i :class="priority.icon"></i>
+          </div>
+          <span class="priority-trend" :class="priority.trend.startsWith('+') ? 'up' : 'down'">
+            {{ priority.trend }}
+          </span>
+        </div>
+        <div class="priority-body">
+          <h3 class="priority-label">{{ priority.label }}</h3>
+          <div class="priority-value" :style="{ color: priority.color }">
+            {{ priority.count }}
+          </div>
+        </div>
+        <div class="progress-track">
+          <div
+            class="progress-fill"
+            :style="{ width: `${priority.percentage}%`, background: priority.color }"
+          ></div>
+        </div>
+        <p class="priority-footnote">风险占比 {{ priority.percentage }}%</p>
+      </div>
+    </div>
+
+    <section class="card threat-details">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="icon-badge">
+            <i class="fas fa-bug"></i>
+          </span>
+          威胁详情
+        </div>
+        <span class="section-meta">最后更新 {{ currentTime }}</span>
+      </div>
+
+      <div class="threat-list">
+        <div
+          v-for="threat in threats"
+          :key="threat.id"
+          class="threat-item"
+          :style="{ borderColor: `${getThreatColor(threat.severity)}66` }"
+        >
+          <div class="threat-main">
+            <div class="threat-indicator" :style="{ background: getThreatColor(threat.severity) }"></div>
+            <div>
+              <div class="threat-title">{{ threat.description }}</div>
+              <div class="threat-meta">
+                IP: {{ threat.ip }} · 来源: {{ threat.source }}
               </div>
-              <div class="threat-content">
-                <div class="text-lg mb-1">{{ threat.description }}</div>
-                <div class="text-sm" :style="{ color: 'var(--gray-400)' }">
-                  IP: {{ threat.ip }} | 来源: {{ threat.source }}
-                </div>
-              </div>
-            </div>
-            <div class="flex flex-col items-end space-y-2">
-              <span class="threat-status px-4 py-1 rounded-full text-sm font-medium"
-                    :class="getStatusClass(threat.status)">
-                {{ threat.status }}
-              </span>
-              <span class="text-sm" :style="{ color: 'var(--gray-400)' }">
-                {{ formatDate(threat.timestamp) }}
-              </span>
             </div>
           </div>
-          <div class="threat-actions mt-4 flex justify-end space-x-3">
+          <div class="threat-right">
+            <span class="status-pill" :class="getStatusClass(threat.status)">
+              {{ threat.status }}
+            </span>
+            <span class="time-text">{{ formatDate(threat.timestamp) }}</span>
+          </div>
+          <div class="threat-actions">
             <BaseButton
               v-for="action in threat.actions"
               :key="action.label"
-              type="ghost"
+              type="default"
               size="small"
-              class="action-button px-3 py-1 rounded-md text-sm transition-all duration-300"
-              :style="{
-                borderColor: getThreatColor(threat.severity),
-                color: getThreatColor(threat.severity)
-              }"
+              :style="{ borderColor: `${getThreatColor(threat.severity)}80`, color: getThreatColor(threat.severity) }"
             >
               {{ action.label }}
             </BaseButton>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <script setup>
-import { ref, onBeforeUnmount, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 
 const currentTime = ref(new Date().toLocaleString('zh-CN'))
 const isRefreshing = ref(false)
+let timeTicker = null
 
 const priorities = ref([
   {
@@ -155,8 +114,7 @@ const priorities = ref([
     trend: '+2',
     percentage: 75,
     color: 'var(--neon-red)',
-    cardClass: 'high-priority',
-    icon: 'fas fa-radiation'
+    icon: 'fas fa-skull-crossbones'
   },
   {
     label: '中度威胁',
@@ -164,8 +122,7 @@ const priorities = ref([
     trend: '-1',
     percentage: 45,
     color: 'var(--neon-yellow)',
-    cardClass: 'medium-priority',
-    icon: 'fas fa-bolt'
+    icon: 'fas fa-radiation'
   },
   {
     label: '低危威胁',
@@ -173,8 +130,7 @@ const priorities = ref([
     trend: '+5',
     percentage: 25,
     color: 'var(--neon-green)',
-    cardClass: 'low-priority',
-    icon: 'fas fa-shield-virus'
+    icon: 'fas fa-shield-alt'
   }
 ])
 
@@ -220,15 +176,6 @@ const threats = ref([
   }
 ])
 
-const getThreatItemClass = (severity) => {
-  return {
-    'border border-opacity-20 backdrop-blur-sm': true,
-    'border-red-500 bg-red-500 bg-opacity-5': severity === 'high',
-    'border-yellow-500 bg-yellow-500 bg-opacity-5': severity === 'medium',
-    'border-green-500 bg-green-500 bg-opacity-5': severity === 'low'
-  }
-}
-
 const getThreatColor = (severity) => {
   const colors = {
     high: 'var(--neon-red)',
@@ -240,10 +187,9 @@ const getThreatColor = (severity) => {
 
 const getStatusClass = (status) => {
   return {
-    'bg-opacity-20 border border-opacity-20': true,
-    'bg-red-500 border-red-500 text-red-400': status === '需立即处理',
-    'bg-yellow-500 border-yellow-500 text-yellow-400': status === '处理中',
-    'bg-green-500 border-green-500 text-green-400': status === '已解决'
+    'status-critical': status === '需立即处理',
+    'status-warning': status === '处理中',
+    'status-ok': status === '已解决'
   }
 }
 
@@ -260,223 +206,272 @@ const formatDate = (timestamp) => {
 
 const refreshThreats = async () => {
   isRefreshing.value = true
-  
-  // 模拟数据刷新
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  
-  priorities.value = priorities.value.map(p => ({
-    ...p,
+
+  await new Promise(resolve => setTimeout(resolve, 800))
+
+  priorities.value = priorities.value.map(priority => ({
+    ...priority,
     count: Math.floor(Math.random() * 15),
     trend: `${Math.random() > 0.5 ? '+' : '-'}${Math.floor(Math.random() * 5)}`,
     percentage: Math.floor(Math.random() * 100)
   }))
-  
+
   currentTime.value = new Date().toLocaleString('zh-CN')
   isRefreshing.value = false
 }
 
-// 自动刷新
-let timerId = null
-
 onMounted(() => {
-  timerId = setInterval(() => {
+  timeTicker = setInterval(() => {
     currentTime.value = new Date().toLocaleString('zh-CN')
   }, 1000)
 })
 
-onBeforeUnmount(() => {
-  if (timerId) clearInterval(timerId)
+onUnmounted(() => {
+  if (timeTicker) {
+    clearInterval(timeTicker)
+  }
 })
 </script>
+
 <style scoped>
-.threat-detection-container {
-  background: rgba(44, 62, 80, 0.15);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+.threat-detection {
+  padding: var(--container-padding);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.threat-card {
-  position: relative;
-  overflow: hidden;
+.threat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
-.threat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
-  animation: shine 3s infinite;
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-@keyframes shine {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 200%;
-  }
+.priority-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
 }
 
-.high-priority {
-  box-shadow: 0 0 20px rgba(255, 7, 58, 0.2);
+.priority-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.32);
 }
 
-.medium-priority {
-  box-shadow: 0 0 20px rgba(255, 221, 87, 0.2);
+.priority-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.low-priority {
-  box-shadow: 0 0 20px rgba(0, 255, 153, 0.2);
-}
-
-.refresh-button {
-  background: transparent;
-  border: 1px solid var(--neon-blue);
-  color: var(--neon-blue);
-  font-weight: 500;
-}
-
-.refresh-button:hover {
-  background: var(--neon-blue);
-  color: var(--background-color);
-  box-shadow: 0 0 15px var(--neon-blue);
-  transform: translateY(-2px);
-}
-
-.action-button {
-  background: transparent;
-  border: 1px solid;
-}
-
-.action-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 10px currentColor;
-}
-
-.status-indicator {
-  border: 1px solid var(--neon-green);
-  box-shadow: 0 0 10px rgba(0, 255, 153, 0.2);
-}
-
-.threat-item {
-  transition: all 0.3s ease;
-}
-
-.threat-item:hover {
-  transform: translateX(8px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* Animation delay classes */
-.delay-0 {
-  animation-delay: 0ms;
-}
-
-.delay-200 {
-  animation-delay: 200ms;
-}
-
-.delay-400 {
-  animation-delay: 400ms;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-text-shimmer {
-  animation: textShimmer 3s ease-in-out infinite;
-}
-
-@keyframes textShimmer {
-  0% {
-    text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-blue);
-  }
-  50% {
-    text-shadow: 0 0 20px var(--neon-pink), 0 0 30px var(--neon-blue);
-  }
-  100% {
-    text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-blue);
-  }
-}
-
-/* Additional component-specific styles */
-.threat-details {
-  transition: transform 0.3s ease-out;
-}
-
-.threat-details:hover {
-  transform: translateY(-4px);
-}
-
-.threat-content {
-  position: relative;
-  z-index: 1;
-}
-
-.threat-indicator {
-  position: relative;
+.priority-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.threat-indicator::after {
-  content: '';
-  position: absolute;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, currentColor 0%, transparent 70%);
-  opacity: 0.1;
-  pointer-events: none;
+.priority-trend {
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
-.count-wrapper {
-  display: inline-flex;
-  align-items: baseline;
+.priority-trend.up {
+  color: var(--neon-red);
 }
 
-.icon-wrapper {
-  position: relative;
+.priority-trend.down {
+  color: var(--neon-green);
 }
 
-.icon-wrapper::after {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: inherit;
-  background: inherit;
-  filter: blur(8px);
-  opacity: 0.4;
-  z-index: -1;
+.priority-label {
+  font-size: 1rem;
+  margin: 0;
+  color: var(--text-muted);
 }
 
-/* Responsive adjustments */
+.priority-value {
+  font-size: 2.4rem;
+  font-weight: 700;
+}
+
+.progress-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.priority-footnote {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.section-meta {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.icon-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(46, 196, 182, 0.18);
+  color: var(--neon-blue);
+  border: 1px solid rgba(46, 196, 182, 0.4);
+}
+
+.threat-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.threat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.threat-item {
+  padding: 1rem 1.2rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.28);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+}
+
+.threat-main {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+}
+
+.threat-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  margin-top: 0.35rem;
+  box-shadow: 0 0 12px currentColor;
+}
+
+.threat-title {
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.threat-meta {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+}
+
+.threat-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.status-pill {
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  border: 1px solid transparent;
+  font-weight: 600;
+}
+
+.status-pill.status-critical {
+  color: var(--neon-red);
+  background: rgba(231, 111, 81, 0.12);
+  border-color: rgba(231, 111, 81, 0.4);
+}
+
+.status-pill.status-warning {
+  color: var(--neon-yellow);
+  background: rgba(246, 189, 96, 0.12);
+  border-color: rgba(246, 189, 96, 0.45);
+}
+
+.status-pill.status-ok {
+  color: var(--neon-green);
+  background: rgba(6, 214, 160, 0.12);
+  border-color: rgba(6, 214, 160, 0.45);
+}
+
+.time-text {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.threat-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 768px) {
-  .threat-detection-container {
-    padding: 1rem;
+  .threat-item {
+    grid-template-columns: 1fr;
   }
-  
-  .threat-card {
-    margin-bottom: 1rem;
-  }
-  
-  .count-wrapper {
-    font-size: 0.9em;
+
+  .threat-right {
+    align-items: flex-start;
   }
 }
 </style>

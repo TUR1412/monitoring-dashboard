@@ -1,7 +1,7 @@
 <!-- src/components/charts/Temperature.vue -->
 <template>
   <div class="temperature-monitor">
-    <h4>Temperature Monitor</h4>
+    <h4>温度监控</h4>
     <div class="chart-wrapper">
       <ChartComponent
         type="line"
@@ -10,8 +10,8 @@
       />
     </div>
     <div class="status-indicators">
-      <StatusIndicator :status="temperatureStatus" label="Temperature Status" />
-      <StatusIndicator :status="coolingStatus" label="Cooling Status" />
+      <StatusIndicator :status="temperatureStatus" label="温度状态" />
+      <StatusIndicator :status="coolingStatus" label="散热状态" />
     </div>
   </div>
 </template>
@@ -59,15 +59,15 @@ export default {
       labels: store.cpuTemperatureHistory.map(entry => entry.time),
       datasets: [
         {
-          label: 'CPU Temperature',
+          label: 'CPU 温度',
           data: store.cpuTemperatureHistory.map(entry => entry.value),
-          borderColor: '#EF4444',
+          borderColor: 'rgba(231, 111, 81, 0.9)',
           tension: 0.4
         },
         {
-          label: 'System Temperature',
+          label: '系统温度',
           data: store.systemTemperatureHistory.map(entry => entry.value),
-          borderColor: '#8B5CF6',
+          borderColor: 'rgba(46, 196, 182, 0.9)',
           tension: 0.4
         }
       ]
@@ -81,7 +81,7 @@ export default {
           type: 'category',
           title: {
             display: true,
-            text: 'Time'
+            text: '时间'
           },
           grid: {
             display: true
@@ -92,7 +92,7 @@ export default {
           max: 100, // 根据温度范围调整
           title: {
             display: true,
-            text: 'Temperature (°C)'
+            text: '温度 (°C)'
           },
           grid: {
             display: true

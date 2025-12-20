@@ -1,119 +1,58 @@
 // src/stores/monitorStore.js
 import { defineStore } from 'pinia';
 
-const canUseStorage = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
-const readStorage = (key, fallback, parseJson = true) => {
-  if (!canUseStorage) return fallback;
-  const raw = localStorage.getItem(key);
-  if (raw === null || raw === undefined) return fallback;
-  if (!parseJson) return raw;
-  try {
-    return JSON.parse(raw);
-  } catch (error) {
-    console.warn(`Failed to parse storage key: ${key}`, error);
-    return fallback;
-  }
-};
-const writeStorage = (key, value, stringify = true) => {
-  if (!canUseStorage) return;
-  try {
-    const payload = stringify ? JSON.stringify(value) : String(value);
-    localStorage.setItem(key, payload);
-  } catch (error) {
-    console.warn(`Failed to write storage key: ${key}`, error);
-  }
-};
-const normalizeId = (value) => String(value);
-const matchAlertId = (alert, targetId) => String(alert.id) === String(targetId);
-
-const normalizeUsers = (users = []) => {
-  if (!Array.isArray(users)) return [];
-  return users.map(user => ({
-    isActive: true,
-    role: 'user',
-    department: '未分配',
-    lastSeen: '刚刚',
-    ...user
-  }));
+const isBrowser = typeof window !== 'undefined';
+const STORAGE_KEYS = {
+  user: 'monitoring-dashboard:user',
+  theme: 'monitoring-dashboard:theme',
+  openTabs: 'monitoring-dashboard:openTabs',
+  activeTab: 'monitoring-dashboard:activeTab',
+  users: 'monitoring-dashboard:users',
+  alerts: 'monitoring-dashboard:alerts',
+  processes: 'monitoring-dashboard:processes',
+  authToken: 'monitoring-dashboard:authToken'
 };
 
-const defaultAlerts = [
-  { 
-    id: 1, 
-    level: 'warning', 
-    title: '高内存使用率', 
-    message: '内存使用率超过80%。', 
-    timestamp: Date.now() - 2 * 60 * 60 * 1000,
-    source: '系统监控', 
-    acknowledged: false, 
-    acknowledgedAt: null,
-    muted: false, 
-    archived: false,
-    resolvedAt: null
+const safeStorage = {
+  get(key, fallback) {
+    if (!isBrowser) return fallback;
+    try {
+      const raw = localStorage.getItem(key);
+      return raw === null ? fallback : JSON.parse(raw);
+    } catch (error) {
+      return fallback;
+    }
   },
-  { 
-    id: 2, 
-    level: 'error', 
-    title: '数据库连接失败', 
-    message: '无法连接到数据库。', 
-    timestamp: Date.now() - 1 * 60 * 60 * 1000,
-    source: '数据库服务', 
-    acknowledged: false, 
-    acknowledgedAt: null,
-    muted: false, 
-    archived: false,
-    resolvedAt: null
+  set(key, value) {
+    if (!isBrowser) return;
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      // 忽略写入失败
+    }
   },
-  { 
-    id: 3, 
-    level: 'info', 
-    title: '系统维护通知', 
-    message: '系统维护将在今晚12点开始。', 
-    timestamp: Date.now() - 25 * 60 * 60 * 1000,
-    source: '系统通知', 
-    acknowledged: true, 
-    acknowledgedAt: Date.now() - 24 * 60 * 60 * 1000,
-    muted: false, 
-    archived: false,
-    resolvedAt: null
-  },
-  {
-    id: 4,
-    level: 'critical',
-    title: '核心链路中断',
-    message: '主业务链路出现不可达，请立即排查。',
-    timestamp: Date.now() - 30 * 60 * 1000,
-    source: '链路探测',
-    acknowledged: false,
-    acknowledgedAt: null,
-    muted: false,
-    archived: false,
-    resolvedAt: null
+  remove(key) {
+    if (!isBrowser) return;
+    localStorage.removeItem(key);
   }
-];
+};
 
 export const useMonitorStore = defineStore('monitor', {
   state: () => ({
     // 标签管理
-    openTabs: [], // 当前打开的标签数组
-    activeTab: null, // 当前活动的标签名称
+    openTabs: safeStorage.get(STORAGE_KEYS.openTabs, []), // 当前打开的标签数组
+    activeTab: safeStorage.get(STORAGE_KEYS.activeTab, null), // 当前活动的标签名称
 
     // 用户管理
-    users: normalizeUsers(readStorage('users', [
-      { id: 1, username: 'admin', role: 'admin', isActive: true, lastSeen: '2025-12-20 09:12', department: 'SRE' },
-      { id: 2, username: 'observer', role: 'user', isActive: true, lastSeen: '2025-12-20 08:45', department: 'NOC' },
-      { id: 3, username: 'analyst', role: 'user', isActive: false, lastSeen: '2025-12-19 22:10', department: 'Security' }
-    ])),
-    user: readStorage('user', null), // 当前登录用户
+    users: safeStorage.get(STORAGE_KEYS.users, [
+      { id: 1, username: 'admin', role: 'ADMIN', isActive: true },
+      { id: 2, username: 'user1', role: 'USER', isActive: true },
+      { id: 3, username: 'user2', role: 'USER', isActive: true }
+    ]),
+    user: safeStorage.get(STORAGE_KEYS.user, null), // 当前登录用户
 
     // 主题状态
-    theme: readStorage('theme', 'dark', false), // 默认主题为深色主题
-
-    uiPreferences: readStorage('uiPreferences', {
-      density: 'comfortable',
-      reducedMotion: false,
-      compactSidebar: false
-    }),
+    theme: safeStorage.get(STORAGE_KEYS.theme, 'dark'), // 默认主题为深色主题
 
     // 系统资源
     cpuUsage: [
@@ -198,7 +137,42 @@ export const useMonitorStore = defineStore('monitor', {
       { id: 4, level: 'info', message: '用户登录成功。', timestamp: '2024-04-27 11:00:00' },
       { id: 5, level: 'error', message: '无法连接到数据库。', timestamp: '2024-04-27 12:15:00' }
     ],
-    alerts: readStorage('alerts', defaultAlerts),
+    alerts: safeStorage.get(STORAGE_KEYS.alerts, [
+      { 
+        id: 1, 
+        level: 'warning', 
+        title: '高内存使用率', 
+        message: '内存使用率超过80%。', 
+        timestamp: Date.now() - 2 * 60 * 60 * 1000, // 2小时前
+        source: '系统监控', 
+        acknowledged: false, 
+        muted: false, 
+        archived: false 
+      },
+      { 
+        id: 2, 
+        level: 'error', 
+        title: '数据库连接失败', 
+        message: '无法连接到数据库。', 
+        timestamp: Date.now() - 1 * 60 * 60 * 1000, // 1小时前
+        source: '数据库服务', 
+        acknowledged: false, 
+        muted: false, 
+        archived: false 
+      },
+      { 
+        id: 3, 
+        level: 'info', 
+        title: '系统维护通知', 
+        message: '系统维护将在今晚12点开始。', 
+        timestamp: Date.now() - 25 * 60 * 60 * 1000, // 25小时前
+        source: '系统通知', 
+        acknowledged: true, 
+        muted: false, 
+        archived: false 
+      },
+      // 可以添加更多静态警报
+    ]),
     securityLogs: [
       { id: 1, level: 'high', source: '防火墙', message: '检测到异常登录尝试。', timestamp: '2024-04-27 10:30:00' },
       { id: 2, level: 'medium', source: '入侵检测系统', message: '发现可疑流量模式。', timestamp: '2024-04-27 11:15:00' },
@@ -214,12 +188,12 @@ export const useMonitorStore = defineStore('monitor', {
     ],
 
     // 进程管理
-    processes: [
+    processes: safeStorage.get(STORAGE_KEYS.processes, [
       { pid: 101, name: 'nginx', cpu: 5, memory: 150, status: 'running' },
       { pid: 202, name: 'node', cpu: 15, memory: 300, status: 'running' },
       { pid: 303, name: 'mysql', cpu: 10, memory: 250, status: 'stopped' },
       // 可以添加更多初始进程数据
-    ],
+    ]),
 
     // I/O 统计数据
     ioStatistics: {
@@ -336,6 +310,26 @@ export const useMonitorStore = defineStore('monitor', {
     error: null
   }),
   actions: {
+    persistUsers() {
+      safeStorage.set(STORAGE_KEYS.users, this.users);
+    },
+
+    persistAlerts() {
+      safeStorage.set(STORAGE_KEYS.alerts, this.alerts);
+    },
+
+    persistProcesses() {
+      safeStorage.set(STORAGE_KEYS.processes, this.processes);
+    },
+
+    persistUser() {
+      safeStorage.set(STORAGE_KEYS.user, this.user);
+    },
+
+    persistTheme() {
+      safeStorage.set(STORAGE_KEYS.theme, this.theme);
+    },
+
     // 标签管理动作
     addTab(route) {
       const exists = this.openTabs.find(tab => tab.name === route.name);
@@ -374,23 +368,19 @@ export const useMonitorStore = defineStore('monitor', {
     },
 
     initializeTabs() {
-      const savedTabs = readStorage('openTabs', []);
-      const savedActiveTab = readStorage('activeTab', null, false);
+      const savedTabs = safeStorage.get(STORAGE_KEYS.openTabs, null);
+      const savedActiveTab = safeStorage.get(STORAGE_KEYS.activeTab, null);
       if (savedTabs && Array.isArray(savedTabs)) {
         this.openTabs = savedTabs;
       }
-      if (savedActiveTab && savedActiveTab !== 'null') {
+      if (savedActiveTab) {
         this.activeTab = savedActiveTab;
       }
     },
 
     persistTabs() {
-      writeStorage('openTabs', this.openTabs);
-      if (this.activeTab) {
-        writeStorage('activeTab', this.activeTab, false);
-      } else if (canUseStorage) {
-        localStorage.removeItem('activeTab');
-      }
+      safeStorage.set(STORAGE_KEYS.openTabs, this.openTabs);
+      safeStorage.set(STORAGE_KEYS.activeTab, this.activeTab);
     },
 
     // 数据获取动作（使用静态数据，无需异步操作）
@@ -583,6 +573,7 @@ export const useMonitorStore = defineStore('monitor', {
             ...this.processes.slice(processIndex + 1)
           ];
         }
+        this.persistProcesses();
         this.error = null;
       } catch (err) {
         this.error = '无法停止进程。';
@@ -600,10 +591,10 @@ export const useMonitorStore = defineStore('monitor', {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         // 使用静态凭证进行验证
         if (username === 'admin' && password === 'password') {
-          this.user = { name: '管理员用户', role: 'admin', avatar: null };
+          this.user = { name: '管理员用户', role: 'ADMIN' };
           // 存储用户信息到本地存储（实际项目中应存储令牌）
-          writeStorage('authToken', 'mock-token', false);
-          writeStorage('user', this.user);
+          safeStorage.set(STORAGE_KEYS.authToken, 'mock-token');
+          this.persistUser();
         } else {
           throw new Error('用户名或密码错误');
         }
@@ -617,212 +608,144 @@ export const useMonitorStore = defineStore('monitor', {
 
     logout() {
       this.user = null;
-      if (canUseStorage) {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
-      }
+      safeStorage.remove(STORAGE_KEYS.authToken);
+      safeStorage.remove(STORAGE_KEYS.user);
     },
 
     toggleTheme() {
       this.theme = this.theme === 'light' ? 'dark' : 'light';
-      writeStorage('theme', this.theme, false); // 持久化主题选择
+      this.persistTheme(); // 持久化主题选择
       this.applyTheme(); // 应用主题类到 <body>
     },
 
     initializeTheme() {
-      const savedTheme = readStorage('theme', null, false);
+      const savedTheme = safeStorage.get(STORAGE_KEYS.theme, null);
       if (savedTheme) {
         this.theme = savedTheme;
       } else {
         // 根据系统偏好设置自动选择主题
-        const prefersDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const prefersDark = isBrowser && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         this.theme = prefersDark ? 'dark' : 'light';
-        writeStorage('theme', this.theme, false);
+        this.persistTheme();
       }
       this.applyTheme(); // 应用主题类到 <body>
     },
 
     applyTheme() {
-      if (typeof document === 'undefined') return;
+      if (!isBrowser) return;
       document.documentElement.classList.remove('light', 'dark');
       document.documentElement.classList.add(this.theme);
-      document.body.classList.remove('light', 'dark');
-      document.body.classList.add(this.theme);
     },
 
     // 用户管理动作
     addUser(newUser) {
-      const payload = {
-        isActive: true,
-        department: '未分配',
-        lastSeen: '刚刚',
-        ...newUser
-      };
-      this.users = [...this.users, { id: Date.now(), ...payload }];
-      writeStorage('users', this.users);
+      this.users = [
+        ...this.users,
+        {
+          id: Date.now(),
+          isActive: true,
+          ...newUser,
+          role: typeof newUser.role === 'string' ? newUser.role.toUpperCase() : 'USER'
+        }
+      ];
       // 在实际项目中，应同步添加到后端
+      this.persistUsers();
     },
     editUser(updatedUser) {
       const index = this.users.findIndex(user => user.id === updatedUser.id);
       if (index !== -1) {
         this.users = [
           ...this.users.slice(0, index),
-          { ...this.users[index], ...updatedUser },
+          {
+            ...this.users[index],
+            ...updatedUser,
+            role: typeof updatedUser.role === 'string'
+              ? updatedUser.role.toUpperCase()
+              : this.users[index].role
+          },
           ...this.users.slice(index + 1)
         ];
-        writeStorage('users', this.users);
         // 在实际项目中，应同步更新到后端
+        this.persistUsers();
+      }
+    },
+    toggleUserStatus(id) {
+      const index = this.users.findIndex(user => user.id === id);
+      if (index !== -1) {
+        const current = this.users[index];
+        this.users = [
+          ...this.users.slice(0, index),
+          { ...current, isActive: !current.isActive },
+          ...this.users.slice(index + 1)
+        ];
+        this.persistUsers();
       }
     },
     deleteUser(id) {
       this.users = this.users.filter(user => user.id !== id);
-      writeStorage('users', this.users);
       // 在实际项目中，应同步删除到后端
-    },
-    deleteUsers(userIds = []) {
-      const ids = new Set(userIds.map(normalizeId));
-      if (!ids.size) return;
-      this.users = this.users.filter(user => !ids.has(normalizeId(user.id)));
-      writeStorage('users', this.users);
-    },
-    toggleUserStatus(userId) {
-      const index = this.users.findIndex(user => normalizeId(user.id) === normalizeId(userId));
-      if (index !== -1) {
-        const target = this.users[index];
-        const isActive = !target.isActive;
-        this.users = [
-          ...this.users.slice(0, index),
-          { ...target, isActive, lastSeen: isActive ? '刚刚' : target.lastSeen },
-          ...this.users.slice(index + 1)
-        ];
-        writeStorage('users', this.users);
-      }
-    },
-    setUserStatusBatch(userIds = [], isActive = true) {
-      const ids = new Set(userIds.map(normalizeId));
-      if (!ids.size) return;
-      this.users = this.users.map(user =>
-        ids.has(normalizeId(user.id))
-          ? { ...user, isActive, lastSeen: isActive ? '刚刚' : user.lastSeen }
-          : user
-      );
-      writeStorage('users', this.users);
-    },
-    applyRoleTemplate(userIds = [], template = {}) {
-      const ids = new Set(userIds.map(normalizeId));
-      if (!ids.size) return;
-      this.users = this.users.map(user =>
-        ids.has(normalizeId(user.id))
-          ? {
-              ...user,
-              role: template.role || user.role,
-              department: template.department || user.department,
-              lastSeen: '刚刚'
-            }
-          : user
-      );
-      writeStorage('users', this.users);
-    },
-
-    setUiPreferences(preferences) {
-      this.uiPreferences = { ...this.uiPreferences, ...preferences };
-      writeStorage('uiPreferences', this.uiPreferences);
-    },
-
-    persistAlerts() {
-      writeStorage('alerts', this.alerts);
+      this.persistUsers();
     },
 
     // 警报管理动作
     acknowledgeAlert(alertId) {
-      const alertIndex = this.alerts.findIndex(a => matchAlertId(a, alertId));
+      const alertIndex = this.alerts.findIndex(a => a.id === alertId);
       if (alertIndex !== -1) {
-        const current = this.alerts[alertIndex];
         this.alerts = [
           ...this.alerts.slice(0, alertIndex),
-          {
-            ...current,
-            acknowledged: true,
-            acknowledgedAt: current.acknowledgedAt || Date.now()
-          },
+          { ...this.alerts[alertIndex], acknowledged: true, updatedAt: Date.now() },
           ...this.alerts.slice(alertIndex + 1)
         ];
+        // 在实际项目中，应同步更新到后端
         this.persistAlerts();
       }
     },
     muteAlert(alertId) {
-      const alertIndex = this.alerts.findIndex(a => matchAlertId(a, alertId));
+      const alertIndex = this.alerts.findIndex(a => a.id === alertId);
       if (alertIndex !== -1) {
         this.alerts = [
           ...this.alerts.slice(0, alertIndex),
-          { ...this.alerts[alertIndex], muted: !this.alerts[alertIndex].muted },
+          { 
+            ...this.alerts[alertIndex], 
+            muted: !this.alerts[alertIndex].muted, 
+            updatedAt: Date.now() 
+          },
           ...this.alerts.slice(alertIndex + 1)
         ];
+        // 在实际项目中，应同步更新到后端
         this.persistAlerts();
       }
     },
     archiveAlert(alertId) {
-      const alertIndex = this.alerts.findIndex(a => matchAlertId(a, alertId));
+      const alertIndex = this.alerts.findIndex(a => a.id === alertId);
       if (alertIndex !== -1) {
-        const current = this.alerts[alertIndex];
         this.alerts = [
           ...this.alerts.slice(0, alertIndex),
-          {
-            ...current,
-            archived: true,
-            resolvedAt: current.resolvedAt || Date.now()
-          },
+          { ...this.alerts[alertIndex], archived: true, updatedAt: Date.now() },
           ...this.alerts.slice(alertIndex + 1)
         ];
         this.persistAlerts();
       }
+    },
+    archiveAlerts(alertIds) {
+      const ids = new Set(alertIds);
+      this.alerts = this.alerts.map(alert =>
+        ids.has(alert.id)
+          ? { ...alert, archived: true, updatedAt: Date.now() }
+          : alert
+      );
+      this.persistAlerts();
     },
     restoreAlert(alertId) {
-      const alertIndex = this.alerts.findIndex(a => matchAlertId(a, alertId));
+      const alertIndex = this.alerts.findIndex(a => a.id === alertId);
       if (alertIndex !== -1) {
         this.alerts = [
           ...this.alerts.slice(0, alertIndex),
-          { ...this.alerts[alertIndex], archived: false, resolvedAt: null },
+          { ...this.alerts[alertIndex], archived: false, updatedAt: Date.now() },
           ...this.alerts.slice(alertIndex + 1)
         ];
         this.persistAlerts();
       }
-    },
-    acknowledgeAlerts(alertIds = []) {
-      const ids = new Set(alertIds.map(id => String(id)));
-      if (!ids.size) return;
-      this.alerts = this.alerts.map(alert =>
-        ids.has(String(alert.id))
-          ? {
-              ...alert,
-              acknowledged: true,
-              acknowledgedAt: alert.acknowledgedAt || Date.now()
-            }
-          : alert
-      );
-      this.persistAlerts();
-    },
-    muteAlerts(alertIds = [], muted = true) {
-      const ids = new Set(alertIds.map(id => String(id)));
-      if (!ids.size) return;
-      this.alerts = this.alerts.map(alert =>
-        ids.has(String(alert.id)) ? { ...alert, muted } : alert
-      );
-      this.persistAlerts();
-    },
-    archiveAlerts(alertIds = []) {
-      const ids = new Set(alertIds.map(id => String(id)));
-      if (!ids.size) return;
-      this.alerts = this.alerts.map(alert =>
-        ids.has(String(alert.id))
-          ? {
-              ...alert,
-              archived: true,
-              resolvedAt: alert.resolvedAt || Date.now()
-            }
-          : alert
-      );
-      this.persistAlerts();
     },
   }
 });
