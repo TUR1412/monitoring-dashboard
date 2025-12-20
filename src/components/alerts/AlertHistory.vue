@@ -269,10 +269,11 @@ const filterConfig = {
   }
 }
 
+const now = Date.now()
 const mockAlerts = [
   {
     id: 1,
-    timestamp: '2024-12-24T10:15:30Z',
+    timestamp: new Date(now - 2 * 60 * 60 * 1000).toISOString(),
     type: 'CPU相关',
     category: 'cpu',
     severity: 'critical',
@@ -281,7 +282,7 @@ const mockAlerts = [
   },
   {
     id: 2,
-    timestamp: '2024-12-23T08:20:00Z',
+    timestamp: new Date(now - 6 * 60 * 60 * 1000).toISOString(),
     type: '内存相关',
     category: 'memory',
     severity: 'high',
@@ -290,7 +291,7 @@ const mockAlerts = [
   },
   {
     id: 3,
-    timestamp: '2024-12-22T14:45:10Z',
+    timestamp: new Date(now - 26 * 60 * 60 * 1000).toISOString(),
     type: '磁盘相关',
     category: 'disk',
     severity: 'medium',
@@ -299,7 +300,7 @@ const mockAlerts = [
   },
   {
     id: 4,
-    timestamp: '2024-12-21T09:30:00Z',
+    timestamp: new Date(now - 3 * 24 * 60 * 60 * 1000).toISOString(),
     type: '网络相关',
     category: 'network',
     severity: 'low',
