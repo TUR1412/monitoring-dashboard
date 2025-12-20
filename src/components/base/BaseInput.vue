@@ -60,10 +60,9 @@
     border-color: var(--border);
   }
   
-  .base-input:focus {
-    @apply ring-2 ring-opacity-50;
+.base-input:focus {
     border-color: var(--accent-0);
-    ring-color: var(--accent-0);
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.18);
   }
   
   .base-input::placeholder {

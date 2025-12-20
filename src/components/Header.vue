@@ -103,7 +103,7 @@ const props = defineProps({
 // Emits
 const emit = defineEmits(['theme-changed', 'logout', 'open-command'])
 
-import defaultAvatar from '@/assets/default-avatar.jpg'
+import defaultAvatar from '@/assets/default-avatar.svg'
 
 // Store and Router
 const store = useMonitorStore()

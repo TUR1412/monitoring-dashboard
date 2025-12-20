@@ -50,7 +50,8 @@ const handleAddGroup = async () => {
     }
     resetModal()
   } catch (error) {
-    notify.error('创建用户组失败：' + error.message)
+    const actionLabel = editingGroup.value ? '更新' : '创建'
+    notify.error(`${actionLabel}用户组失败：${error.message}`)
   }
 }
 
