@@ -1,8 +1,8 @@
 <!-- src/components/common/FormSelect.vue -->
 <template>
   <div class="form-select">
-    <label :for="id" class="form-label">{{ label }}</label>
-    <select :id="id" v-model="internalValue" class="form-control">
+    <label :for="resolvedId" class="form-label">{{ label }}</label>
+    <select :id="resolvedId" v-model="internalValue" class="form-control">
       <option v-for="option in options" :key="option.value" :value="option.value">
         {{ option.label }}
       </option>
@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, ref, watch } from 'vue'
+import { defineProps, defineEmits, ref, watch, computed } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -35,14 +35,16 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const internalValue = ref(props.modelValue)
+const fallbackId = `form-select-${Math.random().toString(36).slice(2, 8)}`
+const resolvedId = computed(() => props.id || fallbackId)
 
 watch(internalValue, (val) => {
   emit('update:modelValue', val)
 })
 
-watch(() => props.modelValue, (val) => {
-  internalValue.value = val
-})
+  watch(() => props.modelValue, (val) => {
+    internalValue.value = val
+  })
 </script>
 
 <style scoped>
