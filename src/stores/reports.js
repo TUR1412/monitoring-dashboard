@@ -1,29 +1,8 @@
 import { defineStore } from 'pinia'
-import { saveAs } from 'file-saver'
+import { safeStorage } from '@/utils/storage'
+import { downloadText } from '@/utils/download'
 
-const canUseStorage = typeof window !== 'undefined' && typeof localStorage !== 'undefined'
 const STORAGE_KEY = 'reports'
-
-const readStorage = (key, fallback) => {
-  if (!canUseStorage) return fallback
-  const raw = localStorage.getItem(key)
-  if (!raw) return fallback
-  try {
-    return JSON.parse(raw)
-  } catch (error) {
-    console.warn(`Failed to parse storage key: ${key}`, error)
-    return fallback
-  }
-}
-
-const writeStorage = (key, value) => {
-  if (!canUseStorage) return
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-  } catch (error) {
-    console.warn(`Failed to write storage key: ${key}`, error)
-  }
-}
 
 const seedReports = () => {
   const now = new Date()
@@ -55,7 +34,7 @@ const formatReportFile = (report) => {
 
 export const useReportStore = defineStore('report', {
   state: () => ({
-    reports: readStorage(STORAGE_KEY, [])
+    reports: safeStorage.get(STORAGE_KEY, [])
   }),
   actions: {
     async fetchReports() {
@@ -63,7 +42,7 @@ export const useReportStore = defineStore('report', {
         await new Promise(resolve => setTimeout(resolve, 800))
         if (!this.reports.length) {
           this.reports = seedReports()
-          writeStorage(STORAGE_KEY, this.reports)
+          safeStorage.set(STORAGE_KEY, this.reports)
         }
       } catch (error) {
         throw error
@@ -96,7 +75,7 @@ export const useReportStore = defineStore('report', {
         }
 
         this.reports = [...this.reports, newReport]
-        writeStorage(STORAGE_KEY, this.reports)
+        safeStorage.set(STORAGE_KEY, this.reports)
       } catch (error) {
         throw error
       }
@@ -109,8 +88,7 @@ export const useReportStore = defineStore('report', {
         if (!report) {
           throw new Error('报告未找到')
         }
-        const blob = new Blob([formatReportFile(report)], { type: 'text/plain;charset=utf-8' })
-        saveAs(blob, `${report.name}.txt`)
+        downloadText(formatReportFile(report), `${report.name}.txt`, 'text/plain;charset=utf-8')
       } catch (error) {
         throw error
       }

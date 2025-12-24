@@ -6,13 +6,13 @@
       :class="['sidebar-item', { active: isActive }]"
       @click="toggleSubmenu"
     >
-      <i :class="icon" class="sidebar-icon"></i>
+      <AppIcon v-if="icon" :name="icon" className="sidebar-icon" />
       <span>{{ label }}</span>
-      <i 
+      <AppIcon
         v-if="children && children.length" 
-        :class="['fas', isOpen ? 'fa-chevron-down' : 'fa-chevron-right']"
-        class="submenu-arrow"
-      ></i>
+        :name="isOpen ? 'chevron-down' : 'chevron-right'"
+        className="submenu-arrow"
+      />
     </router-link>
     <transition name="slide">
       <div 
@@ -35,8 +35,13 @@
 </template>
 
 <script>
+import AppIcon from '@/components/base/AppIcon.vue'
+
 export default {
   name: 'SidebarItem',
+  components: {
+    AppIcon
+  },
   props: {
     to: {
       type: String,

@@ -41,7 +41,7 @@
             @click="toggleTheme"
             :title="themeButtonTitle"
           >
-            <i :class="themeIcon" aria-hidden="true"></i>
+            <AppIcon :name="themeIconName" className="action-icon" />
             <span class="button-text">{{ themeButtonText }}</span>
           </button>
           
@@ -50,7 +50,7 @@
             @click="handleLogout"
             :title="logoutButtonTitle"
           >
-            <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+            <AppIcon name="logout" className="action-icon" />
             <span class="button-text">退出</span>
           </button>
         </div>
@@ -61,8 +61,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useAuthStore } from '@/stores/auth'
+import { useThemeStore } from '@/stores/theme'
+import { useTabsStore } from '@/stores/tabs'
+import { useAlertsStore } from '@/stores/alerts'
 import { useRouter } from 'vue-router'
+import AppIcon from '@/components/base/AppIcon.vue'
 
 // Props
 defineProps({
@@ -83,19 +87,20 @@ defineProps({
 // Emits
 const emit = defineEmits(['theme-changed', 'logout'])
 
-import defaultAvatar from '@/assets/default-avatar.jpg'
+import defaultAvatar from '@/assets/default-avatar.svg'
 
 // Store and Router
-const store = useMonitorStore()
+const authStore = useAuthStore()
+const themeStore = useThemeStore()
+const tabsStore = useTabsStore()
+const alertsStore = useAlertsStore()
 const router = useRouter()
 
 // State
-const theme = computed(() => store.theme)
-const user = computed(() => store.user)
+const theme = computed(() => themeStore.theme)
+const user = computed(() => authStore.user)
 const avatarError = ref(false)
-const alertCount = computed(() =>
-  (store.alerts || []).filter(alert => !alert.archived).length
-)
+const alertCount = computed(() => alertsStore.activeAlerts.length)
 
 const userAvatar = computed(() => {
   if (user.value?.avatar?.startsWith('http')) {
@@ -107,11 +112,7 @@ const userAvatar = computed(() => {
 })
 
 // Computed
-const themeIcon = computed(() => ({
-  'fas': true,
-  'fa-moon': theme.value === 'light',
-  'fa-sun': theme.value === 'dark'
-}))
+const themeIconName = computed(() => (theme.value === 'light' ? 'moon' : 'sun'))
 
 const themeButtonText = computed(() => 
   theme.value === 'light' ? '深色模式' : '浅色模式'
@@ -125,13 +126,14 @@ const logoutButtonTitle = computed(() => '退出系统')
 
 // Methods
 const toggleTheme = () => {
-  store.toggleTheme()
-  emit('theme-changed', store.theme)
+  themeStore.toggleTheme()
+  emit('theme-changed', themeStore.theme)
 }
 
 const handleLogout = async () => {
   try {
-    await store.logout()
+    authStore.logout()
+    tabsStore.clearTabs()
     emit('logout')
     router.push({ name: 'Login' })
   } catch (error) {

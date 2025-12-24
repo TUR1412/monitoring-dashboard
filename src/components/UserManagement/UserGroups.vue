@@ -2,9 +2,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useUserGroups } from '@/composables/useUserGroups'
-import { notify } from '@/utils/notify'
+import { useUiStore } from '@/stores/ui'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
+import AppIcon from '@/components/base/AppIcon.vue'
 
 const {
   groups,
@@ -14,6 +15,8 @@ const {
   deleteUserGroup,
   fetchUserGroups
 } = useUserGroups()
+
+const uiStore = useUiStore()
 
 const showModal = ref(false)
 const editingGroup = ref(null)
@@ -61,30 +64,29 @@ const handleSubmit = async () => {
         ...editingGroup.value,
         name: groupName.value.trim()
       })
-      notify.success('用户组已更新')
+      uiStore.pushToast({ type: 'success', message: '用户组已更新' })
     } else {
       await addUserGroup({
         name: groupName.value.trim(),
         memberCount: 0,
         createTime: new Date().toISOString().split('T')[0]
       })
-      notify.success('用户组创建成功')
+      uiStore.pushToast({ type: 'success', message: '用户组创建成功' })
     }
     closeModal()
   } catch (error) {
-    notify.error('操作失败，请稍后重试')
+    uiStore.pushToast({ type: 'error', message: '操作失败，请稍后重试' })
   }
 }
 
 const handleDeleteGroup = async (groupId) => {
   try {
-    await notify.confirm('确定要删除该用户组吗？此操作不可恢复', '警告')
+    const confirmed = await uiStore.requestConfirm('确定要删除该用户组吗？此操作不可恢复', '警告')
+    if (!confirmed) return
     await deleteUserGroup(groupId)
-    notify.success('用户组删除成功')
+    uiStore.pushToast({ type: 'success', message: '用户组删除成功' })
   } catch (error) {
-    if (error !== 'cancel') {
-      notify.error('删除用户组失败，请稍后重试')
-    }
+    uiStore.pushToast({ type: 'error', message: '删除用户组失败，请稍后重试' })
   }
 }
 </script>
@@ -98,11 +100,11 @@ const handleDeleteGroup = async (groupId) => {
       </div>
       <div class="header-actions">
         <span class="stat-chip">
-          <i class="fas fa-users"></i>
+          <AppIcon name="users" :size="14" />
           共 {{ groups.length }} 组 / {{ totalMembers }} 人
         </span>
         <BaseButton type="primary" @click="openCreate">
-          <i class="fas fa-plus"></i>
+          <AppIcon name="plus" :size="14" />
           新建用户组
         </BaseButton>
       </div>
@@ -123,7 +125,7 @@ const handleDeleteGroup = async (groupId) => {
 
     <div class="card table-card">
       <div v-if="loading" class="state-block">
-        <i class="fas fa-spinner fa-spin"></i>
+        <AppIcon name="refresh" className="spin" :size="20" />
         <span>加载用户组...</span>
       </div>
       <div v-else-if="!filteredGroups.length" class="state-block">
@@ -249,6 +251,16 @@ const handleDeleteGroup = async (groupId) => {
   flex-direction: column;
   gap: 0.6rem;
   align-items: center;
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .modal-overlay {

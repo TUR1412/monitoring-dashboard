@@ -7,14 +7,14 @@
         <p class="subtitle">配置通知偏好与阈值策略，设置即时生效并持久化。</p>
       </div>
       <span class="stat-chip">
-        <i class="fas fa-sliders"></i>
+        <AppIcon name="dashboard" className="inline-icon" />
         本地保存
       </span>
     </header>
 
     <div class="card section-card">
       <div class="section-title">
-        <span class="icon-badge"><i class="fas fa-bell"></i></span>
+        <span class="icon-badge"><AppIcon name="bell" /></span>
         通知偏好设置
       </div>
       <div class="section-grid">
@@ -69,7 +69,7 @@
 
     <div class="card section-card">
       <div class="section-title">
-        <span class="icon-badge"><i class="fas fa-sliders"></i></span>
+        <span class="icon-badge"><AppIcon name="dashboard" /></span>
         警报阈值设置
       </div>
       <div class="section-grid">
@@ -137,7 +137,7 @@
 
     <div class="card section-card">
       <div class="section-title">
-        <span class="icon-badge"><i class="fas fa-layer-group"></i></span>
+        <span class="icon-badge"><AppIcon name="file" /></span>
         策略模板
       </div>
       <div class="template-grid">
@@ -153,7 +153,7 @@
 
     <div class="card section-card">
       <div class="section-title">
-        <span class="icon-badge"><i class="fas fa-shield-alt"></i></span>
+        <span class="icon-badge"><AppIcon name="shield" /></span>
         高级策略
       </div>
       <div class="section-grid">
@@ -174,16 +174,16 @@
 
     <div class="card section-card">
       <div class="section-title">
-        <span class="icon-badge"><i class="fas fa-sitemap"></i></span>
+        <span class="icon-badge"><AppIcon name="chart" /></span>
         告警规则引擎
       </div>
       <div class="rules-header">
         <span class="stat-chip">
-          <i class="fas fa-bolt"></i>
+          <AppIcon name="alert" className="inline-icon" />
           已启用 {{ enabledRuleCount }} / {{ rules.length }}
         </span>
         <BaseButton type="primary" @click="openRuleModal">
-          <i class="fas fa-plus"></i>
+          <AppIcon name="plus" className="inline-icon" />
           新增规则
         </BaseButton>
       </div>
@@ -267,21 +267,24 @@
 </template>
 
 <script>
-import { notify } from '@/utils/notify'
+import { useUiStore } from '@/stores/ui'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseModal from '@/components/base/BaseModal.vue'
+import AppIcon from '@/components/base/AppIcon.vue'
 
 export default {
   name: 'AlertSettings',
   components: {
     BaseButton,
     BaseInput,
-    BaseModal
+    BaseModal,
+    AppIcon
   },
 
   data() {
     return {
+      uiStore: null,
       settings: {
         email: {
           enabled: false,
@@ -376,6 +379,7 @@ export default {
   },
 
   created() {
+    this.uiStore = useUiStore()
     this.originalSettings = JSON.parse(JSON.stringify(this.settings))
     this.loadSettings()
     this.loadRules()
@@ -417,10 +421,10 @@ export default {
       try {
         localStorage.setItem('alertSettings', JSON.stringify(this.settings))
         this.$emit('settings-saved', this.settings)
-        notify.success('设置已成功保存')
+        this.uiStore?.pushToast({ type: 'success', message: '设置已成功保存' })
       } catch (error) {
         console.error('保存设置失败:', error)
-        notify.error('保存设置失败，请稍后重试')
+        this.uiStore?.pushToast({ type: 'error', message: '保存设置失败，请稍后重试' })
       }
     },
 
@@ -428,7 +432,7 @@ export default {
       this.settings = JSON.parse(JSON.stringify(this.originalSettings))
       this.validateEmail()
       this.validateWebhook()
-      notify.success('设置已重置为默认值')
+      this.uiStore?.pushToast({ type: 'success', message: '设置已重置为默认值' })
     },
 
     applyTemplate(key) {
@@ -440,7 +444,7 @@ export default {
       const preset = mapping[key]
       if (preset) {
         this.settings.thresholds = JSON.parse(JSON.stringify(preset))
-        notify.success('模板已应用')
+        this.uiStore?.pushToast({ type: 'success', message: '模板已应用' })
       }
     },
 
@@ -484,7 +488,7 @@ export default {
 
     saveRule() {
       if (!this.ruleForm.name || !this.ruleForm.condition) {
-        notify.error('请填写规则名称与触发条件')
+        this.uiStore?.pushToast({ type: 'error', message: '请填写规则名称与触发条件' })
         return
       }
 
@@ -499,14 +503,14 @@ export default {
             lastUpdated: now
           })
         }
-        notify.success('规则已更新')
+        this.uiStore?.pushToast({ type: 'success', message: '规则已更新' })
       } else {
         this.rules.unshift({
           ...this.ruleForm,
           id: Date.now(),
           lastUpdated: now
         })
-        notify.success('规则已添加')
+        this.uiStore?.pushToast({ type: 'success', message: '规则已添加' })
       }
 
       this.persistRules()
@@ -517,20 +521,16 @@ export default {
       rule.enabled = !rule.enabled
       rule.lastUpdated = new Date().toISOString().slice(0, 10)
       this.persistRules()
-      notify.success(rule.enabled ? '规则已启用' : '规则已停用')
+      this.uiStore?.pushToast({ type: 'success', message: rule.enabled ? '规则已启用' : '规则已停用' })
     },
 
     async removeRule(rule) {
-      try {
-        await notify.confirm(`确定要删除规则 "${rule.name}" 吗？`)
-        this.rules = this.rules.filter(item => item.id !== rule.id)
-        this.persistRules()
-        notify.success('规则已删除')
-      } catch (error) {
-        if (error !== 'cancel') {
-          notify.error('删除失败，请稍后重试')
-        }
-      }
+      const confirmed = await this.uiStore?.requestConfirm(`确定要删除规则 "${rule.name}" 吗？`, '确认')
+      if (!confirmed) return
+
+      this.rules = this.rules.filter(item => item.id !== rule.id)
+      this.persistRules()
+      this.uiStore?.pushToast({ type: 'success', message: '规则已删除' })
     }
   }
 }
@@ -804,5 +804,9 @@ input[type="range"]::-webkit-slider-thumb {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.inline-icon {
+  margin-right: 0.5rem;
 }
 </style>

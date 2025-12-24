@@ -11,18 +11,13 @@
     v-bind="$attrs"
   >
     <span v-if="loading" class="spinner"></span>
-    <span v-else-if="iconComponent" class="button-icon">
-      <component :is="iconComponent" class="icon" />
-    </span>
-    <span :class="{ 'has-icon': iconComponent && $slots.default }">
+    <span>
       <slot></slot>
     </span>
   </button>
 </template>
   
   <script setup>
-  import * as Icons from '@element-plus/icons-vue'
-  import { computed } from 'vue'
   const props = defineProps({
     type: {
       type: String,
@@ -37,10 +32,6 @@
       validator: (value) => {
         return ['small', 'default', 'large'].includes(value)
       }
-    },
-    icon: {
-      type: String,
-      default: ''
     },
     loading: {
       type: Boolean,
@@ -57,12 +48,6 @@
         return ['button', 'submit', 'reset'].includes(value)
       }
     }
-  })
-  
-  // 动态导入图标
-  const iconComponent = computed(() => {
-    if (!props.icon) return null
-    return Icons[props.icon] || null
   })
   </script>
   
@@ -159,22 +144,6 @@
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: var(--text-strong);
   animation: spin 0.9s linear infinite;
-}
-
-.button-icon {
-  display: inline-flex;
-  align-items: center;
-}
-
-.icon {
-  width: 16px;
-  height: 16px;
-}
-
-.has-icon {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
 }
 
 @keyframes spin {

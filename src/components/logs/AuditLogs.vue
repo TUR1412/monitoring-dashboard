@@ -98,12 +98,12 @@
 
 <script setup>
 import { computed, reactive, watch } from "vue"
-import { useMonitorStore } from "@/stores/monitorStore"
+import { useTelemetryStore } from "@/stores/telemetry"
 import BaseInput from "@/components/base/BaseInput.vue"
 import BaseButton from "@/components/base/BaseButton.vue"
 import { exportCsv, exportJson, formatDateTime, sortByTimestamp } from "@/utils/logs"
 
-const store = useMonitorStore()
+const store = useTelemetryStore()
 const isBrowser = typeof window !== "undefined"
 const STORAGE_KEY = "monitoring-dashboard:logs:audit-filters"
 

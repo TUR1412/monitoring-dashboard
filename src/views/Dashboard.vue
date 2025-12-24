@@ -42,7 +42,7 @@
         <div class="header-actions">
           <span class="stat-chip">SLA {{ sla }}%</span>
           <BaseButton type="default" @click="exportOpsReport">
-            <i class="fas fa-file-export"></i>
+            <AppIcon name="export" className="inline-icon" />
             导出摘要
           </BaseButton>
         </div>
@@ -126,8 +126,11 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useMonitorStore } from '@/stores/monitorStore'
-import { notify } from '@/utils/notify'
+import { useAlertsStore } from '@/stores/alerts'
+import { useTelemetryStore } from '@/stores/telemetry'
+import { useUiStore } from '@/stores/ui'
+import { downloadText } from '@/utils/download'
+import AppIcon from '@/components/base/AppIcon.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import CpuUsage from '@/components/charts/CpuUsage.vue'
 import MemoryUsage from '@/components/charts/MemoryUsage.vue'
@@ -135,27 +138,29 @@ import DiskUsage from '@/components/charts/DiskUsage.vue'
 import NetworkTraffic from '@/components/charts/NetworkTraffic.vue'
 import Temperature from '@/components/charts/Temperature.vue'
 
-const store = useMonitorStore()
+const alertsStore = useAlertsStore()
+const telemetryStore = useTelemetryStore()
+const uiStore = useUiStore()
 
-const alertCount = computed(() => (store.alerts || []).length)
-const processCount = computed(() => (store.processes || []).length)
-const acknowledgedCount = computed(() => (store.alerts || []).filter(alert => alert.acknowledged).length)
+const alertCount = computed(() => (alertsStore.alerts || []).length)
+const processCount = computed(() => (telemetryStore.processes || []).length)
+const acknowledgedCount = computed(() => (alertsStore.alerts || []).filter(alert => alert.acknowledged).length)
 const unacknowledgedCount = computed(() =>
-  (store.alerts || []).filter(alert => !alert.acknowledged && !alert.archived).length
+  (alertsStore.alerts || []).filter(alert => !alert.acknowledged && !alert.archived).length
 )
 
 const cpuPeak = computed(() => {
-  const values = (store.cpuUsage || []).map(entry => entry.usage)
+  const values = (telemetryStore.cpuUsage || []).map(entry => entry.usage)
   return values.length ? Math.max(...values) : 0
 })
 
-const memoryUsed = computed(() => store.memoryUsage?.used || 0)
+const memoryUsed = computed(() => telemetryStore.memoryUsage?.used || 0)
 const diskUsed = computed(() => {
-  const disk = store.diskUsage || {}
+  const disk = telemetryStore.diskUsage || {}
   return (disk.usedDisk1 || 0) + (disk.usedDisk2 || 0) + (disk.usedDisk3 || 0)
 })
 
-const recentAlerts = computed(() => (store.alerts || []).slice(0, 5))
+const recentAlerts = computed(() => (alertsStore.alerts || []).slice(0, 5))
 
 const sla = computed(() => {
   const base = 99.98
@@ -170,7 +175,7 @@ const availability = computed(() => {
 })
 
 const avgResponse = computed(() => {
-  const data = store.frontendPerformanceData || []
+  const data = telemetryStore.frontendPerformanceData || []
   if (!data.length) return 0
   const total = data.reduce((sum, item) => sum + (item.responseTime || 0), 0)
   return Math.round((total / data.length) * 1000)
@@ -209,13 +214,8 @@ const exportOpsReport = () => {
     ['平均响应(ms)', `${avgResponse.value}`]
   ]
   const csvContent = rows.map(row => row.join(',')).join('\n')
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = `运营摘要_${new Date().toISOString().slice(0, 10)}.csv`
-  link.click()
-  URL.revokeObjectURL(link.href)
-  notify.success('运营摘要已导出')
+  downloadText(csvContent, `运营摘要_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8')
+  uiStore.pushToast({ type: 'success', message: '运营摘要已导出' })
 }
 
 const formatAlertTime = (timestamp) => {
@@ -504,6 +504,10 @@ const formatAlertTime = (timestamp) => {
   text-align: center;
   padding: 1rem 0;
   color: var(--text-muted);
+}
+
+.inline-icon {
+  margin-right: 0.5rem;
 }
 
 @media (max-width: 1024px) {

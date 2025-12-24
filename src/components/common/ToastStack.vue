@@ -7,42 +7,42 @@
       :class="['toast', `toast-${toast.type}`]"
     >
       <span class="toast-icon">
-        <i :class="iconMap[toast.type] || iconMap.info" aria-hidden="true"></i>
+        <AppIcon :name="iconName(toast.type)" />
       </span>
       <div class="toast-content">
         <div class="toast-title">{{ titleMap[toast.type] || '提示' }}</div>
         <div class="toast-message">{{ toast.message }}</div>
       </div>
-      <BaseButton
+      <button
         class="toast-close"
-        type="ghost"
-        size="small"
-        icon="Close"
+        type="button"
         aria-label="关闭通知"
         @click="store.removeToast(toast.id)"
-      />
+      >
+        <AppIcon name="x" :size="14" />
+      </button>
     </div>
   </div>
 </template>
 
 <script setup>
 import { useUiStore } from '@/stores/ui'
-import BaseButton from '@/components/base/BaseButton.vue'
+import AppIcon from '@/components/base/AppIcon.vue'
 
 const store = useUiStore()
-
-const iconMap = {
-  success: 'fas fa-check-circle',
-  error: 'fas fa-times-circle',
-  warning: 'fas fa-exclamation-triangle',
-  info: 'fas fa-info-circle'
-}
 
 const titleMap = {
   success: '已完成',
   error: '发生错误',
   warning: '注意',
   info: '提示'
+}
+
+const iconName = (type) => {
+  if (type === 'success') return 'check'
+  if (type === 'warning') return 'alert'
+  if (type === 'error') return 'x'
+  return 'bell'
 }
 </script>
 
@@ -100,23 +100,23 @@ const titleMap = {
   color: var(--text-2);
 }
 
-.toast-close.btn {
+.toast-close {
   background: transparent;
   border: none;
   color: var(--text-3);
   padding: 0.25rem;
   min-width: 0;
   box-shadow: none;
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.toast-close.btn:hover {
+.toast-close:hover {
   background: rgba(148, 163, 184, 0.14);
   color: var(--text-1);
-}
-
-.toast-close .icon {
-  width: 0.85rem;
-  height: 0.85rem;
 }
 
 .toast-success {

@@ -16,8 +16,6 @@ export default defineConfig({
         manualChunks(id) {
           if (!id.includes('node_modules')) return
           if (id.includes('chart.js')) return 'vendor-charts'
-          if (id.includes('element-plus')) return 'vendor-element'
-          if (id.includes('@fortawesome')) return 'vendor-icons'
           if (id.includes('vue')) return 'vendor-vue'
           return 'vendor'
         }

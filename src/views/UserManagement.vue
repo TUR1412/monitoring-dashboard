@@ -8,12 +8,12 @@
       </div>
       <div class="header-actions">
         <BaseButton type="default" @click="exportUsers">
-          <i class="fas fa-file-export"></i>
+          <AppIcon name="export" className="inline-icon" />
           导出用户
         </BaseButton>
         <router-link :to="{ name: 'AddUser' }">
           <BaseButton type="primary">
-            <i class="fas fa-user-plus"></i>
+            <AppIcon name="plus" className="inline-icon" />
             新增用户
           </BaseButton>
         </router-link>
@@ -97,16 +97,15 @@
             <td class="actions-cell">
               <router-link :to="{ name: 'EditUser', query: { id: user.id } }">
                 <BaseButton type="default" size="small">
-                  <i class="fas fa-pen"></i>
+                  <AppIcon name="edit" className="inline-icon" />
                   编辑
                 </BaseButton>
               </router-link>
               <BaseButton type="default" size="small" @click="toggleStatus(user)">
-                <i :class="user.isActive ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
                 {{ user.isActive ? '禁用' : '启用' }}
               </BaseButton>
               <BaseButton type="danger" size="small" @click="confirmDelete(user)">
-                <i class="fas fa-trash"></i>
+                <AppIcon name="trash" className="inline-icon" />
                 删除
               </BaseButton>
             </td>
@@ -132,20 +131,24 @@
 
 <script>
 import { ref, computed } from 'vue'
-import { useMonitorStore } from '@/stores/monitorStore'
-import { notify } from '@/utils/notify'
+import { useUsersStore } from '@/stores/users'
+import { useUiStore } from '@/stores/ui'
+import { downloadText } from '@/utils/download'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
+import AppIcon from '@/components/base/AppIcon.vue'
 
 export default {
   name: 'UserManagement',
   components: {
     BaseButton,
-    BaseInput
+    BaseInput,
+    AppIcon
   },
 
   setup() {
-    const store = useMonitorStore()
+    const store = useUsersStore()
+    const uiStore = useUiStore()
     const loading = ref(false)
     const showDeleteModal = ref(false)
     const selectedUser = ref(null)
@@ -184,11 +187,11 @@ export default {
 
     const executeDelete = async () => {
       try {
-        await store.deleteUser(selectedUser.value.id)
-        notify.success('用户已删除')
+        store.deleteUser(selectedUser.value.id)
+        uiStore.pushToast({ type: 'success', message: '用户已删除' })
       } catch (error) {
         console.error('删除用户失败:', error)
-        notify.error('删除用户失败，请稍后重试')
+        uiStore.pushToast({ type: 'error', message: '删除用户失败，请稍后重试' })
       } finally {
         showDeleteModal.value = false
       }
@@ -197,7 +200,7 @@ export default {
     const toggleStatus = (user) => {
       const nextActive = !user.isActive
       store.toggleUserStatus(user.id)
-      notify.success(nextActive ? '用户已启用' : '用户已禁用')
+      uiStore.pushToast({ type: 'success', message: nextActive ? '用户已启用' : '用户已禁用' })
     }
 
     const exportUsers = () => {
@@ -209,20 +212,15 @@ export default {
       }))
 
       if (!rows.length) {
-        notify.error('没有可导出的用户数据')
+        uiStore.pushToast({ type: 'error', message: '没有可导出的用户数据' })
         return
       }
 
       const headers = Object.keys(rows[0]).join(',')
       const body = rows.map(row => Object.values(row).join(',')).join('\n')
       const csvContent = `${headers}\n${body}`
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-      const link = document.createElement('a')
-      link.href = URL.createObjectURL(blob)
-      link.download = `用户列表_${new Date().toISOString().slice(0, 10)}.csv`
-      link.click()
-      URL.revokeObjectURL(link.href)
-      notify.success('导出完成')
+      downloadText(csvContent, `用户列表_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8')
+      uiStore.pushToast({ type: 'success', message: '导出完成' })
     }
 
     return {
@@ -407,6 +405,10 @@ export default {
   justify-content: flex-end;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+.inline-icon {
+  margin-right: 0.5rem;
 }
 
 @keyframes spin {

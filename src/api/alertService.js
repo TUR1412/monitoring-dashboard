@@ -1,5 +1,6 @@
 // src/api/alertService.js
-import axios from 'axios'
+import { http } from '@/utils/http'
+import { downloadBlob } from '@/utils/download'
 
 const API_BASE_URL = '/api/alerts'
 
@@ -7,8 +8,7 @@ export const alertService = {
   // 获取警报列表
   async getAlerts(params) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/history`, { params })
-      return response.data
+      return await http.get(`${API_BASE_URL}/history`, { params })
     } catch (error) {
       console.error('获取警报数据失败:', error)
       throw error
@@ -18,8 +18,7 @@ export const alertService = {
   // 更新警报状态
   async updateAlertStatus(alertId, status) {
     try {
-      const response = await axios.patch(`${API_BASE_URL}/${alertId}/status`, { status })
-      return response.data
+      return await http.patch(`${API_BASE_URL}/${alertId}/status`, { body: { status } })
     } catch (error) {
       console.error('更新警报状态失败:', error)
       throw error
@@ -29,11 +28,10 @@ export const alertService = {
   // 导出警报数据
   async exportAlerts(filters) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/export`, {
+      return await http.get(`${API_BASE_URL}/export`, {
         params: filters,
         responseType: 'blob'
       })
-      return response.data
     } catch (error) {
       console.error('导出警报数据失败:', error)
       throw error
@@ -72,14 +70,7 @@ export const alertUtils = {
 
   // 处理导出文件下载
   handleExport(blob, filename = 'alerts-export.xlsx') {
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', filename)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
+    downloadBlob(blob, filename)
   },
 
   // 格式化警报数据用于导出

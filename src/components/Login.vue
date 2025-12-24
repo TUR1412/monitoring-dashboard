@@ -12,7 +12,7 @@
       <form @submit.prevent="handleLogin" class="login-form">
         <div class="form-group">
           <label for="username" class="form-label">
-            <span class="label-icon"><i class="fas fa-user"></i></span>
+            <span class="label-icon"><AppIcon name="user" /></span>
             用户名
           </label>
           <div class="input-wrapper">
@@ -36,7 +36,7 @@
 
         <div class="form-group">
           <label for="password" class="form-label">
-            <span class="label-icon"><i class="fas fa-lock"></i></span>
+            <span class="label-icon"><AppIcon name="lock" /></span>
             密码
           </label>
           <div class="input-wrapper">
@@ -99,11 +99,11 @@
 
         <div class="social-login">
           <button type="button" class="social-btn" @click="showNotImplemented('微信登录')">
-            <span class="social-icon"><i class="fab fa-weixin"></i></span>
+            <span class="social-icon" aria-hidden="true">•</span>
             微信登录
           </button>
           <button type="button" class="social-btn" @click="showNotImplemented('企业微信登录')">
-            <span class="social-icon"><i class="fas fa-building"></i></span>
+            <span class="social-icon" aria-hidden="true">•</span>
             企业微信
           </button>
         </div>
@@ -114,11 +114,12 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import AppIcon from '@/components/base/AppIcon.vue'
 
 const router = useRouter()
-const store = useMonitorStore()
+const store = useAuthStore()
 const loading = ref(false)
 const error = ref(null)
 const showPassword = ref(false)

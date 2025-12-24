@@ -8,11 +8,11 @@
       </div>
       <div class="header-actions">
         <span class="stat-chip">
-          <i class="fas fa-satellite-dish"></i>
+          <AppIcon name="server" className="inline-icon" />
           实时监控
         </span>
         <BaseButton type="primary" @click="refreshThreats">
-          <i class="fas fa-rotate" :class="{ spin: isRefreshing }"></i>
+          <AppIcon name="refresh" :className="['inline-icon', { spin: isRefreshing }]" />
           刷新数据
         </BaseButton>
       </div>
@@ -27,7 +27,7 @@
       >
         <div class="priority-top">
           <div class="priority-icon" :style="{ color: priority.color, background: `${priority.color}1A` }">
-            <i :class="priority.icon"></i>
+            <AppIcon :name="priority.icon" />
           </div>
           <span class="priority-trend" :class="priority.trend.startsWith('+') ? 'up' : 'down'">
             {{ priority.trend }}
@@ -53,7 +53,7 @@
       <div class="section-header">
         <div class="section-title">
           <span class="icon-badge">
-            <i class="fas fa-bug"></i>
+            <AppIcon name="alert" />
           </span>
           威胁详情
         </div>
@@ -102,6 +102,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import AppIcon from '@/components/base/AppIcon.vue'
 
 const currentTime = ref(new Date().toLocaleString('zh-CN'))
 const isRefreshing = ref(false)
@@ -114,7 +115,7 @@ const priorities = ref([
     trend: '+2',
     percentage: 75,
     color: 'var(--neon-red)',
-    icon: 'fas fa-skull-crossbones'
+    icon: 'alert'
   },
   {
     label: '中度威胁',
@@ -122,7 +123,7 @@ const priorities = ref([
     trend: '-1',
     percentage: 45,
     color: 'var(--neon-yellow)',
-    icon: 'fas fa-radiation'
+    icon: 'alert'
   },
   {
     label: '低危威胁',
@@ -130,7 +131,7 @@ const priorities = ref([
     trend: '+5',
     percentage: 25,
     color: 'var(--neon-green)',
-    icon: 'fas fa-shield-alt'
+    icon: 'shield'
   }
 ])
 

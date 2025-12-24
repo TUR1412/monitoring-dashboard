@@ -1,10 +1,10 @@
 <!-- src/components/CommandPalette.vue -->
 <template>
   <transition name="palette-fade">
-    <div v-if="open" class="palette-backdrop" @click.self="handleClose">
+      <div v-if="open" class="palette-backdrop" @click.self="handleClose">
       <div class="palette-card surface-glass" role="dialog" aria-modal="true" aria-label="命令面板">
         <div class="palette-header">
-          <i class="fas fa-terminal" aria-hidden="true"></i>
+          <AppIcon name="terminal" />
           <input
             ref="inputRef"
             v-model="query"
@@ -32,7 +32,7 @@
               @click="selectItem(item)"
             >
               <div class="palette-item-title">
-                <i v-if="item.icon" :class="item.icon" aria-hidden="true"></i>
+                <AppIcon v-if="item.icon" :name="item.icon" />
                 <span>{{ item.title }}</span>
               </div>
               <span class="palette-item-meta">{{ item.description }}</span>
@@ -51,7 +51,7 @@
               @click="selectItem(item)"
             >
               <div class="palette-item-title">
-                <i v-if="item.icon" :class="item.icon" aria-hidden="true"></i>
+                <AppIcon v-if="item.icon" :name="item.icon" />
                 <span>{{ item.title }}</span>
               </div>
               <span class="palette-item-meta">{{ item.description }}</span>
@@ -66,8 +66,13 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useThemeStore } from '@/stores/theme'
+import { useAuthStore } from '@/stores/auth'
+import { useTabsStore } from '@/stores/tabs'
+import { useAlertsStore } from '@/stores/alerts'
+import { useTelemetryStore } from '@/stores/telemetry'
 import BaseButton from '@/components/base/BaseButton.vue'
+import AppIcon from '@/components/base/AppIcon.vue'
 
 const props = defineProps({
   open: {
@@ -83,7 +88,11 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const router = useRouter()
-const store = useMonitorStore()
+const themeStore = useThemeStore()
+const authStore = useAuthStore()
+const tabsStore = useTabsStore()
+const alertsStore = useAlertsStore()
+const telemetryStore = useTelemetryStore()
 
 const inputRef = ref(null)
 const query = ref('')
@@ -117,39 +126,40 @@ const writeRecents = (value) => {
 const recentIds = ref(readRecents())
 
 const refreshData = () => {
-  store.fetchCpuUsage()
-  store.fetchMemoryUsage()
-  store.fetchDiskUsage()
-  store.fetchNetworkTraffic()
-  store.fetchFrontendPerformance()
-  store.fetchAlerts()
-  store.fetchLogs()
+  telemetryStore.fetchCpuUsage()
+  telemetryStore.fetchMemoryUsage()
+  telemetryStore.fetchDiskUsage()
+  telemetryStore.fetchNetworkTraffic()
+  telemetryStore.fetchFrontendPerformance()
+  alertsStore.fetchAlerts()
+  telemetryStore.fetchLogs()
 }
 
 const quickActions = computed(() => {
-  const themeLabel = store.theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'
+  const themeLabel = themeStore.theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'
   return [
     {
       id: 'toggle-theme',
       title: '切换主题',
       description: themeLabel,
-      icon: 'fas fa-adjust',
-      action: () => store.toggleTheme()
+      icon: themeStore.theme === 'dark' ? 'sun' : 'moon',
+      action: () => themeStore.toggleTheme()
     },
     {
       id: 'refresh-data',
       title: '刷新关键数据',
       description: '重新拉取核心监控指标',
-      icon: 'fas fa-sync',
+      icon: 'refresh',
       action: refreshData
     },
     {
       id: 'logout',
       title: '退出系统',
       description: '返回登录页',
-      icon: 'fas fa-sign-out-alt',
+      icon: 'logout',
       action: () => {
-        store.logout()
+        authStore.logout()
+        tabsStore.clearTabs()
         router.push({ name: 'Login' })
       }
     }

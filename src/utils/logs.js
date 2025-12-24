@@ -1,5 +1,5 @@
 // src/utils/logs.js
-import { saveAs } from 'file-saver'
+import { downloadJson, downloadText } from '@/utils/download'
 
 const normalizeValue = (value) => {
   if (value === null || value === undefined) return ''
@@ -77,13 +77,10 @@ export const buildCsv = (rows = [], columns = []) => {
 }
 
 export const exportJson = (data, filenameBase) => {
-  const payload = JSON.stringify(data ?? [], null, 2)
-  const blob = new Blob([payload], { type: 'application/json' })
-  saveAs(blob, `${filenameBase}-${Date.now()}.json`)
+  downloadJson(data ?? [], `${filenameBase}-${Date.now()}.json`)
 }
 
 export const exportCsv = (rows, columns, filenameBase) => {
   const csv = buildCsv(rows ?? [], columns ?? [])
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-  saveAs(blob, `${filenameBase}-${Date.now()}.csv`)
+  downloadText(csv, `${filenameBase}-${Date.now()}.csv`, 'text/csv;charset=utf-8')
 }

@@ -11,13 +11,13 @@
 </template>
 
 <script>
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useTelemetryStore } from '@/stores/telemetry'
 import { onMounted } from 'vue'
 
 export default {
   name: 'SystemResources',
   setup() {
-    const store = useMonitorStore()
+    const store = useTelemetryStore()
 
     onMounted(() => {
       store.fetchCpuUsage()

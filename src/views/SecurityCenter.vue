@@ -59,11 +59,11 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useTelemetryStore } from '@/stores/telemetry'
 import { formatDateTime, getLatestDate } from '@/utils/logs'
 
 const route = useRoute()
-const store = useMonitorStore()
+const store = useTelemetryStore()
 
 const isActive = (segment) => route.path.includes(segment)
 

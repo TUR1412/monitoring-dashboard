@@ -1,10 +1,11 @@
 <!-- src/components/UserManagement/RolePermissions.vue -->
 <script setup lang="ts">
 import { ref, reactive, computed, nextTick, onMounted } from 'vue'
-import { Teleport, Transition } from 'vue'
 import type { Role, AlertType } from '@/types/role'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
+import AppIcon from '@/components/base/AppIcon.vue'
+import { safeStorage } from '@/utils/storage'
 
 interface Alert {
   show: boolean
@@ -15,27 +16,6 @@ interface Alert {
 
 const STORAGE_KEY = 'monitoring-dashboard:rolePermissions'
 const AUDIT_KEY = 'monitoring-dashboard:roleAudit'
-const isBrowser = typeof window !== 'undefined'
-
-const safeStorage = {
-  get(key: string, fallback: any) {
-    if (!isBrowser) return fallback
-    try {
-      const raw = localStorage.getItem(key)
-      return raw === null ? fallback : JSON.parse(raw)
-    } catch (error) {
-      return fallback
-    }
-  },
-  set(key: string, value: any) {
-    if (!isBrowser) return
-    try {
-      localStorage.setItem(key, JSON.stringify(value))
-    } catch (error) {
-      // 忽略写入失败
-    }
-  }
-}
 
 const defaultRoles: Role[] = [
   {
@@ -80,7 +60,7 @@ const alert = reactive<Alert>({
   show: false,
   message: '',
   type: 'success',
-  icon: 'fas fa-check-circle'
+  icon: 'check'
 })
 
 const totalRoles = computed(() => roles.length)
@@ -250,11 +230,11 @@ const setAllPermissions = (enabled: boolean) => {
 }
 
 const showAlert = (message: string, type: AlertType = 'success') => {
-  const icons = {
-    success: 'fas fa-check-circle',
-    warning: 'fas fa-exclamation-triangle',
-    error: 'fas fa-times-circle',
-    info: 'fas fa-info-circle'
+  const icons: Record<AlertType, string> = {
+    success: 'check',
+    warning: 'alert',
+    error: 'x',
+    info: 'file'
   }
 
   alert.message = message
@@ -281,7 +261,7 @@ onMounted(() => {
   <div class="role-permissions fade-in">
     <Transition name="fade">
       <div v-if="alert.show" :class="['alert-banner', `alert-${alert.type}`]">
-        <i :class="alert.icon" />
+        <AppIcon :name="alert.icon" :size="18" />
         <span>{{ alert.message }}</span>
       </div>
     </Transition>
@@ -292,14 +272,14 @@ onMounted(() => {
         <p class="subtitle">统一维护角色能力边界，变更实时生效。</p>
       </div>
       <BaseButton type="primary" @click="addNewRole">
-        <i class="fas fa-plus"></i>
+        <AppIcon name="plus" :size="14" />
         添加角色
       </BaseButton>
     </header>
 
     <div class="stats-row">
-      <span class="stat-chip"><i class="fas fa-users-cog"></i> 角色数 {{ totalRoles }}</span>
-      <span class="stat-chip"><i class="fas fa-key"></i> 权限项 {{ totalPermissions }}</span>
+      <span class="stat-chip"><AppIcon name="users" :size="14" /> 角色数 {{ totalRoles }}</span>
+      <span class="stat-chip"><AppIcon name="lock" :size="14" /> 权限项 {{ totalPermissions }}</span>
       <BaseButton type="default" size="small" @click="setAllPermissions(true)">
         一键启用
       </BaseButton>
@@ -331,7 +311,7 @@ onMounted(() => {
           <div class="role-actions">
             <template v-if="editingRole?.id === role.id">
               <BaseButton type="default" size="small" @click="saveRoleName(role)">
-                <i class="fas fa-check"></i>
+                <AppIcon name="check" :size="14" />
                 保存
               </BaseButton>
               <BaseButton type="danger" size="small" @click="cancelEdit">
@@ -340,11 +320,11 @@ onMounted(() => {
             </template>
             <template v-else>
               <BaseButton type="default" size="small" @click="editRole(role)">
-                <i class="fas fa-pen"></i>
+                <AppIcon name="edit" :size="14" />
                 编辑
               </BaseButton>
               <BaseButton type="danger" size="small" @click="confirmDelete(role)">
-                <i class="fas fa-trash"></i>
+                <AppIcon name="trash" :size="14" />
                 删除
               </BaseButton>
             </template>
@@ -368,7 +348,7 @@ onMounted(() => {
       <div class="section-header">
         <div class="section-title">
           <span class="icon-badge">
-            <i class="fas fa-th"></i>
+            <AppIcon name="dashboard" :size="18" />
           </span>
           权限矩阵
         </div>
@@ -405,7 +385,7 @@ onMounted(() => {
       <div class="section-header">
         <div class="section-title">
           <span class="icon-badge">
-            <i class="fas fa-clipboard-list"></i>
+            <AppIcon name="history" :size="18" />
           </span>
           审计日志
         </div>

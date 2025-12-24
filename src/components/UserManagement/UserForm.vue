@@ -7,7 +7,7 @@
         <p class="subtitle">{{ subtitle }}</p>
       </div>
       <span class="stat-chip">
-        <i class="fas fa-user-shield"></i>
+        <AppIcon name="shield" className="inline-icon" />
         权限即刻生效
       </span>
     </div>
@@ -19,13 +19,13 @@
           <BaseInput
             id="username"
             v-model="form.username"
-            :invalid="v$.form.username.$error"
-            @blur="v$.form.username.$touch()"
+            :invalid="touched.username && Boolean(errors.username)"
+            @blur="touch('username')"
             required
             placeholder="输入用户名"
           />
-          <span v-if="v$.form.username.$error" class="error-text">
-            {{ v$.form.username.$errors[0].$message }}
+          <span v-if="touched.username && errors.username" class="error-text">
+            {{ errors.username }}
           </span>
         </div>
 
@@ -34,20 +34,20 @@
           <select
             id="role"
             v-model="form.role"
-            @blur="v$.form.role.$touch()"
+            @blur="touch('role')"
             required
           >
             <option value="ADMIN">管理员</option>
             <option value="USER">普通用户</option>
           </select>
-          <span v-if="v$.form.role.$error" class="error-text">
-            {{ v$.form.role.$errors[0].$message }}
+          <span v-if="touched.role && errors.role" class="error-text">
+            {{ errors.role }}
           </span>
         </div>
       </div>
 
       <div class="form-actions">
-        <BaseButton type="primary" native-type="submit" :disabled="loading || v$.$invalid">
+        <BaseButton type="primary" native-type="submit" :disabled="loading || isInvalid">
           {{ loading ? '处理中...' : submitText }}
         </BaseButton>
         <span class="hint">提交后自动保存至本地存储。</span>
@@ -58,10 +58,9 @@
 
 <script>
 import { reactive, computed } from 'vue'
-import { useVuelidate } from '@vuelidate/core'
-import { required, minLength } from '@vuelidate/validators'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
+import AppIcon from '@/components/base/AppIcon.vue'
 
 const normalizeRole = (role) => {
   if (!role || typeof role !== 'string') return 'USER'
@@ -72,7 +71,8 @@ export default {
   name: 'UserForm',
   components: {
     BaseButton,
-    BaseInput
+    BaseInput,
+    AppIcon
   },
   props: {
     initialData: {
@@ -108,21 +108,35 @@ export default {
       role: normalizeRole(props.initialData.role)
     })
 
-    const rules = computed(() => ({
-      form: {
-        username: {
-          required,
-          minLength: minLength(3)
-        },
-        role: { required }
-      }
-    }))
+    const touched = reactive({
+      username: false,
+      role: false
+    })
 
-    const v$ = useVuelidate(rules, { form })
+    const errors = computed(() => {
+      const username = String(form.username || '').trim()
+      const role = normalizeRole(form.role)
+      return {
+        username: !username
+          ? '请输入用户名'
+          : username.length < 3
+            ? '用户名至少 3 个字符'
+            : '',
+        role: !role ? '请选择角色' : ''
+      }
+    })
+
+    const isInvalid = computed(() => Boolean(errors.value.username || errors.value.role))
+
+    const touch = (field) => {
+      if (!field) return
+      touched[field] = true
+    }
 
     const handleSubmit = async () => {
-      const isValid = await v$.value.$validate()
-      if (!isValid) return
+      touched.username = true
+      touched.role = true
+      if (isInvalid.value) return
 
       emit('submit', {
         ...form,
@@ -132,7 +146,10 @@ export default {
 
     return {
       form,
-      v$,
+      touched,
+      errors,
+      isInvalid,
+      touch,
       handleSubmit
     }
   }
@@ -184,5 +201,9 @@ export default {
 .hint {
   color: var(--text-muted);
   font-size: 0.85rem;
+}
+
+.inline-icon {
+  margin-right: 0.5rem;
 }
 </style>

@@ -36,7 +36,7 @@
                     @click="handleProcessAction(process.pid)"
                     :disabled="process.status === 'stopped'"
                   >
-                    <i class="fas fa-stop"></i>
+                    <AppIcon name="stop" :size="14" />
                   </BaseButton>
                 </td>
               </tr>
@@ -62,20 +62,22 @@
 
 <script>
 import { computed, onMounted, onUnmounted } from 'vue'
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useTelemetryStore } from '@/stores/telemetry'
 import ChartComponent from './ChartComponent.vue'
 import StatusIndicator from '../StatusIndicator.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import AppIcon from '@/components/base/AppIcon.vue'
 
 export default {
   name: 'ProcessMonitor',
   components: {
     ChartComponent,
     StatusIndicator,
-    BaseButton
+    BaseButton,
+    AppIcon
   },
   setup() {
-    const store = useMonitorStore()
+    const store = useTelemetryStore()
     const processes = computed(() => store.processes)
     
     const chartData = computed(() => ({

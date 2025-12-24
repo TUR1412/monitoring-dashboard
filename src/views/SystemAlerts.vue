@@ -36,13 +36,13 @@
 </template>
 
 <script>
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useAlertsStore } from '@/stores/alerts'
 import { onMounted } from 'vue'
 
 export default {
   name: 'SystemAlerts',
   setup() {
-    const store = useMonitorStore()
+    const store = useAlertsStore()
 
     onMounted(() => {
       store.fetchAlerts()

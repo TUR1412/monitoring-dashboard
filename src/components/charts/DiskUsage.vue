@@ -10,7 +10,7 @@
 
 <script>
 import { computed, onMounted } from 'vue'
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useTelemetryStore } from '@/stores/telemetry'
 import ChartComponent from './ChartComponent.vue'
 
 export default {
@@ -19,7 +19,7 @@ export default {
     ChartComponent
   },
   setup() {
-    const store = useMonitorStore()
+    const store = useTelemetryStore()
 
     const chartData = computed(() => ({
       labels: ['磁盘1 已用', '磁盘2 已用', '磁盘3 已用'],

@@ -49,7 +49,7 @@
 
 <script>
 import { computed } from 'vue'
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useTelemetryStore } from '@/stores/telemetry'
 import ChartComponent from './charts/ChartComponent.vue'
 
 export default {
@@ -58,7 +58,7 @@ export default {
     ChartComponent
   },
   setup() {
-    const store = useMonitorStore()
+    const store = useTelemetryStore()
     
     const experienceData = computed(() => ({
       labels: store.userBehavior.labels,

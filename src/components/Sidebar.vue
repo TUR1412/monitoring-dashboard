@@ -3,7 +3,7 @@
   <aside class="sidebar">
     <!-- Logo 部分 -->
     <div class="logo">
-      <img src="@/assets/logo.jpg" alt="Logo" />
+      <img :src="logoUrl" alt="Quantum Ops Logo" />
       <div class="logo-text">
         <h2>Quantum Ops</h2>
         <span>系统态势中心</span>
@@ -16,63 +16,63 @@
       <SidebarItem
         to="/dashboard"
         label="仪表盘"
-        icon="fas fa-tachometer-alt"
+        icon="dashboard"
         :exact="true"
       />
       <!-- 系统资源导航项 -->
       <SidebarItem
         to="/dashboard/system-resources"
         label="系统资源"
-        icon="fas fa-server"
+        icon="server"
         :children="systemResourcesChildren"
       />
       <!-- 用户管理导航项 -->
       <SidebarItem
         to="/dashboard/user-management"
         label="用户管理" 
-        icon="fas fa-users"
+        icon="users"
         :children="userManagementChildren"
       />
       <!-- 系统警报导航项 -->
       <SidebarItem
         to="/dashboard/system-alerts"
         label="系统警报"
-        icon="fas fa-exclamation-triangle"
+        icon="alert"
         :children="systemAlertsChildren"
       />
       <!-- 日志导航项 -->
       <SidebarItem
         to="/dashboard/logs"
         label="日志"
-        icon="fas fa-file-alt"
+        icon="file"
         :children="logsChildren"
       />
       <!-- 用户体验导航项 -->
       <SidebarItem
         to="/dashboard/user-experience"
         label="用户体验"
-        icon="fas fa-smile"
+        icon="smile"
         :children="userExperienceChildren"
       />
       <!-- 安全中心导航项 -->
       <SidebarItem
         to="/dashboard/security"
         label="安全中心"
-        icon="fas fa-shield-alt"
+        icon="shield"
         :children="securityChildren"
       />
       <!-- 数据分析导航项 -->
       <SidebarItem
         to="/dashboard/analytics"
         label="数据分析"
-        icon="fas fa-chart-line"
+        icon="chart"
         :children="analyticsChildren"
       />
     </nav>
     
     <!-- 退出按钮 -->
     <BaseButton type="danger" class="logout-button" @click="handleLogout">
-      <i class="fas fa-sign-out-alt"></i>
+      <AppIcon name="logout" className="inline-icon" />
       退出
     </BaseButton>
   </aside>
@@ -80,79 +80,86 @@
 
 <script>
 import SidebarItem from './SidebarItem.vue'
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useAuthStore } from '@/stores/auth'
+import { useTabsStore } from '@/stores/tabs'
 import { useRouter } from 'vue-router'
 import BaseButton from '@/components/base/BaseButton.vue'
+import logoUrl from '@/assets/logo.svg'
+import AppIcon from '@/components/base/AppIcon.vue'
 
 export default {
   name: 'Sidebar',
   components: {
     SidebarItem,
-    BaseButton
+    BaseButton,
+    AppIcon
   },
   setup() {
-    const store = useMonitorStore()
+    const authStore = useAuthStore()
+    const tabsStore = useTabsStore()
     const router = useRouter()
 
     const handleLogout = async () => {
-      await store.logout()
+      authStore.logout()
+      tabsStore.clearTabs()
       router.push({ name: 'Login' })
     }
 
     return {
-      handleLogout
+      handleLogout,
+      logoUrl
     }
   },
   data() {
     return {
       // 系统资源子路由
       systemResourcesChildren: [
-        { to: '/dashboard/system-resources/cpu-usage', label: 'CPU 使用率', icon: 'fas fa-microchip' },
-        { to: '/dashboard/system-resources/memory-usage', label: '内存使用率', icon: 'fas fa-memory' },
-        { to: '/dashboard/system-resources/disk-usage', label: '磁盘使用情况', icon: 'fas fa-hdd' },
-        { to: '/dashboard/system-resources/network', label: '网络监控', icon: 'fas fa-network-wired' },
+        { to: '/dashboard/system-resources/cpu-usage', label: 'CPU 使用率', icon: '' },
+        { to: '/dashboard/system-resources/memory-usage', label: '内存使用率', icon: '' },
+        { to: '/dashboard/system-resources/disk-usage', label: '磁盘使用情况', icon: '' },
+        { to: '/dashboard/system-resources/network', label: '网络监控', icon: '' },
         // 新增的子路由
-        { to: '/dashboard/system-resources/process-monitor', label: '进程监控', icon: 'fas fa-tasks' },
-        { to: '/dashboard/system-resources/io-statistics', label: 'I/O 统计', icon: 'fas fa-exchange-alt' },
-        { to: '/dashboard/system-resources/gpu-usage', label: 'GPU 使用率', icon: 'fas fa-desktop' },
-        { to: '/dashboard/system-resources/temperature', label: '温度监控', icon: 'fas fa-thermometer-half' }
+        { to: '/dashboard/system-resources/process-monitor', label: '进程监控', icon: '' },
+        { to: '/dashboard/system-resources/io-statistics', label: 'I/O 统计', icon: '' },
+        { to: '/dashboard/system-resources/gpu-usage', label: 'GPU 使用率', icon: '' },
+        { to: '/dashboard/system-resources/temperature', label: '温度监控', icon: '' }
       ],
       // 用户管理子路由
       userManagementChildren: [
-        { to: '/dashboard/user-management/add-user', label: '新增用户', icon: 'fas fa-user-plus' },
-        { to: '/dashboard/user-management/edit-user', label: '编辑用户', icon: 'fas fa-user-edit' },
-        { to: '/dashboard/user-management/roles', label: '角色权限', icon: 'fas fa-user-shield' },
-        { to: '/dashboard/user-management/groups', label: '用户组', icon: 'fas fa-users-cog' }
+        { to: '/dashboard/user-management/add-user', label: '新增用户', icon: '' },
+        { to: '/dashboard/user-management/edit-user', label: '编辑用户', icon: '' },
+        { to: '/dashboard/user-management/roles', label: '角色权限', icon: '' },
+        { to: '/dashboard/user-management/groups', label: '用户组', icon: '' }
       ],
       // 系统警报子路由
       systemAlertsChildren: [
-        { to: '/dashboard/system-alerts/active', label: '活动警报', icon: 'fas fa-bell' },
-        { to: '/dashboard/system-alerts/history', label: '历史警报', icon: 'fas fa-history' },
-        { to: '/dashboard/system-alerts/settings', label: '警报设置', icon: 'fas fa-cog' }
+        { to: '/dashboard/system-alerts/active', label: '活动警报', icon: '' },
+        { to: '/dashboard/system-alerts/history', label: '历史警报', icon: '' },
+        { to: '/dashboard/system-alerts/settings', label: '警报设置', icon: '' }
       ],
       // 日志子路由
       logsChildren: [
-        { to: '/dashboard/logs/system', label: '系统日志', icon: 'fas fa-cogs' },
-        { to: '/dashboard/logs/security', label: '安全日志', icon: 'fas fa-shield-alt' },
-        { to: '/dashboard/logs/audit', label: '审计日志', icon: 'fas fa-clipboard-list' }
+        { to: '/dashboard/logs/system', label: '系统日志', icon: '' },
+        { to: '/dashboard/logs/security', label: '安全日志', icon: '' },
+        { to: '/dashboard/logs/audit', label: '审计日志', icon: '' }
       ],
       // 用户体验子路由
       userExperienceChildren: [
-        { to: '/dashboard/user-experience/feedback', label: '用户反馈', icon: 'fas fa-comment' },
-        { to: '/dashboard/user-experience/surveys', label: '满意度调查', icon: 'fas fa-poll' },
-        { to: '/dashboard/user-experience/metrics', label: '用户指标', icon: 'fas fa-chart-bar' }
+        { to: '/dashboard/user-experience/feedback', label: '用户反馈', icon: '' },
+        { to: '/dashboard/user-experience/surveys', label: '满意度调查', icon: '' },
+        { to: '/dashboard/user-experience/metrics', label: '用户指标', icon: '' }
       ],
       // 安全中心子路由
       securityChildren: [
-        { to: '/dashboard/security/threats', label: '威胁检测', icon: 'fas fa-radiation' },
-        { to: '/dashboard/security/access-control', label: '访问控制', icon: 'fas fa-lock' },
-        { to: '/dashboard/security/compliance', label: '合规审计', icon: 'fas fa-clipboard-check' }
+        { to: '/dashboard/security/threats', label: '威胁检测', icon: '' },
+        { to: '/dashboard/security/access-control', label: '访问控制', icon: '' },
+        { to: '/dashboard/security/compliance', label: '合规审计', icon: '' }
       ],
       // 数据分析子路由
       analyticsChildren: [
-        { to: '/dashboard/analytics/traffic', label: '流量分析', icon: 'fas fa-chart-area' },
-        { to: '/dashboard/analytics/performance', label: '性能分析', icon: 'fas fa-tachometer-fast' },
-        { to: '/dashboard/analytics/reports', label: '报告生成', icon: 'fas fa-file-alt' }
+        { to: '/dashboard/analytics/traffic', label: '流量分析', icon: '' },
+        { to: '/dashboard/analytics/performance', label: '性能分析', icon: '' },
+        { to: '/dashboard/analytics/reports', label: '报告生成', icon: '' }
       ]
     }
   }
@@ -260,6 +267,10 @@ export default {
   width: 100%;
   display: flex;
   justify-content: center;
+}
+
+.inline-icon {
+  margin-right: 0.5rem;
 }
 
 @media (max-width: 768px) {

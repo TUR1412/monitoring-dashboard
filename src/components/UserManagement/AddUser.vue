@@ -7,7 +7,7 @@
         <p class="subtitle">创建新账号并授予基础权限。</p>
       </div>
       <BaseButton type="default" @click="goBack">
-        <i class="fas fa-arrow-left"></i>
+        <AppIcon name="arrow-left" className="inline-icon" />
         返回用户管理
       </BaseButton>
     </header>
@@ -24,34 +24,37 @@
 
 <script>
 import { ref } from 'vue'
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useUsersStore } from '@/stores/users'
+import { useUiStore } from '@/stores/ui'
 import { useRouter } from 'vue-router'
-import { notify } from '@/utils/notify'
 import BaseButton from '@/components/base/BaseButton.vue'
 import UserForm from './UserForm.vue'
+import AppIcon from '@/components/base/AppIcon.vue'
 
 export default {
   name: 'AddUser',
   components: {
     UserForm,
-    BaseButton
+    BaseButton,
+    AppIcon
   },
 
   setup() {
-    const store = useMonitorStore()
+    const usersStore = useUsersStore()
+    const uiStore = useUiStore()
     const router = useRouter()
     const loading = ref(false)
 
     const handleAddUser = async (formData) => {
       loading.value = true
       try {
-        await store.addUser(formData)
-        notify.success('用户已添加')
+        usersStore.addUser(formData)
+        uiStore.pushToast({ type: 'success', message: '用户已添加' })
         setTimeout(() => {
           router.push({ name: 'UserManagementParent' })
         }, 600)
       } catch (err) {
-        notify.error('添加用户失败，请稍后重试')
+        uiStore.pushToast({ type: 'error', message: '添加用户失败，请稍后重试' })
       } finally {
         loading.value = false
       }
@@ -84,6 +87,10 @@ export default {
   align-items: flex-start;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+.inline-icon {
+  margin-right: 0.5rem;
 }
 
 </style>

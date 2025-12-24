@@ -14,7 +14,7 @@
 
 <script>
 import { computed, onMounted, onUnmounted } from 'vue'
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useTelemetryStore } from '@/stores/telemetry'
 import ChartComponent from './ChartComponent.vue'
 
 export default {
@@ -23,7 +23,7 @@ export default {
     ChartComponent
   },
   setup() {
-    const store = useMonitorStore()
+    const store = useTelemetryStore()
 
     // 使用 computed 属性仅用于读取 Store 中的数据
     const chartData = computed(() => ({

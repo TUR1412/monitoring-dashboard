@@ -26,32 +26,32 @@
   
   <script>
   import { computed } from 'vue';
-  import { useMonitorStore } from '@/stores/monitorStore';
+  import { useTabsStore } from '@/stores/tabs';
   import { useRouter } from 'vue-router';
   
   export default {
     name: 'TabBar',
     setup() {
-      const store = useMonitorStore();
+      const tabsStore = useTabsStore();
       const router = useRouter();
   
-      const openTabs = computed(() => store.openTabs);
-      const activeTab = computed(() => store.activeTab);
+      const openTabs = computed(() => tabsStore.openTabs);
+      const activeTab = computed(() => tabsStore.activeTab);
   
       const switchTab = (tab) => {
-        store.setActiveTab(tab.name);
+        tabsStore.setActiveTab(tab.name);
         router.push(tab.path);
       };
   
       const closeTab = (tab) => {
-        store.removeTab(tab.name);
+        tabsStore.removeTab(tab.name);
         
-        if (store.activeTab) {
-          const active = store.openTabs.find(t => t.name === store.activeTab);
+        if (tabsStore.activeTab) {
+          const active = tabsStore.openTabs.find(t => t.name === tabsStore.activeTab);
           if (active) {
             router.push(active.path);
-          } else if (store.openTabs.length > 0) {
-            router.push(store.openTabs[store.openTabs.length - 1].path);
+          } else if (tabsStore.openTabs.length > 0) {
+            router.push(tabsStore.openTabs[tabsStore.openTabs.length - 1].path);
           } else {
             router.push('/dashboard');
           }

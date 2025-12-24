@@ -52,10 +52,10 @@
 <script setup>
 import { computed, onMounted, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { useMonitorStore } from "@/stores/monitorStore"
+import { useTelemetryStore } from "@/stores/telemetry"
 import { formatDateTime, getLatestDate } from "@/utils/logs"
 
-const store = useMonitorStore()
+const store = useTelemetryStore()
 const route = useRoute()
 const router = useRouter()
 const isBrowser = typeof window !== "undefined"

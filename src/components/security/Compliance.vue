@@ -8,11 +8,11 @@
       </div>
       <div class="header-actions">
         <span class="stat-chip">
-          <i class="fas fa-clipboard-check"></i>
+          <AppIcon name="file" className="inline-icon" />
           审计覆盖 3 项框架
         </span>
         <BaseButton type="primary" @click="refreshAudit">
-          <i class="fas fa-rotate"></i>
+          <AppIcon name="refresh" className="inline-icon" />
           刷新评估
         </BaseButton>
       </div>
@@ -21,7 +21,7 @@
     <div class="compliance-grid">
       <div v-for="card in complianceCards" :key="card.title" class="card compliance-card pressable">
         <div class="card-head">
-          <component :is="card.icon" class="card-icon" :class="getIconClass(card.status)" />
+          <AppIcon :name="card.icon" className="card-icon" :style="{ color: getStatusColor(card.status) }" />
           <div>
             <h3 class="card-title">{{ card.title }}</h3>
             <p class="card-desc">{{ card.description }}</p>
@@ -43,7 +43,7 @@
       <div class="section-header">
         <div class="section-title">
           <span class="icon-badge">
-            <i class="fas fa-clipboard-list"></i>
+            <AppIcon name="file" />
           </span>
           详细合规信息
         </div>
@@ -68,29 +68,29 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { ShieldCheck, AlertTriangle, XCircle } from 'lucide-vue-next'
 import BaseButton from '@/components/base/BaseButton.vue'
+import AppIcon from '@/components/base/AppIcon.vue'
 
 const complianceData = ref([
   {
     title: 'GDPR 合规',
     status: 'compliant',
     description: '数据保护与隐私合规',
-    icon: ShieldCheck,
+    icon: 'shield',
     progress: 100
   },
   {
     title: 'ISO 27001',
     status: 'in-progress',
     description: '信息安全管理体系认证',
-    icon: AlertTriangle,
+    icon: 'alert',
     progress: 75
   },
   {
     title: 'SOC 2',
     status: 'non-compliant',
     description: '服务机构控制报告',
-    icon: XCircle,
+    icon: 'x',
     progress: 30
   }
 ])
@@ -142,12 +142,6 @@ const getStatusClass = (status) => ({
   'in-progress': 'status-warning',
   'non-compliant': 'status-critical'
 }[status])
-
-const getIconClass = (status) => ({
-  'text-green-400': status === 'compliant',
-  'text-yellow-400': status === 'in-progress',
-  'text-red-400': status === 'non-compliant'
-})
 </script>
 
 <style scoped>
@@ -199,6 +193,10 @@ const getIconClass = (status) => ({
   border-radius: 16px;
   background: rgba(46, 196, 182, 0.16);
   border: 1px solid rgba(46, 196, 182, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
 }
 
 .card-title {
@@ -328,5 +326,9 @@ const getIconClass = (status) => ({
   color: var(--neon-red);
   background: rgba(231, 111, 81, 0.12);
   border-color: rgba(231, 111, 81, 0.45);
+}
+
+.inline-icon {
+  margin-right: 0.5rem;
 }
 </style>

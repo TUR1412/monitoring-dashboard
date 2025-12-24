@@ -8,7 +8,7 @@
 
 <script>
 import { computed, onMounted } from 'vue'
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useTelemetryStore } from '@/stores/telemetry'
 import ChartComponent from './ChartComponent.vue'
 
 export default {
@@ -17,7 +17,7 @@ export default {
     ChartComponent
   },
   setup() {
-    const store = useMonitorStore()
+    const store = useTelemetryStore()
 
     const chartData = computed(() => ({
       labels: ['加载时间', '交互时间', '响应时间', '渲染时间'],

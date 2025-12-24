@@ -1,4 +1,3 @@
-<!-- src/components/alerts/AlertHistory.vue -->
 <template>
   <div class="alert-history fade-in">
     <header class="history-header">
@@ -8,21 +7,17 @@
       </div>
       <div class="header-actions">
         <span class="stat-chip">
-          <i class="fas fa-history"></i>
+          <AppIcon name="history" className="inline-icon" />
           共 {{ filteredAlerts.length }} 条
         </span>
-        <el-tooltip content="刷新数据" placement="top">
-          <BaseButton type="primary" @click="refreshData">
-            <i class="fas fa-rotate"></i>
-            刷新数据
-          </BaseButton>
-        </el-tooltip>
-        <el-tooltip content="导出数据" placement="top">
-          <BaseButton type="default" @click="exportAlerts">
-            <i class="fas fa-file-export"></i>
-            导出数据
-          </BaseButton>
-        </el-tooltip>
+        <BaseButton type="primary" @click="refreshData" title="刷新数据">
+          <AppIcon name="refresh" className="inline-icon" />
+          刷新数据
+        </BaseButton>
+        <BaseButton type="default" @click="exportAlerts" title="导出数据">
+          <AppIcon name="export" className="inline-icon" />
+          导出数据
+        </BaseButton>
       </div>
     </header>
 
@@ -30,80 +25,72 @@
       <div class="filter-grid">
         <div class="filter-group">
           <label>日期范围</label>
-          <el-select v-model="filters.dateRange" class="w-full" size="large">
-            <el-option
+          <select v-model="filters.dateRange">
+            <option
               v-for="option in filterConfig.dateRange.options"
               :key="option.value"
-              :label="option.label"
               :value="option.value"
-            />
-          </el-select>
+            >
+              {{ option.label }}
+            </option>
+          </select>
         </div>
 
         <div class="filter-group">
           <label>严重程度</label>
-          <el-select v-model="filters.severity" class="w-full" size="large">
-            <el-option
+          <select v-model="filters.severity">
+            <option
               v-for="option in filterConfig.severity.options"
               :key="option.value"
-              :label="option.label"
               :value="option.value"
-            />
-          </el-select>
+            >
+              {{ option.label }}
+            </option>
+          </select>
         </div>
 
         <div class="filter-group">
           <label>状态</label>
-          <el-select v-model="filters.status" class="w-full" size="large">
-            <el-option
+          <select v-model="filters.status">
+            <option
               v-for="option in filterConfig.status.options"
               :key="option.value"
-              :label="option.label"
               :value="option.value"
-            />
-          </el-select>
+            >
+              {{ option.label }}
+            </option>
+          </select>
         </div>
 
         <div class="filter-group">
           <label>警报类型</label>
-          <el-select v-model="filters.alertType" class="w-full" size="large">
-            <el-option
+          <select v-model="filters.alertType">
+            <option
               v-for="option in filterConfig.alertType.options"
               :key="option.value"
-              :label="option.label"
               :value="option.value"
-            />
-          </el-select>
+            >
+              {{ option.label }}
+            </option>
+          </select>
         </div>
       </div>
 
-      <div
-        v-if="filters.dateRange === 'custom'"
-        class="filter-grid custom-range"
-      >
+      <div v-if="filters.dateRange === 'custom'" class="filter-grid custom-range">
         <div class="filter-group">
           <label>开始日期</label>
-          <el-date-picker
+          <input
             v-model="filters.startDate"
-            type="datetime"
-            placeholder="选择开始日期时间"
-            class="w-full"
-            size="large"
-            :clearable="false"
-            value-format="yyyy-MM-dd HH:mm:ss"
+            type="datetime-local"
+            :max="filters.endDate || undefined"
           />
         </div>
         <div class="filter-group">
           <label>结束日期</label>
-          <el-date-picker
+          <input
             v-model="filters.endDate"
-            type="datetime"
-            placeholder="选择结束日期时间"
-            class="w-full"
-            size="large"
-            :clearable="false"
-            value-format="yyyy-MM-dd HH:mm:ss"
-            :disabled-date="disabledEndDate"
+            type="datetime-local"
+            :min="filters.startDate || undefined"
           />
         </div>
       </div>
@@ -122,14 +109,17 @@
               >
                 <div class="th-cell">
                   <span>{{ header.label }}</span>
-                  <span v-if="header.sortable" class="sort-icon">
-                    <i
-                      class="fas fa-sort"
-                      :class="{
-                        active: sortKey === header.key,
-                        desc: sortOrder === 'desc' && sortKey === header.key
-                      }"
-                    ></i>
+                  <span v-if="header.sortable" class="sort-icon" aria-hidden="true">
+                    <AppIcon
+                      name="sort"
+                      :className="[
+                        'sort-symbol',
+                        {
+                          active: sortKey === header.key,
+                          desc: sortOrder === 'desc' && sortKey === header.key
+                        }
+                      ]"
+                    />
                   </span>
                 </div>
               </th>
@@ -138,7 +128,7 @@
           <tbody>
             <tr v-if="loading">
               <td :colspan="tableHeaders.length" class="state-cell">
-                <i class="fas fa-spinner fa-spin"></i>
+                <AppIcon name="refresh" className="spin" />
                 <span>加载中...</span>
               </td>
             </tr>
@@ -148,20 +138,20 @@
               </td>
             </tr>
             <tr v-else v-for="alert in displayedAlerts" :key="alert.id">
-              <td>{{ formatDate(alert.timestamp) }}</td>
+              <td>{{ formatTimestamp(alert.timestamp) }}</td>
               <td>
-                <span class="status-badge" :class="`type-${alert.type.toLowerCase()}`">
+                <span class="status-badge" :class="`type-${alertTypeKey(alert.type)}`">
                   {{ alert.type }}
                 </span>
               </td>
               <td>
-                <span class="status-badge" :style="{ color: severityMap[alert.severity].color }">
-                  {{ severityMap[alert.severity].label }}
+                <span class="status-badge" :style="{ color: severityMap[alert.severity]?.color }">
+                  {{ severityMap[alert.severity]?.label || alert.severity }}
                 </span>
               </td>
               <td>
-                <span class="status-badge" :style="{ color: statusMap[alert.status].color }">
-                  {{ statusMap[alert.status].label }}
+                <span class="status-badge" :style="{ color: statusMap[alert.status]?.color }">
+                  {{ statusMap[alert.status]?.label || alert.status }}
                 </span>
               </td>
               <td>
@@ -171,24 +161,18 @@
               </td>
               <td>
                 <div class="table-actions">
-                  <el-tooltip content="查看详情" placement="top">
-                    <BaseButton type="default" size="small" @click="viewAlertDetails(alert)">
-                      查看
-                    </BaseButton>
-                  </el-tooltip>
-                  <el-tooltip
-                    :content="alert.status === 'open' ? '确认警报' : '解决警报'"
-                    placement="top"
+                  <BaseButton type="default" size="small" @click="viewAlertDetails(alert)" title="查看详情">
+                    查看
+                  </BaseButton>
+                  <BaseButton
+                    type="default"
+                    size="small"
+                    @click="handleUpdateAlertStatus(alert)"
+                    :disabled="alert.status === 'resolved'"
+                    :title="alert.status === 'open' ? '确认警报' : '解决警报'"
                   >
-                    <BaseButton
-                      type="default"
-                      size="small"
-                      @click="handleUpdateAlertStatus(alert)"
-                      :disabled="alert.status === 'resolved'"
-                    >
-                      {{ alert.status === 'open' ? '确认' : '解决' }}
-                    </BaseButton>
-                  </el-tooltip>
+                    {{ alert.status === 'open' ? '确认' : '解决' }}
+                  </BaseButton>
                 </div>
               </td>
             </tr>
@@ -199,49 +183,61 @@
       <div class="pagination-row">
         <div class="page-size">
           <span>每页显示</span>
-          <el-select v-model="pagination.pageSize" class="w-20" size="small">
-            <el-option v-for="size in [10, 20, 50]" :key="size" :label="size" :value="size" />
-          </el-select>
+          <select v-model.number="pagination.pageSize" @change="handleSizeChange(pagination.pageSize)">
+            <option v-for="size in [10, 20, 50]" :key="size" :value="size">{{ size }}</option>
+          </select>
           <span>条</span>
         </div>
 
-        <el-pagination
-          v-model:current-page="pagination.currentPage"
-          v-model:page-size="pagination.pageSize"
-          :total="filteredAlerts.length"
-          :page-sizes="[10, 20, 50]"
-          layout="total, prev, pager, next"
-          class="pagination-custom"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
+        <div class="page-controls">
+          <span class="page-total">共 {{ filteredAlerts.length }} 条</span>
+          <BaseButton
+            type="default"
+            size="small"
+            :disabled="pagination.currentPage <= 1"
+            @click="handleCurrentChange(pagination.currentPage - 1)"
+          >
+            上一页
+          </BaseButton>
+          <span class="page-indicator">{{ pagination.currentPage }} / {{ totalPages }}</span>
+          <BaseButton
+            type="default"
+            size="small"
+            :disabled="pagination.currentPage >= totalPages"
+            @click="handleCurrentChange(pagination.currentPage + 1)"
+          >
+            下一页
+          </BaseButton>
+        </div>
       </div>
     </div>
 
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="30%" destroy-on-close>
-      <span>{{ dialogMessage }}</span>
+    <BaseModal v-model="dialogVisible" :title="dialogTitle" width="560px">
+      <pre class="dialog-pre">{{ dialogMessage }}</pre>
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleDialogConfirm">确定</el-button>
-        </span>
+        <BaseButton type="default" @click="dialogVisible = false">关闭</BaseButton>
       </template>
-    </el-dialog>
+    </BaseModal>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { format } from 'date-fns'
-import { zhCN } from 'date-fns/locale'
-import { notify } from '@/utils/notify'
-import { ElLoading } from 'element-plus'
+import { useUiStore } from '@/stores/ui'
+import { downloadText } from '@/utils/download'
+import { formatDateTime } from '@/utils/datetime'
+import { statusMap, severityMap } from '@/utils/statusMap'
 import BaseButton from '@/components/base/BaseButton.vue'
+import BaseModal from '@/components/base/BaseModal.vue'
+import AppIcon from '@/components/base/AppIcon.vue'
+
+const uiStore = useUiStore()
 
 const alertData = ref([])
 const sortKey = ref('timestamp')
 const sortOrder = ref('desc')
 const loading = ref(false)
+
 const dialogVisible = ref(false)
 const dialogTitle = ref('')
 const dialogMessage = ref('')
@@ -266,8 +262,7 @@ const filters = ref({
 
 const pagination = ref({
   currentPage: 1,
-  pageSize: 10,
-  total: 0
+  pageSize: 10
 })
 
 const filterConfig = {
@@ -322,7 +317,7 @@ const mockAlerts = [
   },
   {
     id: 2,
-    timestamp: '2025-12-19T08:20:00Z',
+    timestamp: '2025-12-19T14:20:10Z',
     type: '内存相关',
     severity: 'high',
     status: 'acknowledged',
@@ -330,11 +325,11 @@ const mockAlerts = [
   },
   {
     id: 3,
-    timestamp: '2025-12-18T14:45:10Z',
+    timestamp: '2025-12-18T08:05:45Z',
     type: '磁盘相关',
     severity: 'medium',
     status: 'resolved',
-    description: '磁盘空间不足 10%'
+    description: '磁盘使用率超过 70%'
   },
   {
     id: 4,
@@ -346,6 +341,39 @@ const mockAlerts = [
   }
 ]
 
+const alertTypeKey = (typeLabel) => {
+  const text = String(typeLabel || '').toLowerCase()
+  if (text.includes('cpu')) return 'cpu'
+  if (text.includes('内存') || text.includes('memory')) return 'memory'
+  if (text.includes('磁盘') || text.includes('disk')) return 'disk'
+  if (text.includes('网络') || text.includes('network')) return 'network'
+  return 'other'
+}
+
+const getMockDateRange = (range) => {
+  const now = new Date()
+  let startDate
+  let endDate
+  switch (range) {
+    case '24h':
+      startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+      endDate = now
+      break
+    case '7d':
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      endDate = now
+      break
+    case '30d':
+      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      endDate = now
+      break
+    default:
+      startDate = now
+      endDate = now
+  }
+  return { startDate, endDate }
+}
+
 const filteredAlerts = computed(() => {
   let result = [...alertData.value]
 
@@ -356,7 +384,7 @@ const filteredAlerts = computed(() => {
     result = result.filter(alert => alert.status === filters.value.status)
   }
   if (filters.value.alertType !== 'all') {
-    result = result.filter(alert => alert.type.toLowerCase().includes(filters.value.alertType))
+    result = result.filter(alert => alertTypeKey(alert.type) === filters.value.alertType)
   }
 
   if (filters.value.dateRange === 'custom' && filters.value.startDate && filters.value.endDate) {
@@ -388,8 +416,8 @@ const sortedAlerts = computed(() => {
       aValue = new Date(aValue)
       bValue = new Date(bValue)
     } else {
-      aValue = aValue.toString().toLowerCase()
-      bValue = bValue.toString().toLowerCase()
+      aValue = String(aValue).toLowerCase()
+      bValue = String(bValue).toLowerCase()
     }
 
     if (aValue < bValue) return sortOrder.value === 'asc' ? -1 : 1
@@ -398,56 +426,39 @@ const sortedAlerts = computed(() => {
   })
 })
 
+const totalPages = computed(() => {
+  const size = pagination.value.pageSize || 10
+  const total = filteredAlerts.value.length
+  return Math.max(1, Math.ceil(total / size))
+})
+
 const displayedAlerts = computed(() => {
   const start = (pagination.value.currentPage - 1) * pagination.value.pageSize
   const end = start + pagination.value.pageSize
   return sortedAlerts.value.slice(start, end)
 })
 
-const getMockDateRange = (range) => {
+const formatTimestamp = (dateStr) => formatDateTime(dateStr)
+
+const pad2 = (value) => String(value).padStart(2, '0')
+const buildFileStamp = () => {
   const now = new Date()
-  let startDate
-  let endDate
-  switch (range) {
-    case '24h':
-      startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-      endDate = now
-      break
-    case '7d':
-      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-      endDate = now
-      break
-    case '30d':
-      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-      endDate = now
-      break
-    default:
-      startDate = now
-      endDate = now
+  return `${now.getFullYear()}${pad2(now.getMonth() + 1)}${pad2(now.getDate())}_${pad2(now.getHours())}${pad2(now.getMinutes())}${pad2(now.getSeconds())}`
+}
+
+const escapeCsv = (value) => {
+  const text = value === null || value === undefined ? '' : String(value)
+  if (/["\n,]/.test(text)) {
+    return `"${text.replace(/"/g, '""')}"`
   }
-  return { startDate, endDate }
+  return text
 }
 
-const disabledEndDate = (time) => {
-  if (!filters.value.startDate) return false
-  return time.getTime() < new Date(filters.value.startDate).getTime()
-}
-
-const statusMap = {
-  open: { label: '未解决', color: 'var(--neon-red)' },
-  acknowledged: { label: '已确认', color: 'var(--neon-blue)' },
-  resolved: { label: '已解决', color: 'var(--neon-green)' }
-}
-
-const severityMap = {
-  critical: { label: '严重', color: 'var(--neon-red)' },
-  high: { label: '高', color: 'var(--neon-yellow)' },
-  medium: { label: '中', color: 'var(--neon-blue)' },
-  low: { label: '低', color: 'var(--neon-green)' }
-}
-
-const formatDate = (dateStr) => {
-  return format(new Date(dateStr), 'yyyy年MM月dd日 HH:mm:ss', { locale: zhCN })
+const toCsv = (rows) => {
+  if (!rows.length) return ''
+  const header = Object.keys(rows[0]).map(escapeCsv).join(',')
+  const body = rows.map((row) => Object.values(row).map(escapeCsv).join(',')).join('\n')
+  return `${header}\n${body}`
 }
 
 const sortBy = (key) => {
@@ -463,129 +474,95 @@ const refreshData = async () => {
   await fetchAlertData()
 }
 
-const exportAlerts = async () => {
+const exportAlerts = () => {
   try {
     const dataToExport = sortedAlerts.value.map(alert => ({
-      时间: formatDate(alert.timestamp),
+      时间: formatTimestamp(alert.timestamp),
       警报类型: alert.type,
-      严重程度: severityMap[alert.severity].label,
-      状态: statusMap[alert.status].label,
+      严重程度: severityMap[alert.severity]?.label || alert.severity,
+      状态: statusMap[alert.status]?.label || alert.status,
       描述: alert.description
     }))
-    const csvContent = convertToCSV(dataToExport)
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const filename = `警报记录_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`
-    const link = document.createElement('a')
-    if (link.download !== undefined) {
-      const url = URL.createObjectURL(blob)
-      link.setAttribute('href', url)
-      link.setAttribute('download', filename)
-      link.style.visibility = 'hidden'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    }
-    notify.success('导出成功')
+    const csvContent = toCsv(dataToExport)
+    const filename = `警报记录_${buildFileStamp()}.csv`
+    downloadText(csvContent, filename, 'text/csv;charset=utf-8')
+    uiStore.pushToast({ type: 'success', message: '导出成功' })
   } catch (error) {
-    notify.error('导出失败')
+    uiStore.pushToast({ type: 'error', message: '导出失败' })
     console.error(error)
   }
-}
-
-const convertToCSV = (objArray) => {
-  const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray
-  let str = ''
-  const headers = Object.keys(array[0]).join(',') + '\n'
-  str += headers
-
-  array.forEach(obj => {
-    let line = ''
-    for (const index in obj) {
-      if (line !== '') line += ','
-      line += `"${obj[index]}"`
-    }
-    str += line + '\n'
-  })
-
-  return str
 }
 
 const viewAlertDetails = (alert) => {
   dialogTitle.value = '警报详情'
-  dialogMessage.value = `
-    时间: ${formatDate(alert.timestamp)}\n
-    类型: ${alert.type}\n
-    严重程度: ${severityMap[alert.severity].label}\n
-    状态: ${statusMap[alert.status].label}\n
-    描述: ${alert.description}
-  `
+  dialogMessage.value = [
+    `时间: ${formatTimestamp(alert.timestamp)}`,
+    `类型: ${alert.type}`,
+    `严重程度: ${severityMap[alert.severity]?.label || alert.severity}`,
+    `状态: ${statusMap[alert.status]?.label || alert.status}`,
+    `描述: ${alert.description}`
+  ].join('\n')
   dialogVisible.value = true
 }
 
 const handleUpdateAlertStatus = async (alert) => {
-  try {
-    const confirmation = await notify.confirm('确定要更新此警报的状态吗？')
-    if (!confirmation) return
+  const confirmed = await uiStore.requestConfirm('确定要更新此警报的状态吗？', '确认')
+  if (!confirmed) return
 
-    const newStatus = alert.status === 'open' ? 'acknowledged' : 'resolved'
-    const index = alertData.value.findIndex(a => a.id === alert.id)
-    if (index !== -1) {
-      alertData.value[index].status = newStatus
-      notify.success('状态更新成功')
-    }
-  } catch (error) {
-    if (error !== 'cancel') {
-      notify.error('状态更新失败')
-      console.error(error)
-    }
+  const newStatus = alert.status === 'open' ? 'acknowledged' : 'resolved'
+  const index = alertData.value.findIndex(a => a.id === alert.id)
+  if (index !== -1) {
+    alertData.value = [
+      ...alertData.value.slice(0, index),
+      { ...alertData.value[index], status: newStatus },
+      ...alertData.value.slice(index + 1)
+    ]
+    uiStore.pushToast({ type: 'success', message: '状态更新成功' })
   }
 }
 
 const handleSizeChange = (newSize) => {
-  pagination.value.pageSize = newSize
+  pagination.value.pageSize = Number(newSize) || 10
   pagination.value.currentPage = 1
 }
 
 const handleCurrentChange = (newPage) => {
-  pagination.value.currentPage = newPage
-}
-
-const handleDialogConfirm = () => {
-  dialogVisible.value = false
+  const next = Number(newPage) || 1
+  pagination.value.currentPage = Math.max(1, Math.min(next, totalPages.value))
 }
 
 const fetchAlertData = async () => {
   loading.value = true
-  const loadingInstance = ElLoading.service({
-    lock: true,
-    text: '加载中...',
-    background: 'rgba(0, 0, 0, 0.7)'
-  })
-
   try {
     alertData.value = mockAlerts
-    pagination.value.total = mockAlerts.length
   } catch (error) {
-    notify.error('获取警报数据失败')
+    uiStore.pushToast({ type: 'error', message: '获取警报数据失败' })
     console.error(error)
   } finally {
     loading.value = false
-    loadingInstance.close()
   }
 }
 
 watch(
-  [
-    () => JSON.stringify(filters.value),
-    () => pagination.value.pageSize,
-    () => pagination.value.currentPage,
-    () => sortKey.value,
-    () => sortOrder.value
-  ],
+  () => filters.value,
   () => {
-    fetchAlertData()
+    pagination.value.currentPage = 1
+  },
+  { deep: true }
+)
+
+watch(
+  () => pagination.value.pageSize,
+  () => {
+    pagination.value.currentPage = 1
   }
 )
+
+watch(totalPages, (pages) => {
+  if (pagination.value.currentPage > pages) {
+    pagination.value.currentPage = pages
+  }
+})
 
 onMounted(() => {
   fetchAlertData()
@@ -627,14 +604,12 @@ onMounted(() => {
 
 .custom-range {
   margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
 }
 
 .filter-group {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
   color: var(--text-muted);
   font-size: 0.9rem;
 }
@@ -643,66 +618,44 @@ onMounted(() => {
   background: rgba(15, 23, 42, 0.28);
 }
 
-.history-table {
-  width: 100%;
-}
-
-th.sortable {
+.history-table th.sortable {
   cursor: pointer;
+  user-select: none;
 }
 
-th.active {
-  background: rgba(46, 196, 182, 0.18);
+.history-table th.active {
+  color: var(--text-strong);
 }
 
 .th-cell {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .sort-icon i {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  transition: transform 0.2s ease;
+  opacity: 0.55;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.sort-icon i.active {
-  color: var(--neon-blue);
+.sort-symbol {
+  opacity: 0.55;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.sort-icon i.desc {
+.sort-symbol.active {
+  opacity: 1;
+}
+
+.sort-symbol.desc {
   transform: rotate(180deg);
 }
 
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.7rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.status-badge.type-cpu {
-  color: var(--neon-red);
-  background: rgba(231, 111, 81, 0.12);
-}
-
-.status-badge.type-memory {
-  color: var(--neon-yellow);
-  background: rgba(246, 189, 96, 0.12);
-}
-
-.status-badge.type-disk {
-  color: var(--neon-blue);
-  background: rgba(46, 196, 182, 0.12);
-}
-
-.status-badge.type-network {
-  color: var(--neon-green);
-  background: rgba(6, 214, 160, 0.12);
+.state-cell {
+  text-align: center;
+  padding: 1.25rem 0.75rem;
+  color: var(--text-muted);
 }
 
 .desc-cell {
@@ -710,18 +663,12 @@ th.active {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--text-muted);
 }
 
 .table-actions {
   display: flex;
   gap: 0.6rem;
-}
-
-.state-cell {
-  text-align: center;
-  color: var(--text-muted);
-  padding: 2rem 0;
+  flex-wrap: wrap;
 }
 
 .pagination-row {
@@ -729,20 +676,61 @@ th.active {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  margin-top: 1rem;
 }
 
 .page-size {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.page-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.page-total {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.page-indicator {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  min-width: 84px;
+  text-align: center;
+}
+
+.dialog-pre {
+  margin: 0;
+  white-space: pre-wrap;
+  color: var(--text-color);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 0.9rem;
 }
 
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
+.inline-icon {
+  margin-right: 0.5rem;
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.status-badge {
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 </style>

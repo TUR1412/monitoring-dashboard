@@ -7,13 +7,13 @@
         <p class="subtitle">更新用户信息与角色权限配置。</p>
       </div>
       <BaseButton type="default" @click="goBack">
-        <i class="fas fa-arrow-left"></i>
+        <AppIcon name="arrow-left" className="inline-icon" />
         返回用户管理
       </BaseButton>
     </header>
 
     <div v-if="error" class="card error-card">
-      <i class="fas fa-exclamation-triangle"></i>
+      <AppIcon name="alert" className="inline-icon" />
       <span>{{ error }}</span>
     </div>
 
@@ -31,21 +31,24 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useUsersStore } from '@/stores/users'
+import { useUiStore } from '@/stores/ui'
 import { useRouter, useRoute } from 'vue-router'
-import { notify } from '@/utils/notify'
 import BaseButton from '@/components/base/BaseButton.vue'
 import UserForm from './UserForm.vue'
+import AppIcon from '@/components/base/AppIcon.vue'
 
 export default {
   name: 'EditUser',
   components: {
     UserForm,
-    BaseButton
+    BaseButton,
+    AppIcon
   },
 
   setup() {
-    const store = useMonitorStore()
+    const usersStore = useUsersStore()
+    const uiStore = useUiStore()
     const router = useRouter()
     const route = useRoute()
     const loading = ref(false)
@@ -60,7 +63,7 @@ export default {
         return
       }
 
-      const foundUser = store.users.find(u => u.id === userId)
+      const foundUser = usersStore.users.find(u => u.id === userId)
       if (!foundUser) {
         error.value = '未找到指定用户，请检查用户列表。'
         return
@@ -76,17 +79,17 @@ export default {
     const handleEditUser = async (formData) => {
       loading.value = true
       try {
-        await store.editUser({
+        usersStore.editUser({
           id: userId,
           username: formData.username,
           role: formData.role
         })
-        notify.success('用户信息已更新')
+        uiStore.pushToast({ type: 'success', message: '用户信息已更新' })
         setTimeout(() => {
           router.push({ name: 'UserManagementParent' })
         }, 600)
       } catch (err) {
-        notify.error('更新用户失败，请稍后重试')
+        uiStore.pushToast({ type: 'error', message: '更新用户失败，请稍后重试' })
       } finally {
         loading.value = false
       }
@@ -130,5 +133,9 @@ export default {
   color: var(--neon-red);
   border-color: rgba(231, 111, 81, 0.5);
   background: rgba(231, 111, 81, 0.12);
+}
+
+.inline-icon {
+  margin-right: 0.5rem;
 }
 </style>

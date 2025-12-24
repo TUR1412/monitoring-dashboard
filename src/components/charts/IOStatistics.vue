@@ -17,7 +17,7 @@
 
 <script>
 import { computed, onMounted, onUnmounted } from 'vue'
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useTelemetryStore } from '@/stores/telemetry'
 import StatusIndicator from '../StatusIndicator.vue'
 import ChartComponent from './ChartComponent.vue'
 
@@ -28,7 +28,7 @@ export default {
     ChartComponent
   },
   setup() {
-    const store = useMonitorStore()
+    const store = useTelemetryStore()
 
     // 使用 computed 计算 ioStatus
     const ioStatus = computed(() => {

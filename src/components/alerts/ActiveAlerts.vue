@@ -2,12 +2,13 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useMonitorStore } from '@/stores/monitorStore'
+import { useAlertsStore } from '@/stores/alerts'
 import { AlertLevel, Alert, TimeFilter } from '@/types/alerts'
 import BaseButton from '@/components/base/BaseButton.vue'
+import AppIcon from '@/components/base/AppIcon.vue'
 
-const monitorStore = useMonitorStore()
-const { alerts } = storeToRefs(monitorStore)
+const alertsStore = useAlertsStore()
+const { alerts } = storeToRefs(alertsStore)
 
 const levelFilter = ref<AlertLevel | ''>('')
 const timeFilter = ref<TimeFilter>('24h')
@@ -20,19 +21,19 @@ const TIME_FILTERS: Record<TimeFilter, number> = {
 
 const ALERT_CONFIGS = {
   critical: {
-    icon: 'fas fa-exclamation-circle',
+    icon: 'alert',
     color: 'var(--neon-red)'
   },
   error: {
-    icon: 'fas fa-times-circle',
+    icon: 'alert',
     color: 'var(--neon-red)'
   },
   warning: {
-    icon: 'fas fa-exclamation-triangle',
+    icon: 'alert',
     color: 'var(--neon-yellow)'
   },
   info: {
-    icon: 'fas fa-info-circle',
+    icon: 'bell',
     color: 'var(--neon-blue)'
   }
 } as const
@@ -56,7 +57,7 @@ const allSelected = computed(() =>
   filteredAlerts.value.every(alert => selectedIds.value.has(alert.id))
 )
 
-const getAlertIcon = (level: AlertLevel) => ALERT_CONFIGS[level]?.icon || ALERT_CONFIGS.info.icon
+const getAlertIconName = (level: AlertLevel) => ALERT_CONFIGS[level]?.icon || ALERT_CONFIGS.info.icon
 const getAlertColor = (level: AlertLevel) => ALERT_CONFIGS[level]?.color || ALERT_CONFIGS.info.color
 
 const formatTime = (timestamp: number | string) => {
@@ -70,17 +71,17 @@ const formatTime = (timestamp: number | string) => {
   }).format(date)
 }
 
-const handleAcknowledge = async (alertId: string) => {
+const handleAcknowledge = async (alertId: string | number) => {
   try {
-    await monitorStore.acknowledgeAlert(alertId)
+    await alertsStore.acknowledgeAlert(alertId)
   } catch (error) {
     console.error('确认警报失败:', error)
   }
 }
 
-const handleMute = async (alertId: string) => {
+const handleMute = async (alertId: string | number) => {
   try {
-    await monitorStore.muteAlert(alertId)
+    await alertsStore.muteAlert(alertId)
   } catch (error) {
     console.error('静音警报失败:', error)
   }
@@ -106,20 +107,20 @@ const toggleSelectAll = () => {
 
 const acknowledgeSelected = async () => {
   await Promise.all(
-    Array.from(selectedIds.value).map(id => monitorStore.acknowledgeAlert(id))
+    Array.from(selectedIds.value).map(id => alertsStore.acknowledgeAlert(id))
   )
   selectedIds.value = new Set()
 }
 
 const muteSelected = async () => {
   await Promise.all(
-    Array.from(selectedIds.value).map(id => monitorStore.muteAlert(id))
+    Array.from(selectedIds.value).map(id => alertsStore.muteAlert(id))
   )
   selectedIds.value = new Set()
 }
 
 const archiveSelected = async () => {
-  monitorStore.archiveAlerts(Array.from(selectedIds.value))
+  alertsStore.archiveAlerts(Array.from(selectedIds.value))
   selectedIds.value = new Set()
 }
 
@@ -131,7 +132,7 @@ watch(filteredAlerts, (next) => {
   selectedIds.value = nextSelected
 })
 
-monitorStore.fetchAlerts()
+alertsStore.fetchAlerts()
 </script>
 
 <template>
@@ -143,11 +144,10 @@ monitorStore.fetchAlerts()
       </div>
       <div class="header-actions">
         <span class="stat-chip">
-          <i class="fas fa-bell"></i>
+          <AppIcon name="bell" className="inline-icon" />
           当前 {{ totalCount }} 条
         </span>
         <BaseButton type="default" size="small" @click="toggleSelectAll">
-          <i class="fas fa-check-square"></i>
           {{ allSelected ? '取消全选' : '全选' }}
         </BaseButton>
         <BaseButton type="default" size="small" :disabled="!selectedIds.size" @click="acknowledgeSelected">
@@ -193,18 +193,16 @@ monitorStore.fetchAlerts()
             <span></span>
           </label>
           <div class="alert-icon" :style="{ color: getAlertColor(alert.level) }">
-            <i :class="getAlertIcon(alert.level)"></i>
+            <AppIcon :name="getAlertIconName(alert.level)" />
           </div>
           <div class="alert-body">
             <h3>{{ alert.title }}</h3>
             <p>{{ alert.message }}</p>
             <div class="alert-meta">
               <span>
-                <i class="fas fa-clock"></i>
                 {{ formatTime(alert.timestamp) }}
               </span>
               <span>
-                <i class="fas fa-satellite-dish"></i>
                 {{ alert.source }}
               </span>
             </div>
@@ -340,6 +338,10 @@ monitorStore.fetchAlerts()
   text-align: center;
   padding: 2rem 0;
   color: var(--text-muted);
+}
+
+.inline-icon {
+  margin-right: 0.5rem;
 }
 
 @media (max-width: 768px) {
