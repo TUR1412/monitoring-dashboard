@@ -87,6 +87,12 @@ npm run preview
 - `src/utils/storage.js`：安全 localStorage（SSR 兼容、容错）
 - `src/utils/datetime.js`：基于 Intl 的时间格式化（减少日期工具依赖）
 - `src/utils/download.js`：原生下载封装（替代 file-saver 类库）
+- `src/utils/csv.js`：CSV 构建/转义/下载（统一导出能力）
+- `src/utils/filename.js`：文件名日期戳/时间戳生成（导出命名统一）
+
+### 3) 可复用的交互与轮询能力
+
+- `src/composables/usePolling.js`：统一轮询/计时器封装，避免组件内重复 `setInterval/clearInterval`
 
 ---
 
@@ -118,15 +124,24 @@ src/
 
 ## 🗺️ 未来进化蓝图（建议路线）
 
-### vNext（体验增强）
-- 告警中心：更细的状态流转（ack / resolve）与批量操作
-- Logs：查询条件与分页、导出与复制增强
-- Security：将“合规/威胁”演示数据升级为可配置规则集
+### vNext（体验增强 / 可观测性增强）
 
-### vNext+1（真实数据源）
-- 接入后端 API（REST/GraphQL），并规范化错误码与鉴权策略
-- 引入 SSE/WebSocket：实时告警推送与在线状态
+- 告警中心：更细的状态流转（ack / resolve）与批量操作、批量导出
+- Logs：过滤条件、分页与“复制为查询语句/导出模板”增强
+- 交互效率：快捷键（Command Palette 扩展）、保存筛选视图（Saved Views）
+- 衡量指标（建议）：导出成功率、关键页面交互耗时（TTI/点击响应）、告警处理路径完成率
 
-### vNext+2（工程化）
-- 引入 Vitest + Testing Library 的测试基建与 CI
-- 增加 E2E（Playwright）覆盖关键路径（登录/告警/导出）
+### vNext+1（真实数据源 / 实时化）
+
+- 接入后端 API（REST/GraphQL）：统一错误码、鉴权（token 刷新/过期处理）、请求追踪（traceId）
+- 引入 SSE/WebSocket：实时告警推送、在线状态、实时趋势更新（按需订阅）
+- 数据一致性：请求缓存与失效（stale-while-revalidate）、失败重试与退避
+- 衡量指标（建议）：端到端告警延迟（P95）、接口错误率、掉线恢复耗时
+
+### vNext+2（工程化 / 企业化基线）
+
+- 测试体系：Vitest + Testing Library + Playwright（覆盖登录/告警/导出/关键导航）
+- CI/CD：构建检查、lint/类型检查、bundle size 回归阈值（预算制）
+- 安全：依赖审计（SCA）、基础 CSP/安全响应头策略（若接入后端）
+- 可扩展性：面向模块的配置化（可插拔数据源/告警规则/面板布局）
+- 衡量指标（建议）：关键路径 E2E 覆盖率、构建成功率、体积预算（gzip）稳定性

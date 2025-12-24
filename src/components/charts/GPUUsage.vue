@@ -1,25 +1,21 @@
 <!-- src/components/charts/GPUUsage.vue -->
 <template>
-  <div class="gpu-usage-monitor">
-    <h4>GPU Usage Monitor</h4>
-    <div class="chart-wrapper">
-      <ChartComponent
-        type="line"
-        :data="chartData"
-        :options="chartOptions"
-      />
-    </div>
-  </div>
+  <ChartCard title="GPU Usage Monitor">
+    <ChartComponent type="line" :data="chartData" :options="chartOptions" />
+  </ChartCard>
 </template>
 
 <script>
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { useTelemetryStore } from '@/stores/telemetry'
+import { usePolling } from '@/composables/usePolling'
+import ChartCard from './ChartCard.vue'
 import ChartComponent from './ChartComponent.vue'
 
 export default {
   name: 'GPUUsage',
   components: {
+    ChartCard,
     ChartComponent
   },
   setup() {
@@ -94,23 +90,7 @@ export default {
       }
     }
 
-    // 如果需要动态更新数据，可以通过 Store 的 Actions 来进行
-    let updateInterval
-
-    const startFetching = () => {
-      // 假设有一个 action 来更新 I/O 统计数据
-      updateInterval = setInterval(() => {
-        store.updateIOStatistics()
-      }, 5000)
-    }
-
-    onMounted(() => {
-      startFetching()
-    })
-
-    onUnmounted(() => {
-      clearInterval(updateInterval)
-    })
+    usePolling(() => store.updateIOStatistics(), 5000)
 
     return {
       chartData,
@@ -119,15 +99,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.gpu-usage-monitor {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-.chart-wrapper {
-  flex: 1;
-  position: relative;
-}
-</style>

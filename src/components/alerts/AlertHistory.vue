@@ -224,9 +224,10 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useUiStore } from '@/stores/ui'
-import { downloadText } from '@/utils/download'
 import { formatDateTime } from '@/utils/datetime'
 import { statusMap, severityMap } from '@/utils/statusMap'
+import { buildCsvFromObjects, downloadCsv } from '@/utils/csv'
+import { buildFileStamp } from '@/utils/filename'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseModal from '@/components/base/BaseModal.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
@@ -440,27 +441,6 @@ const displayedAlerts = computed(() => {
 
 const formatTimestamp = (dateStr) => formatDateTime(dateStr)
 
-const pad2 = (value) => String(value).padStart(2, '0')
-const buildFileStamp = () => {
-  const now = new Date()
-  return `${now.getFullYear()}${pad2(now.getMonth() + 1)}${pad2(now.getDate())}_${pad2(now.getHours())}${pad2(now.getMinutes())}${pad2(now.getSeconds())}`
-}
-
-const escapeCsv = (value) => {
-  const text = value === null || value === undefined ? '' : String(value)
-  if (/["\n,]/.test(text)) {
-    return `"${text.replace(/"/g, '""')}"`
-  }
-  return text
-}
-
-const toCsv = (rows) => {
-  if (!rows.length) return ''
-  const header = Object.keys(rows[0]).map(escapeCsv).join(',')
-  const body = rows.map((row) => Object.values(row).map(escapeCsv).join(',')).join('\n')
-  return `${header}\n${body}`
-}
-
 const sortBy = (key) => {
   if (sortKey.value === key) {
     sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
@@ -483,9 +463,8 @@ const exportAlerts = () => {
       状态: statusMap[alert.status]?.label || alert.status,
       描述: alert.description
     }))
-    const csvContent = toCsv(dataToExport)
-    const filename = `警报记录_${buildFileStamp()}.csv`
-    downloadText(csvContent, filename, 'text/csv;charset=utf-8')
+    const csvContent = buildCsvFromObjects(dataToExport)
+    downloadCsv(csvContent, `警报记录_${buildFileStamp()}.csv`)
     uiStore.pushToast({ type: 'success', message: '导出成功' })
   } catch (error) {
     uiStore.pushToast({ type: 'error', message: '导出失败' })

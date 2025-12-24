@@ -100,13 +100,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
+import { usePolling } from '@/composables/usePolling'
+import { formatDateTimeWithSeconds } from '@/utils/datetime'
 
-const currentTime = ref(new Date().toLocaleString('zh-CN'))
+const currentTime = ref(formatDateTimeWithSeconds(Date.now()))
 const isRefreshing = ref(false)
-let timeTicker = null
 
 const priorities = ref([
   {
@@ -194,16 +195,7 @@ const getStatusClass = (status) => {
   }
 }
 
-const formatDate = (timestamp) => {
-  return new Date(timestamp).toLocaleString('zh-CN', {
-    hour12: false,
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  })
-}
+const formatDate = (timestamp) => formatDateTimeWithSeconds(timestamp)
 
 const refreshThreats = async () => {
   isRefreshing.value = true
@@ -217,21 +209,13 @@ const refreshThreats = async () => {
     percentage: Math.floor(Math.random() * 100)
   }))
 
-  currentTime.value = new Date().toLocaleString('zh-CN')
+  currentTime.value = formatDateTimeWithSeconds(Date.now())
   isRefreshing.value = false
 }
 
-onMounted(() => {
-  timeTicker = setInterval(() => {
-    currentTime.value = new Date().toLocaleString('zh-CN')
-  }, 1000)
-})
-
-onUnmounted(() => {
-  if (timeTicker) {
-    clearInterval(timeTicker)
-  }
-})
+usePolling(() => {
+  currentTime.value = formatDateTimeWithSeconds(Date.now())
+}, 1000)
 </script>
 
 <style scoped>

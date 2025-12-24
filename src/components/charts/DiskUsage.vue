@@ -1,21 +1,20 @@
 <!-- src/components/charts/DiskUsage.vue -->
 <template>
-  <div class="disk-usage">
-    <h4>磁盘使用情况</h4>
-    <div class="chart-wrapper">
-      <ChartComponent :type="'pie'" :data="chartData" :options="chartOptions" />
-    </div>
-  </div>
+  <ChartCard title="磁盘使用情况">
+    <ChartComponent type="pie" :data="chartData" :options="chartOptions" />
+  </ChartCard>
 </template>
 
 <script>
 import { computed, onMounted } from 'vue'
 import { useTelemetryStore } from '@/stores/telemetry'
+import ChartCard from './ChartCard.vue'
 import ChartComponent from './ChartComponent.vue'
 
 export default {
   name: 'DiskUsage',
   components: {
+    ChartCard,
     ChartComponent
   },
   setup() {
@@ -63,15 +62,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.disk-usage {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-.chart-wrapper {
-  flex: 1;
-  position: relative;
-}
-</style>

@@ -1,21 +1,20 @@
 <!-- src/components/charts/MemoryUsage.vue -->
 <template>
-  <div class="memory-usage">
-    <h4>内存使用率</h4>
-    <div class="chart-wrapper">
-      <ChartComponent :type="'bar'" :data="chartData" :options="chartOptions" />
-    </div>
-  </div>
+  <ChartCard title="内存使用率">
+    <ChartComponent type="bar" :data="chartData" :options="chartOptions" />
+  </ChartCard>
 </template>
 
 <script>
 import { computed, onMounted } from 'vue'
 import { useTelemetryStore } from '@/stores/telemetry'
+import ChartCard from './ChartCard.vue'
 import ChartComponent from './ChartComponent.vue'
 
 export default {
   name: 'MemoryUsage',
   components: {
+    ChartCard,
     ChartComponent
   },
   setup() {
@@ -72,15 +71,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.memory-usage {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-.chart-wrapper {
-  flex: 1;
-  position: relative;
-}
-</style>

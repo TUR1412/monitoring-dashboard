@@ -129,7 +129,8 @@ import { computed } from 'vue'
 import { useAlertsStore } from '@/stores/alerts'
 import { useTelemetryStore } from '@/stores/telemetry'
 import { useUiStore } from '@/stores/ui'
-import { downloadText } from '@/utils/download'
+import { buildCsvFromMatrix, downloadCsv } from '@/utils/csv'
+import { buildDateStamp } from '@/utils/filename'
 import AppIcon from '@/components/base/AppIcon.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import CpuUsage from '@/components/charts/CpuUsage.vue'
@@ -213,8 +214,8 @@ const exportOpsReport = () => {
     ['已确认告警', `${acknowledgedCount.value}`],
     ['平均响应(ms)', `${avgResponse.value}`]
   ]
-  const csvContent = rows.map(row => row.join(',')).join('\n')
-  downloadText(csvContent, `运营摘要_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8')
+  const csvContent = buildCsvFromMatrix(rows)
+  downloadCsv(csvContent, `运营摘要_${buildDateStamp()}.csv`)
   uiStore.pushToast({ type: 'success', message: '运营摘要已导出' })
 }
 

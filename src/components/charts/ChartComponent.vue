@@ -7,9 +7,37 @@
 
 <script>
 import { onMounted, ref, watch, onBeforeUnmount, nextTick } from 'vue'
-import { Chart, registerables } from 'chart.js'
+import {
+  ArcElement,
+  BarController,
+  BarElement,
+  CategoryScale,
+  Chart,
+  DoughnutController,
+  Legend,
+  LineController,
+  LineElement,
+  LinearScale,
+  PieController,
+  PointElement,
+  Tooltip
+} from 'chart.js'
 
-Chart.register(...registerables)
+// 按需注册 Chart.js 组件，避免 registerables 全量注册带来的额外包体积。
+Chart.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  LineController,
+  BarController,
+  PieController,
+  DoughnutController,
+  Tooltip,
+  Legend
+)
 
 export default {
   name: 'ChartComponent',
@@ -18,7 +46,7 @@ export default {
       type: String,
       required: true,
       validator(value) {
-        return ['bar', 'line', 'pie', 'doughnut', 'radar', 'polarArea', 'bubble', 'scatter'].includes(value)
+        return ['bar', 'line', 'pie', 'doughnut'].includes(value)
       }
     },
     data: {

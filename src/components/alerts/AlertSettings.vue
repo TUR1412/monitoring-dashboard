@@ -272,6 +272,7 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseModal from '@/components/base/BaseModal.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
+import { buildDateStamp } from '@/utils/filename'
 
 export default {
   name: 'AlertSettings',
@@ -492,7 +493,7 @@ export default {
         return
       }
 
-      const now = new Date().toISOString().slice(0, 10)
+      const now = buildDateStamp()
 
       if (this.editingRule) {
         const index = this.rules.findIndex(rule => rule.id === this.editingRule.id)
@@ -519,7 +520,7 @@ export default {
 
     toggleRule(rule) {
       rule.enabled = !rule.enabled
-      rule.lastUpdated = new Date().toISOString().slice(0, 10)
+      rule.lastUpdated = buildDateStamp()
       this.persistRules()
       this.uiStore?.pushToast({ type: 'success', message: rule.enabled ? '规则已启用' : '规则已停用' })
     },

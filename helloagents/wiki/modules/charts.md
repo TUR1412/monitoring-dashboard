@@ -21,3 +21,6 @@
 - `chart.js`
 - `src/components/charts/*`
 
+## 备注
+- `ChartComponent` 已采用 Chart.js **按需注册**，避免 `registerables` 全量注册导致的包体膨胀。
+- `ChartCard` 用于统一图表标题与容器结构，降低组件重复代码。

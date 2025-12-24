@@ -1,19 +1,20 @@
 <!-- src/components/charts/NetworkTraffic.vue -->
 <template>
-  <div class="network-traffic">
-    <h4>网络流量</h4>
-    <ChartComponent :type="'line'" :data="chartData" :options="chartOptions" />
-  </div>
+  <ChartCard title="网络流量">
+    <ChartComponent type="line" :data="chartData" :options="chartOptions" />
+  </ChartCard>
 </template>
 
 <script>
 import { computed, onMounted } from 'vue'
 import { useTelemetryStore } from '@/stores/telemetry'
+import ChartCard from './ChartCard.vue'
 import ChartComponent from './ChartComponent.vue'
 
 export default {
   name: 'NetworkTraffic',
   components: {
+    ChartCard,
     ChartComponent
   },
   setup() {
@@ -88,12 +89,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.network-traffic {
-  display: flex;
-  flex-direction: column;
-  height: 100%; /* 确保图表填满容器 */
-}
-</style>
-

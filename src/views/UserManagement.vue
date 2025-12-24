@@ -133,7 +133,8 @@
 import { ref, computed } from 'vue'
 import { useUsersStore } from '@/stores/users'
 import { useUiStore } from '@/stores/ui'
-import { downloadText } from '@/utils/download'
+import { buildCsvFromObjects, downloadCsv } from '@/utils/csv'
+import { buildDateStamp } from '@/utils/filename'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
@@ -216,10 +217,8 @@ export default {
         return
       }
 
-      const headers = Object.keys(rows[0]).join(',')
-      const body = rows.map(row => Object.values(row).join(',')).join('\n')
-      const csvContent = `${headers}\n${body}`
-      downloadText(csvContent, `用户列表_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8')
+      const csvContent = buildCsvFromObjects(rows)
+      downloadCsv(csvContent, `用户列表_${buildDateStamp()}.csv`)
       uiStore.pushToast({ type: 'success', message: '导出完成' })
     }
 

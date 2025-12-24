@@ -61,8 +61,9 @@
 </template>
 
 <script>
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { useTelemetryStore } from '@/stores/telemetry'
+import { usePolling } from '@/composables/usePolling'
 import ChartComponent from './ChartComponent.vue'
 import StatusIndicator from '../StatusIndicator.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
@@ -149,26 +150,11 @@ export default {
       }
     }
 
-    let updateInterval
-
-    const startFetching = () => {
-      store.fetchProcesses()
-      updateInterval = setInterval(() => {
-        store.fetchProcesses()
-      }, 5000)
-    }
-
     const handleProcessAction = (pid) => {
       store.stopProcess(pid)
     }
 
-    onMounted(() => {
-      startFetching()
-    })
-
-    onUnmounted(() => {
-      clearInterval(updateInterval)
-    })
+    usePolling(() => store.fetchProcesses(), 5000)
 
     return {
       processes,

@@ -1,25 +1,21 @@
 <!-- src/components/charts/PerformanceChart.vue -->
 <template>
-  <div class="performance-chart">
-    <h4>性能分析</h4>
-    <div class="chart-wrapper">
-      <ChartComponent
-        type="bar"
-        :data="chartData"
-        :options="chartOptions"
-      />
-    </div>
-  </div>
+  <ChartCard title="性能分析">
+    <ChartComponent type="bar" :data="chartData" :options="chartOptions" />
+  </ChartCard>
 </template>
 
 <script>
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { useTelemetryStore } from '@/stores/telemetry'
+import { usePolling } from '@/composables/usePolling'
+import ChartCard from './ChartCard.vue'
 import ChartComponent from './ChartComponent.vue'
 
 export default {
   name: 'PerformanceChart',
   components: {
+    ChartCard,
     ChartComponent
   },
   setup() {
@@ -70,22 +66,7 @@ export default {
       }
     }
 
-    let updateInterval
-
-    const startFetching = () => {
-      store.fetchFrontendPerformance()
-      updateInterval = setInterval(() => {
-        store.fetchFrontendPerformance()
-      }, 5000)
-    }
-
-    onMounted(() => {
-      startFetching()
-    })
-
-    onUnmounted(() => {
-      clearInterval(updateInterval)
-    })
+    usePolling(() => store.fetchFrontendPerformance(), 5000)
 
     return {
       chartData,
@@ -94,15 +75,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.performance-chart {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-.chart-wrapper {
-  flex: 1;
-  position: relative;
-}
-</style>

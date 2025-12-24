@@ -1,19 +1,20 @@
 <!-- src/components/charts/FrontendPerformance.vue -->
 <template>
-  <div class="frontend-performance">
-    <h4>前端性能</h4>
-    <ChartComponent :type="'bar'" :data="chartData" :options="chartOptions" />
-  </div>
+  <ChartCard title="前端性能">
+    <ChartComponent type="bar" :data="chartData" :options="chartOptions" />
+  </ChartCard>
 </template>
 
 <script>
 import { computed, onMounted } from 'vue'
 import { useTelemetryStore } from '@/stores/telemetry'
+import ChartCard from './ChartCard.vue'
 import ChartComponent from './ChartComponent.vue'
 
 export default {
   name: 'FrontendPerformance',
   components: {
+    ChartCard,
     ChartComponent
   },
   setup() {
@@ -87,11 +88,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.frontend-performance {
-  display: flex;
-  flex-direction: column;
-  height: 100%; /* 确保图表填满容器 */
-}
-</style>

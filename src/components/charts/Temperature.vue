@@ -1,31 +1,29 @@
 <!-- src/components/charts/Temperature.vue -->
 <template>
-  <div class="temperature-monitor">
-    <h4>温度监控</h4>
-    <div class="chart-wrapper">
-      <ChartComponent
-        type="line"
-        :data="chartData"
-        :options="chartOptions"
-      />
-    </div>
-    <div class="status-indicators">
-      <StatusIndicator :status="temperatureStatus" label="温度状态" />
-      <StatusIndicator :status="coolingStatus" label="散热状态" />
-    </div>
-  </div>
+  <ChartCard title="温度监控">
+    <ChartComponent type="line" :data="chartData" :options="chartOptions" />
+    <template #footer>
+      <div class="status-indicators">
+        <StatusIndicator :status="temperatureStatus" label="温度状态" />
+        <StatusIndicator :status="coolingStatus" label="散热状态" />
+      </div>
+    </template>
+  </ChartCard>
 </template>
 
 <script>
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { useTelemetryStore } from '@/stores/telemetry'
+import { usePolling } from '@/composables/usePolling'
 import StatusIndicator from '../StatusIndicator.vue'
+import ChartCard from './ChartCard.vue'
 import ChartComponent from './ChartComponent.vue'
 
 export default {
   name: 'Temperature',
   components: {
     StatusIndicator,
+    ChartCard,
     ChartComponent
   },
   setup() {
@@ -108,22 +106,7 @@ export default {
       }
     }
 
-    let updateInterval
-
-    const startFetching = () => {
-      store.fetchTemperatureData()
-      updateInterval = setInterval(() => {
-        store.fetchTemperatureData()
-      }, 5000)
-    }
-
-    onMounted(() => {
-      startFetching()
-    })
-
-    onUnmounted(() => {
-      clearInterval(updateInterval)
-    })
+    usePolling(() => store.fetchTemperatureData(), 5000)
 
     return {
       temperatureStatus,
@@ -136,18 +119,8 @@ export default {
 </script>
 
 <style scoped>
-.temperature-monitor {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-.chart-wrapper {
-  flex: 1;
-  position: relative;
-}
 .status-indicators {
   display: flex;
   gap: 1rem;
-  margin-top: 1rem;
 }
 </style>

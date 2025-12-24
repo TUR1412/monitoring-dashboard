@@ -1,30 +1,28 @@
 <!-- src/components/charts/IOStatistics.vue -->
 <template>
-  <div class="io-statistics">
-    <h4>I/O 统计监控</h4>
-    <div class="chart-wrapper">
-      <ChartComponent
-        type="line"
-        :data="chartData"
-        :options="chartOptions"
-      />
-    </div>
-    <div class="status-indicators">
-      <StatusIndicator :status="ioStatus" label="I/O 状态" />
-    </div>
-  </div>
+  <ChartCard title="I/O 统计监控">
+    <ChartComponent type="line" :data="chartData" :options="chartOptions" />
+    <template #footer>
+      <div class="status-indicators">
+        <StatusIndicator :status="ioStatus" label="I/O 状态" />
+      </div>
+    </template>
+  </ChartCard>
 </template>
 
 <script>
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { useTelemetryStore } from '@/stores/telemetry'
+import { usePolling } from '@/composables/usePolling'
 import StatusIndicator from '../StatusIndicator.vue'
+import ChartCard from './ChartCard.vue'
 import ChartComponent from './ChartComponent.vue'
 
 export default {
   name: 'IOStatistics',
   components: {
     StatusIndicator,
+    ChartCard,
     ChartComponent
   },
   setup() {
@@ -113,22 +111,7 @@ export default {
       }
     }
 
-    let updateInterval
-
-    const startFetching = () => {
-      store.fetchIOStatistics()
-      updateInterval = setInterval(() => {
-        store.fetchIOStatistics()
-      }, 5000)
-    }
-
-    onMounted(() => {
-      startFetching()
-    })
-
-    onUnmounted(() => {
-      clearInterval(updateInterval)
-    })
+    usePolling(() => store.fetchIOStatistics(), 5000)
 
     return {
       ioStatus,
@@ -140,18 +123,8 @@ export default {
 </script>
 
 <style scoped>
-.io-statistics {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-.chart-wrapper {
-  flex: 1;
-  position: relative;
-}
 .status-indicators {
   display: flex;
   gap: 1rem;
-  margin-top: 1rem;
 }
 </style>
