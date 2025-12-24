@@ -17,7 +17,14 @@
 #### 场景: 未登录访问受保护页面
 - 预期结果：重定向到登录页
 
+### 需求: 导航可访问性与一致交互
+**模块:** App Shell  
+Header/Sidebar/TabBar 等导航区域需保持键盘可达与一致的视觉反馈（`focus-visible`、长文本截断与动效基线）。
+
+#### 场景: 键盘切换标签页
+- 预期结果：TabBar 支持键盘聚焦与 Enter/Space 激活；Delete 可关闭标签；可见焦点样式一致
+
 ## 依赖
 - `auth` / `tabs` / `theme` store
 - `src/router/index.js`
-
+ - `src/components/TabBar.vue`

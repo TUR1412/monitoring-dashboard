@@ -15,11 +15,9 @@
       v-bind="$attrs"
     />
   </div>
-</template>
+  </template>
   
   <script setup>
-  import { onMounted, onUnmounted } from 'vue'
-  
   defineProps({
     modelValue: {
       type: [String, Number],
@@ -67,8 +65,9 @@
   border: 1px solid var(--border-color);
   background: rgba(15, 23, 42, 0.28);
   color: var(--text-color);
-  font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: var(--font-sans);
+  line-height: var(--lh-normal);
+  transition: border-color var(--dur-normal) var(--ease-out), box-shadow var(--dur-normal) var(--ease-out), background-color var(--dur-normal) var(--ease-out);
 }
 
 .base-input:focus {

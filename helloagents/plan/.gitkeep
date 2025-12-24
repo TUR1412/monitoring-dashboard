@@ -1,0 +1,4 @@
+# 方案包临时目录（plan/）
+# - 新方案包创建在此目录
+# - 开发实施完成后将迁移至 helloagents/history/YYYY-MM/
+

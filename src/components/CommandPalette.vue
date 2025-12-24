@@ -71,6 +71,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useTabsStore } from '@/stores/tabs'
 import { useAlertsStore } from '@/stores/alerts'
 import { useTelemetryStore } from '@/stores/telemetry'
+import { safeStorage } from '@/utils/storage'
 import BaseButton from '@/components/base/BaseButton.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 
@@ -98,29 +99,15 @@ const inputRef = ref(null)
 const query = ref('')
 const activeIndex = ref(0)
 
-const STORAGE_KEY = 'commandPaletteRecents'
-const canUseStorage = typeof window !== 'undefined' && typeof localStorage !== 'undefined'
+const STORAGE_KEY = 'monitoring-dashboard:command-palette:recents'
 
 const readRecents = () => {
-  if (!canUseStorage) return []
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
-  } catch (error) {
-    console.warn('读取命令面板记录失败', error)
-    return []
-  }
+  const saved = safeStorage.get(STORAGE_KEY, [])
+  return Array.isArray(saved) ? saved : []
 }
 
 const writeRecents = (value) => {
-  if (!canUseStorage) return
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(value))
-  } catch (error) {
-    console.warn('写入命令面板记录失败', error)
-  }
+  safeStorage.set(STORAGE_KEY, Array.isArray(value) ? value : [])
 }
 
 const recentIds = ref(readRecents())

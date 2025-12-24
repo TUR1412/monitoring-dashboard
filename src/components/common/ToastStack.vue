@@ -11,7 +11,7 @@
       </span>
       <div class="toast-content">
         <div class="toast-title">{{ titleMap[toast.type] || '提示' }}</div>
-        <div class="toast-message">{{ toast.message }}</div>
+        <div class="toast-message truncate-fade">{{ toast.message }}</div>
       </div>
       <button
         class="toast-close"
@@ -49,11 +49,11 @@ const iconName = (type) => {
 <style scoped>
 .toast-stack {
   position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
+  top: var(--space-6);
+  right: var(--space-6);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
   z-index: 3000;
   width: min(360px, 90vw);
 }
@@ -68,7 +68,7 @@ const iconName = (type) => {
   background: var(--surface-1);
   box-shadow: var(--shadow-md);
   color: var(--text-1);
-  animation: toastIn 0.3s ease;
+  animation: toastIn var(--dur-slow) var(--ease-out) both;
 }
 
 .toast-icon {
@@ -98,6 +98,7 @@ const iconName = (type) => {
 .toast-message {
   font-size: 0.8rem;
   color: var(--text-2);
+  --fade-mask-to-color: var(--surface-1);
 }
 
 .toast-close {
@@ -158,7 +159,7 @@ const iconName = (type) => {
 @keyframes toastIn {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-10px);
   }
   to {
     opacity: 1;
@@ -168,9 +169,9 @@ const iconName = (type) => {
 
 @media (max-width: 640px) {
   .toast-stack {
-    top: 1rem;
-    right: 1rem;
-    left: 1rem;
+    top: var(--space-4);
+    right: var(--space-4);
+    left: var(--space-4);
     width: auto;
   }
 }

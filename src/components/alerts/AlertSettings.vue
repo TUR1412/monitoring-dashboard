@@ -273,6 +273,9 @@ import BaseInput from '@/components/base/BaseInput.vue'
 import BaseModal from '@/components/base/BaseModal.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 import { buildDateStamp } from '@/utils/filename'
+import { safeStorage } from '@/utils/storage'
+
+const RULES_STORAGE_KEY = 'monitoring-dashboard:alerts:rules'
 
 export default {
   name: 'AlertSettings',
@@ -450,17 +453,18 @@ export default {
     },
 
     persistRules() {
-      localStorage.setItem('alertRules', JSON.stringify(this.rules))
+      safeStorage.set(RULES_STORAGE_KEY, this.rules)
     },
 
     loadRules() {
-      const saved = localStorage.getItem('alertRules')
+      const saved = safeStorage.get(RULES_STORAGE_KEY, null)
+      if (Array.isArray(saved)) {
+        this.rules = saved
+        return
+      }
       if (saved) {
-        try {
-          this.rules = JSON.parse(saved)
-        } catch (error) {
-          console.warn('规则加载失败，使用默认配置')
-        }
+        // 数据格式异常时清理旧数据，避免反复污染
+        safeStorage.remove(RULES_STORAGE_KEY)
       }
     },
 

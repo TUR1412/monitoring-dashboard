@@ -1,7 +1,7 @@
 <!-- src/components/TabBar.vue -->
 <template>
   <nav class="tab-bar" aria-label="快捷标签">
-    <div class="tab-container">
+    <div class="tab-container" role="tablist" aria-label="打开的页面标签">
       <div
         v-for="tab in openTabs"
         :key="tab.name"
@@ -10,12 +10,20 @@
           { 'tab-active': activeTab === tab.name }
         ]"
         @click="switchTab(tab)"
+        role="tab"
+        :tabindex="activeTab === tab.name ? 0 : -1"
+        :aria-selected="activeTab === tab.name ? 'true' : 'false'"
+        :title="tab.meta?.title || tab.name"
+        @keydown.enter.prevent="switchTab(tab)"
+        @keydown.space.prevent="switchTab(tab)"
+        @keydown.delete.prevent="closeTab(tab)"
       >
-        <span class="tab-title">{{ tab.meta?.title || tab.name }}</span>
+        <span class="tab-title truncate-fade">{{ tab.meta?.title || tab.name }}</span>
         <button
           class="tab-close"
           @click.stop="closeTab(tab)"
           aria-label="关闭标签"
+          type="button"
         >
           <span aria-hidden="true">&times;</span>
         </button>
@@ -116,23 +124,32 @@
   color: var(--text-color);
   font-size: 0.85rem;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  transition:
+    background-color var(--dur-normal) var(--ease-out),
+    color var(--dur-normal) var(--ease-out),
+    box-shadow var(--dur-normal) var(--ease-out),
+    transform var(--dur-normal) var(--ease-out);
   cursor: pointer;
   user-select: none;
+  outline: none;
+  --fade-mask-to-color: rgba(15, 23, 34, 0.65);
 }
 
 .tab-item:hover {
   background-color: rgba(46, 196, 182, 0.18);
+  transform: translateY(-1px);
 }
 
 .tab-active {
   background-color: rgba(46, 196, 182, 0.32);
   color: var(--text-strong);
   box-shadow: 0 0 12px rgba(46, 196, 182, 0.35);
+  --fade-mask-to-color: rgba(46, 196, 182, 0.32);
 }
 
 .tab-title {
   margin-right: 0.5rem;
+  max-width: 220px;
 }
 
 .tab-close {
@@ -149,13 +166,14 @@
   font-size: 1rem;
   line-height: 1;
   opacity: 0.7;
-  transition: opacity 0.2s ease, background-color 0.2s ease;
+  transition: opacity var(--dur-normal) var(--ease-out), background-color var(--dur-normal) var(--ease-out), transform var(--dur-normal) var(--ease-out);
   cursor: pointer;
 }
 
 .tab-close:hover {
   opacity: 1;
   background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
 }
 
 .tab-close:focus {

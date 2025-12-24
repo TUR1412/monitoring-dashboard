@@ -316,7 +316,9 @@ const ariaLabel = computed(() => props.label || props.name)
 
 <style scoped>
 .app-icon {
-  display: inline-flex;
+  display: inline-block;
   vertical-align: -0.125em;
+  flex-shrink: 0;
+  shape-rendering: geometricPrecision;
 }
 </style>

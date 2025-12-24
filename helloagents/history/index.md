@@ -8,9 +8,10 @@
 
 | 时间戳 | 功能名称 | 类型 | 状态 | 方案包路径 |
 |--------|----------|------|------|------------|
+| 202512242315 | ui-visual-absolute-domain | UI | ✅已完成 | `2025-12/202512242315_ui-visual-absolute-domain/` |
+| 202512242246 | ultimate-compression | 优化 | ✅已完成 | `2025-12/202512242246_ultimate-compression/` |
 | 202512242224 | singularity-refactor | 重构 | ✅已完成 | `2025-12/202512242224_singularity-refactor/` |
 | 202512242143 | ultimate_compression | 规划 | [-]未执行 | `2025-12/202512242143_ultimate_compression/` |
-| 202512242246 | ultimate-compression | 优化 | ✅已完成 | `2025-12/202512242246_ultimate-compression/` |
 
 ---
 
@@ -18,6 +19,7 @@
 
 ### 2025-12
 
+- [202512242315_ui-visual-absolute-domain](2025-12/202512242315_ui-visual-absolute-domain/) - Pixel Perfect 基线 + 动效曲线统一 + A11y 清理 + 暗黑细节
+- [202512242246_ultimate-compression](2025-12/202512242246_ultimate-compression/) - 冗余去重 + 构建体积压缩 + README 蓝图增强
 - [202512242224_singularity-refactor](2025-12/202512242224_singularity-refactor/) - 领域化 Store + Infra utils + 图标去依赖 + 文档补齐
 - [202512242143_ultimate_compression](2025-12/202512242143_ultimate_compression/) - 未执行的历史方案（清理归档）
-- [202512242246_ultimate-compression](2025-12/202512242246_ultimate-compression/) - 冗余去重 + 构建体积压缩 + README 蓝图增强

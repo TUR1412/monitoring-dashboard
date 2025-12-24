@@ -1,19 +1,25 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div v-if="modelValue" class="modal-overlay">
+      <div v-if="modelValue" class="modal-overlay" role="presentation">
         <div
           class="modal-content"
           :style="{ maxWidth: width }"
           @click.stop
+          role="dialog"
+          aria-modal="true"
+          :aria-labelledby="title ? titleId : undefined"
+          :aria-label="title ? undefined : '对话框'"
+          tabindex="-1"
         >
           <header class="modal-header">
-            <h3 class="modal-title">{{ title }}</h3>
+            <h3 :id="titleId" class="modal-title">{{ title }}</h3>
             <button
               class="modal-close"
               @click="closeModal"
               type="button"
-              aria-label="Close modal"
+              aria-label="关闭弹窗"
+              ref="closeButtonRef"
             >
               <span class="close-icon">&times;</span>
             </button>
@@ -33,7 +39,7 @@
 </template>
   
   <script setup>
-  import { onMounted, onUnmounted } from 'vue'
+  import { onMounted, onUnmounted, nextTick, ref, watch } from 'vue'
   const props = defineProps({
     modelValue: {
       type: Boolean,
@@ -50,6 +56,9 @@
   })
   
   const emit = defineEmits(['update:modelValue'])
+  const titleId = `modal-title-${Math.random().toString(36).slice(2, 10)}`
+  const closeButtonRef = ref(null)
+  const previousActiveElement = ref(null)
   
   const closeModal = () => {
     emit('update:modelValue', false)
@@ -69,6 +78,22 @@
   onUnmounted(() => {
     document.removeEventListener('keydown', handleEscKey)
   })
+
+  watch(
+    () => props.modelValue,
+    async (open) => {
+      if (typeof document === 'undefined') return
+      if (open) {
+        previousActiveElement.value = document.activeElement
+        await nextTick()
+        closeButtonRef.value?.focus?.()
+        return
+      }
+      const el = previousActiveElement.value
+      previousActiveElement.value = null
+      el?.focus?.()
+    }
+  )
   </script>
   
 <style scoped>
@@ -91,6 +116,7 @@
   background: rgba(15, 23, 42, 0.65);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-soft);
+  will-change: transform, opacity;
 }
 
 .modal-header {
@@ -115,12 +141,13 @@
   background: transparent;
   color: var(--text-color);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform var(--dur-normal) var(--ease-out), box-shadow var(--dur-normal) var(--ease-out), background-color var(--dur-normal) var(--ease-out);
 }
 
 .modal-close:hover {
   transform: translateY(-1px);
   box-shadow: 0 0 12px rgba(46, 196, 182, 0.2);
+  background: rgba(46, 196, 182, 0.08);
 }
 
 .close-icon {
@@ -139,12 +166,22 @@
 
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity var(--dur-slow) var(--ease-out);
 }
 
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
-  transform: scale(0.97);
+}
+
+.modal-enter-active .modal-content,
+.modal-leave-active .modal-content {
+  transition: transform var(--dur-slower) var(--ease-spring), opacity var(--dur-slow) var(--ease-out);
+}
+
+.modal-enter-from .modal-content,
+.modal-leave-to .modal-content {
+  opacity: 0;
+  transform: translateY(10px) scale(0.985);
 }
 </style>

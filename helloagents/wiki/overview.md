@@ -30,6 +30,7 @@
 | Security | 威胁检测、合规与审计展示（演示） | ✅稳定 | `modules/security.md` |
 | Charts | 图表封装与指标可视化 | ✅稳定 | `modules/charts.md` |
 | Utils | HTTP/Storage/Datetime/Download 等基础设施 | ✅稳定 | `modules/utils.md` |
+| UI Foundation | Design Tokens、基础组件与动效基线 | ✅稳定 | `modules/ui-foundation.md` |
 
 ---
 
@@ -40,4 +41,3 @@
 - API 手册：`api.md`
 - 数据模型：`data.md`
 - 变更历史：`../history/index.md`
-

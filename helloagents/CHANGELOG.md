@@ -5,6 +5,20 @@
 
 ## [Unreleased]
 
+## [1.2.1] - 2025-12-24
+
+### 变更
+- 视觉基线：引入 spacing/typography/motion token（`src/style.css`），统一全站行高、缓动曲线与过渡时长。
+- 交互触感：升级 `BaseButton`/`BaseModal`/`ToastStack` 的 hover/press/enter 反馈，并兼容 `prefers-reduced-motion`。
+- 暗黑模式细节：背景噪点与光晕强度按 light/dark 分层，提升对比度一致性。
+- 无障碍：TabBar 支持键盘导航（`role=tablist/tab`、`aria-selected`、Delete 关闭），全站 `:focus-visible` 统一。
+
+### 修复
+- 清理 localStorage 读写的 console warning：统一改为 `safeStorage` 的容错读写。
+- 修复 `BaseButton` 缺失 `ghost` 变体导致的 prop validator warning。
+
+## [1.2.0] - 2025-12-24
+
 ### 新增
 - 领域化 Pinia Store：按 `auth/theme/tabs/users/alerts/telemetry/ui` 拆分，降低耦合度并提升可维护性。
 - 基础设施工具集：`fetch` 客户端、下载、存储、时间格式化（逐步替代可被原生能力覆盖的第三方库）。

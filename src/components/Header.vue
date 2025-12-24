@@ -25,7 +25,7 @@
           <img 
             v-if="!avatarError"
             :src="userAvatar" 
-            :alt="user?.name || 'User Avatar'"
+            :alt="user?.name ? `${user.name} 的头像` : '用户头像'"
             class="user-avatar"
             @error="handleAvatarError"
           >
@@ -40,6 +40,8 @@
             :class="{ 'active': theme === 'dark' }"
             @click="toggleTheme"
             :title="themeButtonTitle"
+            type="button"
+            :aria-pressed="theme === 'dark' ? 'true' : 'false'"
           >
             <AppIcon :name="themeIconName" className="action-icon" />
             <span class="button-text">{{ themeButtonText }}</span>
@@ -49,6 +51,7 @@
             class="action-button logout-button"
             @click="handleLogout"
             :title="logoutButtonTitle"
+            type="button"
           >
             <AppIcon name="logout" className="action-icon" />
             <span class="button-text">退出</span>
@@ -80,7 +83,7 @@ defineProps({
   },
   version: {
     type: String,
-    default: '1.2.0'
+    default: '1.2.1'
   }
 })
 
@@ -290,12 +293,17 @@ onMounted(() => {
   color: var(--text-strong);
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition:
+    transform var(--dur-normal) var(--ease-out),
+    background-color var(--dur-normal) var(--ease-out),
+    box-shadow var(--dur-normal) var(--ease-out),
+    filter var(--dur-normal) var(--ease-out);
 }
 
 .action-button:hover {
   background-color: rgba(46, 196, 182, 0.22);
   transform: translateY(-2px);
+  filter: saturate(1.05);
 }
 
 .action-button.active {
@@ -343,10 +351,6 @@ onMounted(() => {
 }
 
 /* Dark theme specific styles */
-:root[data-theme='dark'] .dashboard-header {
-  background-color: var(--background-color);
-}
-
 /* Animation classes */
 .animate-text-shimmer {
   background: linear-gradient(

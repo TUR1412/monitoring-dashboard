@@ -179,9 +179,9 @@ import { computed, onMounted, ref, watch } from 'vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import { exportCsv, exportJson, formatDateTime, getLatestDate, sortByTimestamp } from '@/utils/logs'
+import { safeStorage } from '@/utils/storage'
 
 const STORAGE_KEY = 'monitoring-dashboard:access-control:filters'
-const canUseStorage = typeof window !== 'undefined' && typeof localStorage !== 'undefined'
 
 const defaultFilters = {
   policyQuery: '',
@@ -195,16 +195,9 @@ const defaultFilters = {
 }
 
 const readFilters = () => {
-  if (!canUseStorage) return { ...defaultFilters }
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return { ...defaultFilters }
-    const parsed = JSON.parse(raw)
-    return { ...defaultFilters, ...parsed }
-  } catch (error) {
-    console.warn('读取访问控制筛选配置失败', error)
-    return { ...defaultFilters }
-  }
+  const saved = safeStorage.get(STORAGE_KEY, null)
+  if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return { ...defaultFilters }
+  return { ...defaultFilters, ...saved }
 }
 
 const initialFilters = readFilters()
@@ -377,24 +370,16 @@ const exportSessionsJson = () => exportJson(filteredSessions.value, sessionColum
 watch(
   [policyQuery, policyStatus, policyType, policySort, sessionQuery, sessionDevice, sessionSort, sessionLimit],
   ([pQuery, pStatus, pType, pSort, sQuery, sDevice, sSort, sLimit]) => {
-    if (!canUseStorage) return
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          policyQuery: pQuery,
-          policyStatus: pStatus,
-          policyType: pType,
-          policySort: pSort,
-          sessionQuery: sQuery,
-          sessionDevice: sDevice,
-          sessionSort: sSort,
-          sessionLimit: sLimit
-        })
-      )
-    } catch (error) {
-      console.warn('写入访问控制筛选配置失败', error)
-    }
+    safeStorage.set(STORAGE_KEY, {
+      policyQuery: pQuery,
+      policyStatus: pStatus,
+      policyType: pType,
+      policySort: pSort,
+      sessionQuery: sQuery,
+      sessionDevice: sDevice,
+      sessionSort: sSort,
+      sessionLimit: sLimit
+    })
   }
 )
 
