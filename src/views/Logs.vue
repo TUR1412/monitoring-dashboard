@@ -54,11 +54,11 @@ import { computed, onMounted, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useTelemetryStore } from "@/stores/telemetry"
 import { formatDateTime, getLatestDate } from "@/utils/logs"
+import { safeStorage } from "@/utils/storage"
 
 const store = useTelemetryStore()
 const route = useRoute()
 const router = useRouter()
-const isBrowser = typeof window !== "undefined"
 const NAV_KEY = "monitoring-dashboard:logs:last-route"
 
 const systemCount = computed(() => store.logs?.length || 0)
@@ -87,17 +87,15 @@ const latestLabel = computed(() => {
 watch(
   () => route.path,
   (path) => {
-    if (!isBrowser) return
     if (path.startsWith("/dashboard/logs/")) {
-      localStorage.setItem(NAV_KEY, path)
+      safeStorage.set(NAV_KEY, path)
     }
   }
 )
 
 onMounted(() => {
-  if (!isBrowser) return
   if (route.path === "/dashboard/logs") {
-    const saved = localStorage.getItem(NAV_KEY)
+    const saved = safeStorage.get(NAV_KEY, null)
     router.replace(saved || "/dashboard/logs/system")
   }
 })

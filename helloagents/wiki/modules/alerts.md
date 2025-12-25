@@ -6,7 +6,7 @@
 ## 模块概述
 - **职责:** 当前告警、告警历史、告警设置、导出与状态更新
 - **状态:** ✅稳定
-- **最后更新:** 2025-12-24
+- **最后更新:** 2025-12-25
 
 ## 规范
 
@@ -22,7 +22,7 @@
 
 ## 依赖
 - `src/stores/alerts.js`
-- `src/api/alertService.js`
+- `src/stores/runtime.js`
 - `src/utils/download.js`
 - `src/utils/datetime.js`
 

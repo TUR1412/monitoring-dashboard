@@ -71,20 +71,12 @@ const formatTime = (timestamp: number | string) => {
   }).format(date)
 }
 
-const handleAcknowledge = async (alertId: string | number) => {
-  try {
-    await alertsStore.acknowledgeAlert(alertId)
-  } catch (error) {
-    console.error('确认警报失败:', error)
-  }
+const handleAcknowledge = (alertId: string | number) => {
+  alertsStore.acknowledgeAlert(alertId)
 }
 
-const handleMute = async (alertId: string | number) => {
-  try {
-    await alertsStore.muteAlert(alertId)
-  } catch (error) {
-    console.error('静音警报失败:', error)
-  }
+const handleMute = (alertId: string | number) => {
+  alertsStore.muteAlert(alertId)
 }
 
 const toggleSelection = (alertId: string | number) => {
@@ -105,17 +97,13 @@ const toggleSelectAll = () => {
   selectedIds.value = new Set(filteredAlerts.value.map(alert => alert.id))
 }
 
-const acknowledgeSelected = async () => {
-  await Promise.all(
-    Array.from(selectedIds.value).map(id => alertsStore.acknowledgeAlert(id))
-  )
+const acknowledgeSelected = () => {
+  Array.from(selectedIds.value).forEach(id => alertsStore.acknowledgeAlert(id))
   selectedIds.value = new Set()
 }
 
-const muteSelected = async () => {
-  await Promise.all(
-    Array.from(selectedIds.value).map(id => alertsStore.muteAlert(id))
-  )
+const muteSelected = () => {
+  Array.from(selectedIds.value).forEach(id => alertsStore.muteAlert(id))
   selectedIds.value = new Set()
 }
 

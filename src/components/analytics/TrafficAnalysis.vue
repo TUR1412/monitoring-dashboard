@@ -158,9 +158,9 @@ import BaseButton from "@/components/base/BaseButton.vue"
 import BaseInput from "@/components/base/BaseInput.vue"
 import ChartComponent from "@/components/charts/ChartComponent.vue"
 import { exportCsv, exportJson } from "@/utils/logs"
+import { safeStorage } from "@/utils/storage"
 
 const STORAGE_KEY = "monitoring-dashboard:analytics:traffic-filters"
-const isBrowser = typeof window !== "undefined"
 
 const defaultFilters = {
   range: "7d",
@@ -174,20 +174,13 @@ const defaultFilters = {
 const filters = reactive({ ...defaultFilters })
 
 const restoreFilters = () => {
-  if (!isBrowser) return
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return
-    const saved = JSON.parse(raw)
-    Object.assign(filters, { ...defaultFilters, ...saved })
-  } catch (error) {
-    // ignore restore error
-  }
+  const saved = safeStorage.get(STORAGE_KEY, null)
+  if (!saved || typeof saved !== "object" || Array.isArray(saved)) return
+  Object.assign(filters, { ...defaultFilters, ...saved })
 }
 
 const persistFilters = () => {
-  if (!isBrowser) return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(filters))
+  safeStorage.set(STORAGE_KEY, filters)
 }
 
 restoreFilters()

@@ -79,20 +79,23 @@ npm run preview
 - `alerts`：告警闭环与持久化
 - `users`：用户 CRUD、导出与持久化
 - `telemetry`：遥测采样与进程管理（演示）
+- `runtime`：全局实时刷新编排（刷新开关/间隔/最后刷新时间）
 - `ui`：toast/confirm 等交互能力
 
 ### 2) 基础设施层 utils（极致减少重复代码）
 
-- `src/utils/http.js`：Fetch client（超时/解析/错误结构）
 - `src/utils/storage.js`：安全 localStorage（SSR 兼容、容错）
 - `src/utils/datetime.js`：基于 Intl 的时间格式化（减少日期工具依赖）
 - `src/utils/download.js`：原生下载封装（替代 file-saver 类库）
 - `src/utils/csv.js`：CSV 构建/转义/下载（统一导出能力）
 - `src/utils/filename.js`：文件名日期戳/时间戳生成（导出命名统一）
+- `src/utils/sleep.js`：演示可控延迟（默认 0ms，支持用环境变量模拟 loading）
 
 ### 3) 可复用的交互与轮询能力
 
 - `src/composables/usePolling.js`：统一轮询/计时器封装，避免组件内重复 `setInterval/clearInterval`
+
+> 说明：关键数据刷新由 `runtime` store 统一编排；`usePolling` 更多用于页面内局部计时（如时钟/展示刷新），避免重复创建多个全局计时器。
 
 ---
 
@@ -100,13 +103,14 @@ npm run preview
 
 ```text
 src/
-  api/          # 服务层（演示数据源 / 未来接入真实 API 的抽象层）
+  assets/       # 资源（图标/占位图等）
   components/   # 业务组件与图表
     base/       # 基础组件（Button/Input/Icon 等）
   composables/  # 组合式逻辑
   layouts/      # 页面布局
   router/       # 路由与门禁
   stores/       # Pinia 领域状态
+  types/        # 领域类型（用于 TS 组件/类型收敛）
   utils/        # 基础设施工具集（无依赖优先）
   views/        # 路由级页面（支持懒加载）
   main.js       # 应用入口
@@ -114,11 +118,30 @@ src/
 
 ---
 
+## ⚡ 实时刷新（Streaming）
+
+本项目提供“实时刷新”体验（默认开启，进入主界面后生效）：
+
+- 顶部 Header 提供 **启动/暂停** 与 **刷新间隔（2s/5s/10s/15s）** 控制
+- `src/stores/runtime.js` 统一管理刷新节奏，并触发 `telemetry.refreshAll()` / `alerts.fetchAlerts()`
+- 遥测数据会以滑窗方式更新；告警会以较低概率生成新事件，用于模拟“告警流”
+
+### 可控演示延迟（默认 0ms）
+
+为了做到“既快又能演示 loading”，引入了可控延迟工具：
+
+- 环境变量：`VITE_DEMO_LATENCY_MS`
+- 默认：`0`（零延迟，不人为拖慢交互）
+- 用法：本地创建 `.env.local`，写入 `VITE_DEMO_LATENCY_MS=600`（可选）
+
+---
+
 ## 🔭 演示数据与真实接入
 
 当前工程以 **前端演示数据** 为主：
 
-- 若接入真实 API：优先改造 `src/api/` 与对应 store 的数据源，再逐步替换 mock 数据。
+- 数据由 Pinia store 内置生成 + `safeStorage` 持久化，保证“可运行、可复用、可演示”。
+- 若接入真实 API：建议新增独立服务层（如 `src/services/`），并在对应 store 的 `fetch*` 动作中切换数据源。
 
 ---
 

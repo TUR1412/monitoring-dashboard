@@ -128,15 +128,17 @@ import MetricCard from "@/components/common/MetricCard.vue"
 import ErrorDisplay from "@/components/common/ErrorDisplay.vue"
 import BaseButton from "@/components/base/BaseButton.vue"
 import { exportCsv, exportJson } from "@/utils/logs"
+import { safeStorage } from "@/utils/storage"
+import { useUiStore } from "@/stores/ui"
 
 const store = usePerformanceStore()
 const error = ref(null)
+const uiStore = useUiStore()
 
 const { currentMetrics, chartLabels, responseTimeData, errorRateData, resourceUsageData } =
   storeToRefs(store)
 
 const STORAGE_KEY = "monitoring-dashboard:analytics:performance-controls"
-const isBrowser = typeof window !== "undefined"
 
 const controls = reactive({
   environment: "production",
@@ -149,22 +151,15 @@ const controls = reactive({
 const baseline = ref(new Date())
 
 const restoreControls = () => {
-  if (!isBrowser) return
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return
-    const saved = JSON.parse(raw)
-    Object.assign(controls, saved)
-    if (saved?.baseline) baseline.value = new Date(saved.baseline)
-  } catch (error) {
-    // ignore restore error
-  }
+  const saved = safeStorage.get(STORAGE_KEY, null)
+  if (!saved || typeof saved !== "object" || Array.isArray(saved)) return
+  Object.assign(controls, saved)
+  if (saved?.baseline) baseline.value = new Date(saved.baseline)
 }
 
 const persistControls = () => {
-  if (!isBrowser) return
   const payload = { ...controls, baseline: baseline.value.toISOString() }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+  safeStorage.set(STORAGE_KEY, payload)
 }
 
 restoreControls()
@@ -342,7 +337,7 @@ const loadData = async () => {
     await store.fetchPerformanceData()
   } catch (e) {
     error.value = "加载性能数据失败，请重试"
-    console.error("Performance data loading error:", e)
+    uiStore.pushToast({ type: "error", message: error.value })
   }
 }
 

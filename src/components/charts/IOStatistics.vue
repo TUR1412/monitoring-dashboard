@@ -13,7 +13,6 @@
 <script>
 import { computed } from 'vue'
 import { useTelemetryStore } from '@/stores/telemetry'
-import { usePolling } from '@/composables/usePolling'
 import StatusIndicator from '../StatusIndicator.vue'
 import ChartCard from './ChartCard.vue'
 import ChartComponent from './ChartComponent.vue'
@@ -110,8 +109,6 @@ export default {
         }
       }
     }
-
-    usePolling(() => store.fetchIOStatistics(), 5000)
 
     return {
       ioStatus,

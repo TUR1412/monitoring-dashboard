@@ -14,10 +14,12 @@
 </template>
 
 <script>
+import { onBeforeUnmount, onMounted } from 'vue'
 import Header from '@/components/Header.vue';
 import Sidebar from '@/components/Sidebar.vue';
 import Footer from '@/components/Footer.vue';
 import TabBar from '@/components/TabBar.vue'; // 导入 TabBar 组件
+import { useRuntimeStore } from '@/stores/runtime'
 
 export default {
   name: 'MainLayout',
@@ -26,6 +28,19 @@ export default {
     Sidebar,
     Footer,
     TabBar // 注册 TabBar 组件
+  },
+  setup() {
+    const runtimeStore = useRuntimeStore()
+
+    onMounted(() => {
+      runtimeStore.startAutoRefresh()
+    })
+
+    onBeforeUnmount(() => {
+      runtimeStore.stopAutoRefresh()
+    })
+
+    return {}
   }
 };
 </script>

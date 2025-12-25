@@ -100,9 +100,9 @@ import { useTelemetryStore } from "@/stores/telemetry"
 import BaseInput from "@/components/base/BaseInput.vue"
 import BaseButton from "@/components/base/BaseButton.vue"
 import { exportCsv, exportJson, formatDateTime, sortByTimestamp } from "@/utils/logs"
+import { safeStorage } from "@/utils/storage"
 
 const store = useTelemetryStore()
-const isBrowser = typeof window !== "undefined"
 const STORAGE_KEY = "monitoring-dashboard:logs:security-filters"
 
 const filters = reactive({
@@ -113,19 +113,13 @@ const filters = reactive({
 })
 
 const restoreFilters = () => {
-  if (!isBrowser) return
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return
-    Object.assign(filters, JSON.parse(raw))
-  } catch (error) {
-    // ignore restore error
-  }
+  const saved = safeStorage.get(STORAGE_KEY, null)
+  if (!saved || typeof saved !== "object" || Array.isArray(saved)) return
+  Object.assign(filters, saved)
 }
 
 const persistFilters = () => {
-  if (!isBrowser) return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(filters))
+  safeStorage.set(STORAGE_KEY, filters)
 }
 
 restoreFilters()

@@ -114,8 +114,11 @@ import BaseButton from "@/components/base/BaseButton.vue"
 import { useReportStore } from "@/stores/reports"
 import { formatDate } from "@/utils/date"
 import { exportCsv, exportJson } from "@/utils/logs"
+import { safeStorage } from "@/utils/storage"
+import { useUiStore } from "@/stores/ui"
 
 const store = useReportStore()
+const uiStore = useUiStore()
 const loading = ref(true)
 const error = ref(null)
 const isGenerating = ref(false)
@@ -123,7 +126,6 @@ const isDownloading = ref({})
 
 const STORAGE_KEY = "monitoring-dashboard:analytics:report-controls"
 const DELIVERY_KEY = "monitoring-dashboard:analytics:report-delivery"
-const isBrowser = typeof window !== "undefined"
 
 const dateRange = ref("7d")
 const reportType = ref("summary")
@@ -159,41 +161,32 @@ const sortOptions = [
 ]
 
 const restoreControls = () => {
-  if (!isBrowser) return
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      const saved = JSON.parse(raw)
-      dateRange.value = saved.dateRange || dateRange.value
-      reportType.value = saved.reportType || reportType.value
-      delivery.value = saved.delivery || delivery.value
-      sortKey.value = saved.sortKey || sortKey.value
-      searchQuery.value = saved.searchQuery || ""
-      autoSchedule.value = saved.autoSchedule ?? autoSchedule.value
-    }
-    const deliveryRaw = localStorage.getItem(DELIVERY_KEY)
-    if (deliveryRaw) {
-      deliveryMap.value = JSON.parse(deliveryRaw)
-    }
-  } catch (error) {
-    // ignore restore error
+  const saved = safeStorage.get(STORAGE_KEY, null)
+  if (saved && typeof saved === "object" && !Array.isArray(saved)) {
+    dateRange.value = saved.dateRange || dateRange.value
+    reportType.value = saved.reportType || reportType.value
+    delivery.value = saved.delivery || delivery.value
+    sortKey.value = saved.sortKey || sortKey.value
+    searchQuery.value = saved.searchQuery || ""
+    autoSchedule.value = saved.autoSchedule ?? autoSchedule.value
+  }
+
+  const deliverySaved = safeStorage.get(DELIVERY_KEY, null)
+  if (deliverySaved && typeof deliverySaved === "object" && !Array.isArray(deliverySaved)) {
+    deliveryMap.value = deliverySaved
   }
 }
 
 const persistControls = () => {
-  if (!isBrowser) return
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({
-      dateRange: dateRange.value,
-      reportType: reportType.value,
-      delivery: delivery.value,
-      sortKey: sortKey.value,
-      searchQuery: searchQuery.value,
-      autoSchedule: autoSchedule.value
-    })
-  )
-  localStorage.setItem(DELIVERY_KEY, JSON.stringify(deliveryMap.value))
+  safeStorage.set(STORAGE_KEY, {
+    dateRange: dateRange.value,
+    reportType: reportType.value,
+    delivery: delivery.value,
+    sortKey: sortKey.value,
+    searchQuery: searchQuery.value,
+    autoSchedule: autoSchedule.value
+  })
+  safeStorage.set(DELIVERY_KEY, deliveryMap.value)
 }
 
 restoreControls()
@@ -271,9 +264,10 @@ const generateReport = async () => {
       type: reportType.value,
       dateRange: dateRange.value
     })
+    uiStore.pushToast({ type: "success", message: "报告已生成" })
   } catch (e) {
     error.value = "生成报告失败，请重试"
-    console.error("Report generation error:", e)
+    uiStore.pushToast({ type: "error", message: error.value })
   } finally {
     isGenerating.value = false
   }
@@ -286,9 +280,10 @@ const downloadReport = async (report) => {
     isDownloading.value = { ...isDownloading.value, [report.id]: true }
     error.value = null
     await store.downloadReport(report.id)
+    uiStore.pushToast({ type: "success", message: "下载已开始" })
   } catch (e) {
     error.value = "下载报告失败，请重试"
-    console.error("Report download error:", e)
+    uiStore.pushToast({ type: "error", message: error.value })
   } finally {
     isDownloading.value = { ...isDownloading.value, [report.id]: false }
   }
@@ -319,7 +314,7 @@ const loadReports = async () => {
     await store.fetchReports()
   } catch (e) {
     error.value = "加载报告列表失败，请重试"
-    console.error("Reports loading error:", e)
+    uiStore.pushToast({ type: "error", message: error.value })
   } finally {
     loading.value = false
   }

@@ -186,16 +186,16 @@ export default {
       showDeleteModal.value = true
     }
 
-    const executeDelete = async () => {
-      try {
-        store.deleteUser(selectedUser.value.id)
-        uiStore.pushToast({ type: 'success', message: '用户已删除' })
-      } catch (error) {
-        console.error('删除用户失败:', error)
-        uiStore.pushToast({ type: 'error', message: '删除用户失败，请稍后重试' })
-      } finally {
+    const executeDelete = () => {
+      const id = selectedUser.value?.id
+      if (!id) {
+        uiStore.pushToast({ type: 'error', message: '未选择要删除的用户' })
         showDeleteModal.value = false
+        return
       }
+      store.deleteUser(id)
+      uiStore.pushToast({ type: 'success', message: '用户已删除' })
+      showDeleteModal.value = false
     }
 
     const toggleStatus = (user) => {

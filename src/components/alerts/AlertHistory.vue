@@ -468,7 +468,6 @@ const exportAlerts = () => {
     uiStore.pushToast({ type: 'success', message: '导出成功' })
   } catch (error) {
     uiStore.pushToast({ type: 'error', message: '导出失败' })
-    console.error(error)
   }
 }
 
@@ -512,14 +511,8 @@ const handleCurrentChange = (newPage) => {
 
 const fetchAlertData = async () => {
   loading.value = true
-  try {
-    alertData.value = mockAlerts
-  } catch (error) {
-    uiStore.pushToast({ type: 'error', message: '获取警报数据失败' })
-    console.error(error)
-  } finally {
-    loading.value = false
-  }
+  alertData.value = mockAlerts
+  loading.value = false
 }
 
 watch(

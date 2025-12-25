@@ -6,6 +6,7 @@ import { createPinia } from 'pinia';
 import { useThemeStore } from './stores/theme';
 import { useTabsStore } from './stores/tabs';
 import { useAuthStore } from './stores/auth';
+import { useRuntimeStore } from './stores/runtime';
 import './style.css';
 
 // 创建 Pinia 实例
@@ -22,6 +23,7 @@ app.use(router);
 useThemeStore().initializeTheme();
 useTabsStore().initializeTabs();
 useAuthStore().hydrate();
+useRuntimeStore().hydrate();
 
 // 挂载应用
 app.mount('#app');

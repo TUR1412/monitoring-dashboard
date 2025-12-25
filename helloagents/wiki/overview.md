@@ -27,9 +27,10 @@
 | Alerts | 告警闭环、历史、设置与导出 | ✅稳定 | `modules/alerts.md` |
 | Users | 用户与用户组管理（演示） | ✅稳定 | `modules/users.md` |
 | Telemetry | 系统资源/进程/日志等演示遥测 | ✅稳定 | `modules/telemetry.md` |
+| Runtime | 全局实时刷新编排（开关/间隔/最后刷新） | ✅稳定 | `modules/app-shell.md` |
 | Security | 威胁检测、合规与审计展示（演示） | ✅稳定 | `modules/security.md` |
 | Charts | 图表封装与指标可视化 | ✅稳定 | `modules/charts.md` |
-| Utils | HTTP/Storage/Datetime/Download 等基础设施 | ✅稳定 | `modules/utils.md` |
+| Utils | Storage/Datetime/Download/Demo Sleep 等基础设施 | ✅稳定 | `modules/utils.md` |
 | UI Foundation | Design Tokens、基础组件与动效基线 | ✅稳定 | `modules/ui-foundation.md` |
 
 ---

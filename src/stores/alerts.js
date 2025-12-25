@@ -42,6 +42,41 @@ const seedAlerts = () => ([
   }
 ])
 
+const pick = (items) => items[Math.floor(Math.random() * items.length)]
+
+const buildDemoAlert = () => {
+  const now = Date.now()
+  const candidates = [
+    {
+      level: 'warning',
+      title: '网络抖动检测',
+      message: '网络延迟出现短时上升，建议关注链路质量。',
+      source: '网络监控'
+    },
+    {
+      level: 'error',
+      title: '服务响应异常',
+      message: '部分请求响应时间超出阈值。',
+      source: '应用监控'
+    },
+    {
+      level: 'info',
+      title: '自动巡检完成',
+      message: '巡检任务已完成，未发现阻断级问题。',
+      source: '系统监控'
+    }
+  ]
+  const payload = pick(candidates)
+  return {
+    id: `a-${now}`,
+    ...payload,
+    timestamp: now,
+    acknowledged: false,
+    muted: false,
+    archived: false
+  }
+}
+
 export const useAlertsStore = defineStore('alerts', {
   state: () => ({
     alerts: safeStorage.get(STORAGE_KEY, seedAlerts())
@@ -53,7 +88,11 @@ export const useAlertsStore = defineStore('alerts', {
   actions: {
     hydrate() {
       const alerts = safeStorage.get(STORAGE_KEY, null)
-      this.alerts = Array.isArray(alerts) ? alerts : seedAlerts()
+      if (Array.isArray(alerts)) {
+        this.alerts = alerts
+        return
+      }
+      this.alerts = seedAlerts()
       this.persist()
     },
 
@@ -62,8 +101,17 @@ export const useAlertsStore = defineStore('alerts', {
     },
 
     fetchAlerts() {
-      // 演示数据已在 state 中初始化；预留真实 API 接入点
-      this.hydrate()
+      // 演示刷新：以较低概率生成一条新告警，模拟“实时告警流”。
+      if (!Array.isArray(this.alerts)) {
+        this.hydrate()
+      }
+
+      const shouldEmit = Math.random() < 0.12
+      if (!shouldEmit) return
+
+      const next = buildDemoAlert()
+      this.alerts = [next, ...(this.alerts || [])].slice(0, 120)
+      this.persist()
     },
 
     acknowledgeAlert(alertId) {

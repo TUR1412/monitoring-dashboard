@@ -3,6 +3,7 @@
 
 import { defineStore } from 'pinia'
 import { safeStorage } from '@/utils/storage'
+import { demoSleep } from '@/utils/sleep'
 
 const STORAGE_KEYS = {
   user: 'monitoring-dashboard:user',
@@ -24,8 +25,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async login(username, password) {
-      // 模拟 API 请求延迟（避免过长阻塞交互）
-      await new Promise((resolve) => setTimeout(resolve, 350))
+      await demoSleep()
 
       if (username === 'admin' && password === 'password') {
         this.user = { name: '管理员用户', role: 'ADMIN' }

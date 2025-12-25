@@ -8,7 +8,6 @@
 <script>
 import { computed } from 'vue'
 import { useTelemetryStore } from '@/stores/telemetry'
-import { usePolling } from '@/composables/usePolling'
 import ChartCard from './ChartCard.vue'
 import ChartComponent from './ChartComponent.vue'
 
@@ -89,8 +88,6 @@ export default {
         }
       }
     }
-
-    usePolling(() => store.updateIOStatistics(), 5000)
 
     return {
       chartData,

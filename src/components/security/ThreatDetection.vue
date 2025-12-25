@@ -105,6 +105,7 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 import { usePolling } from '@/composables/usePolling'
 import { formatDateTimeWithSeconds } from '@/utils/datetime'
+import { demoSleep } from '@/utils/sleep'
 
 const currentTime = ref(formatDateTimeWithSeconds(Date.now()))
 const isRefreshing = ref(false)
@@ -200,7 +201,7 @@ const formatDate = (timestamp) => formatDateTimeWithSeconds(timestamp)
 const refreshThreats = async () => {
   isRefreshing.value = true
 
-  await new Promise(resolve => setTimeout(resolve, 800))
+  await demoSleep()
 
   priorities.value = priorities.value.map(priority => ({
     ...priority,

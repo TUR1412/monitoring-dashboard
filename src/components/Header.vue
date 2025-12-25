@@ -15,6 +15,16 @@
             <span class="status-dot"></span>
             系统在线
           </span>
+          <span
+            class="stat-chip"
+            :title="refreshStatusTitle"
+          >
+            <span
+              class="status-dot"
+              :class="{ off: !runtimeStore.isRunning, busy: runtimeStore.refreshing }"
+            ></span>
+            实时刷新 {{ refreshIntervalLabel }}
+          </span>
           <span class="stat-chip">今日告警 {{ alertCount }}</span>
         </div>
       </div>
@@ -35,6 +45,33 @@
         </div>
         
         <div class="actions-group">
+          <div class="refresh-group">
+            <button
+              class="action-button"
+              :class="{ 'active': runtimeStore.autoRefreshEnabled }"
+              @click="toggleAutoRefresh"
+              :title="autoRefreshButtonTitle"
+              type="button"
+              :aria-pressed="runtimeStore.autoRefreshEnabled ? 'true' : 'false'"
+            >
+              <AppIcon name="refresh" className="action-icon" :class="{ 'icon-spin': runtimeStore.refreshing }" />
+              <span class="button-text">{{ autoRefreshButtonText }}</span>
+            </button>
+
+            <select
+              class="refresh-select"
+              v-model.number="refreshIntervalMs"
+              :disabled="!runtimeStore.autoRefreshEnabled"
+              aria-label="刷新间隔"
+              title="刷新间隔"
+            >
+              <option :value="2000">2s</option>
+              <option :value="5000">5s</option>
+              <option :value="10000">10s</option>
+              <option :value="15000">15s</option>
+            </select>
+          </div>
+
           <button 
             class="action-button"
             :class="{ 'active': theme === 'dark' }"
@@ -63,13 +100,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
 import { useTabsStore } from '@/stores/tabs'
 import { useAlertsStore } from '@/stores/alerts'
+import { useRuntimeStore } from '@/stores/runtime'
+import { useUiStore } from '@/stores/ui'
 import { useRouter } from 'vue-router'
 import AppIcon from '@/components/base/AppIcon.vue'
+import { formatDateTimeWithSeconds } from '@/utils/datetime'
 
 // Props
 defineProps({
@@ -83,7 +123,7 @@ defineProps({
   },
   version: {
     type: String,
-    default: '1.2.1'
+    default: (typeof __APP_VERSION__ === 'string' && __APP_VERSION__) ? __APP_VERSION__ : '0.0.0'
   }
 })
 
@@ -97,6 +137,8 @@ const authStore = useAuthStore()
 const themeStore = useThemeStore()
 const tabsStore = useTabsStore()
 const alertsStore = useAlertsStore()
+const runtimeStore = useRuntimeStore()
+const uiStore = useUiStore()
 const router = useRouter()
 
 // State
@@ -127,33 +169,54 @@ const themeButtonTitle = computed(() =>
 
 const logoutButtonTitle = computed(() => '退出系统')
 
+const refreshIntervalMs = computed({
+  get: () => runtimeStore.refreshIntervalMs,
+  set: (value) => runtimeStore.setRefreshIntervalMs(value)
+})
+
+const refreshIntervalLabel = computed(() => {
+  const seconds = Math.max(1, Math.round(Number(runtimeStore.refreshIntervalMs || 0) / 1000))
+  return `${seconds}s`
+})
+
+const refreshStatusTitle = computed(() => {
+  if (!runtimeStore.autoRefreshEnabled) return '实时刷新已关闭'
+  if (!runtimeStore.lastRefreshAt) return '实时刷新已开启（尚未刷新）'
+  return `上次刷新：${formatDateTimeWithSeconds(runtimeStore.lastRefreshAt)}`
+})
+
+const autoRefreshButtonText = computed(() =>
+  runtimeStore.autoRefreshEnabled ? '暂停刷新' : '启动刷新'
+)
+
+const autoRefreshButtonTitle = computed(() =>
+  runtimeStore.autoRefreshEnabled ? '暂停实时刷新' : '启动实时刷新'
+)
+
 // Methods
 const toggleTheme = () => {
   themeStore.toggleTheme()
   emit('theme-changed', themeStore.theme)
 }
 
+const toggleAutoRefresh = () => {
+  runtimeStore.toggleAutoRefresh()
+}
+
 const handleLogout = async () => {
+  authStore.logout()
+  tabsStore.clearTabs()
+  emit('logout')
   try {
-    authStore.logout()
-    tabsStore.clearTabs()
-    emit('logout')
-    router.push({ name: 'Login' })
-  } catch (error) {
-    console.error('Logout failed:', error)
-    // 这里可以添加错误处理，比如显示一个提示
+    await router.push({ name: 'Login' })
+  } catch (_error) {
+    uiStore.pushToast({ type: 'error', message: '退出失败，请重试' })
   }
 }
 
 const handleAvatarError = () => {
-  console.error('Avatar failed to load')
   avatarError.value = true
 }
-
-// Lifecycle
-onMounted(() => {
-  // 可以在这里添加初始化逻辑
-})
 </script>
 
 <style scoped>
@@ -233,6 +296,15 @@ onMounted(() => {
   box-shadow: 0 0 8px rgba(6, 214, 160, 0.6);
 }
 
+.status-dot.off {
+  background: rgba(148, 163, 184, 0.8);
+  box-shadow: none;
+}
+
+.status-dot.busy {
+  box-shadow: 0 0 12px rgba(46, 196, 182, 0.72);
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -280,6 +352,39 @@ onMounted(() => {
 .actions-group {
   display: flex;
   gap: 0.75rem;
+}
+
+.refresh-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.refresh-select {
+  height: 36px;
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-strong);
+  font-size: 0.875rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.refresh-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.icon-spin {
+  animation: headerSpin 0.9s linear infinite;
+}
+
+@keyframes headerSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .action-button {
@@ -339,6 +444,10 @@ onMounted(() => {
 
   .action-button {
     padding: 0.5rem;
+  }
+
+  .refresh-select {
+    display: none;
   }
 
   .user-name {

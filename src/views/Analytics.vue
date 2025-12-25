@@ -94,8 +94,8 @@
 import { computed, onMounted, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import BaseButton from "@/components/base/BaseButton.vue"
+import { safeStorage } from "@/utils/storage"
 
-const isBrowser = typeof window !== "undefined"
 const route = useRoute()
 const router = useRouter()
 
@@ -107,27 +107,20 @@ const segment = ref("all")
 const lastSync = ref(new Date())
 
 const restorePrefs = () => {
-  if (!isBrowser) return
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return
-    const prefs = JSON.parse(raw)
-    if (prefs?.timeRange) timeRange.value = prefs.timeRange
-    if (prefs?.segment) segment.value = prefs.segment
-    if (prefs?.lastSync) lastSync.value = new Date(prefs.lastSync)
-  } catch (error) {
-    // ignore restore errors
-  }
+  const prefs = safeStorage.get(STORAGE_KEY, null)
+  if (!prefs || typeof prefs !== "object" || Array.isArray(prefs)) return
+  if (prefs?.timeRange) timeRange.value = prefs.timeRange
+  if (prefs?.segment) segment.value = prefs.segment
+  if (prefs?.lastSync) lastSync.value = new Date(prefs.lastSync)
 }
 
 const persistPrefs = () => {
-  if (!isBrowser) return
   const payload = {
     timeRange: timeRange.value,
     segment: segment.value,
     lastSync: lastSync.value.toISOString()
   }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+  safeStorage.set(STORAGE_KEY, payload)
 }
 
 const navRoutes = [
@@ -175,18 +168,16 @@ watch([timeRange, segment], () => {
 watch(
   () => route.path,
   (path) => {
-    if (!isBrowser) return
     if (path.startsWith("/dashboard/analytics/")) {
-      localStorage.setItem(NAV_KEY, path)
+      safeStorage.set(NAV_KEY, path)
     }
   }
 )
 
 onMounted(() => {
   restorePrefs()
-  if (!isBrowser) return
   if (route.path === "/dashboard/analytics") {
-    const saved = localStorage.getItem(NAV_KEY)
+    const saved = safeStorage.get(NAV_KEY, null)
     router.replace(saved || "/dashboard/analytics/traffic")
   }
 })

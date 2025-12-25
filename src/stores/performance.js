@@ -1,5 +1,6 @@
 // src/stores/performance.js
 import { defineStore } from 'pinia'
+import { demoSleep } from '@/utils/sleep'
 
 export const usePerformanceStore = defineStore('performance', {
   state: () => ({
@@ -12,8 +13,7 @@ export const usePerformanceStore = defineStore('performance', {
   actions: {
     async fetchPerformanceData() {
       try {
-        // 模拟异步操作
-        await new Promise(resolve => setTimeout(resolve, 1000)) // 模拟1秒延迟
+        await demoSleep()
 
         // 模拟数据
         const data = {

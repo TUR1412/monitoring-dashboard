@@ -10,6 +10,27 @@ const STORAGE_KEYS = {
 
 const pad2 = (num) => String(num).padStart(2, '0')
 
+const clampNumber = (value, min, max) => Math.min(max, Math.max(min, value))
+
+const nextHourlyTime = (lastTime) => {
+  const [hour, minute] = String(lastTime || '00:00').split(':').map((part) => Number(part))
+  const nextHour = Number.isFinite(hour) ? (hour + 1) % 24 : 0
+  const nextMinute = Number.isFinite(minute) ? minute : 0
+  return `${pad2(nextHour)}:${pad2(nextMinute)}`
+}
+
+const shiftAndPushSeries = (series, { key = 'value', jitter = 6, min = 0, max = 100 } = {}) => {
+  const next = Array.isArray(series) ? [...series] : []
+  const last = next[next.length - 1] || { time: '00:00', [key]: min }
+  const time = nextHourlyTime(last.time)
+  const base = Number(last?.[key] ?? min)
+  const drift = (Math.random() * 2 - 1) * jitter
+  const value = Math.round(clampNumber(base + drift, min, max))
+  if (next.length) next.shift()
+  next.push({ ...last, time, [key]: value })
+  return next
+}
+
 const buildHourlySeries = ({ points = 24, base = 40, amp = 18, phase = 0, clampMin = 0, clampMax = 100 } = {}) => {
   const twoPi = Math.PI * 2
   return Array.from({ length: points }).map((_, index) => {
@@ -48,6 +69,7 @@ export const useTelemetryStore = defineStore('telemetry', {
     return {
       loading: false,
       error: null,
+      lastUpdatedAt: null,
 
       // 系统资源
       cpuUsage: seedCpuUsage(),
@@ -115,39 +137,145 @@ export const useTelemetryStore = defineStore('telemetry', {
     },
 
     fetchCpuUsage() {
-      return
+      this.cpuUsage = shiftAndPushSeries(this.cpuUsage, {
+        key: 'usage',
+        jitter: 10,
+        min: 5,
+        max: 100
+      })
+      this.lastUpdatedAt = Date.now()
     },
 
     fetchMemoryUsage() {
-      return
+      const used = Number(this.memoryUsage?.used ?? 0)
+      const free = Number(this.memoryUsage?.free ?? 0)
+      const total = Math.max(1024, used + free)
+
+      const nextUsed = clampNumber(Math.round(used + (Math.random() * 2 - 1) * 140), 256, total - 128)
+      const nextFree = Math.max(0, total - nextUsed)
+
+      this.memoryUsage = { used: nextUsed, free: nextFree }
+      this.memoryUsageHistory = shiftAndPushSeries(this.memoryUsageHistory, {
+        key: 'value',
+        jitter: 180,
+        min: 256,
+        max: total
+      })
+      this.lastUpdatedAt = Date.now()
     },
 
     fetchDiskUsage() {
-      return
+      const disk = this.diskUsage || {}
+      const next = {
+        usedDisk1: clampNumber(Math.round(Number(disk.usedDisk1 ?? 0) + (Math.random() * 2 - 1) * 10), 0, 2000),
+        usedDisk2: clampNumber(Math.round(Number(disk.usedDisk2 ?? 0) + (Math.random() * 2 - 1) * 8), 0, 2000),
+        usedDisk3: clampNumber(Math.round(Number(disk.usedDisk3 ?? 0) + (Math.random() * 2 - 1) * 6), 0, 2000),
+        free: clampNumber(Math.round(Number(disk.free ?? 0) + (Math.random() * 2 - 1) * 12), 0, 5000)
+      }
+      this.diskUsage = next
+      this.lastUpdatedAt = Date.now()
     },
 
     fetchNetworkTraffic() {
-      return
+      const shiftAndPush = (arr, jitter = 12, min = 0, max = 240) => {
+        const next = Array.isArray(arr) ? [...arr] : []
+        const last = Number(next[next.length - 1] ?? 0)
+        const value = clampNumber(Math.round(last + (Math.random() * 2 - 1) * jitter), min, max)
+        if (next.length) next.shift()
+        next.push(value)
+        return next
+      }
+
+      const inbound = shiftAndPush(this.networkTraffic?.inbound, 14, 10, 220)
+      const outbound = shiftAndPush(this.networkTraffic?.outbound, 12, 8, 200)
+      const total = inbound.map((value, index) => value + Number(outbound[index] ?? 0))
+
+      this.networkTraffic = { inbound, outbound, total }
+      this.lastUpdatedAt = Date.now()
     },
 
     fetchFrontendPerformance() {
-      return
+      const series = Array.isArray(this.frontendPerformanceData) ? [...this.frontendPerformanceData] : []
+      const last = series[series.length - 1] || { time: '00:00', loadTime: 2.5, interactionTime: 1.2, responseTime: 0.8, renderTime: 1.5 }
+      const time = nextHourlyTime(last.time)
+
+      const nextEntry = {
+        time,
+        loadTime: Number((clampNumber(Number(last.loadTime ?? 2.5) + (Math.random() * 2 - 1) * 0.35, 0.6, 6.0)).toFixed(2)),
+        interactionTime: Number((clampNumber(Number(last.interactionTime ?? 1.2) + (Math.random() * 2 - 1) * 0.22, 0.2, 3.2)).toFixed(2)),
+        responseTime: Number((clampNumber(Number(last.responseTime ?? 0.8) + (Math.random() * 2 - 1) * 0.18, 0.1, 2.5)).toFixed(2)),
+        renderTime: Number((clampNumber(Number(last.renderTime ?? 1.5) + (Math.random() * 2 - 1) * 0.3, 0.3, 4.2)).toFixed(2))
+      }
+
+      if (series.length) series.shift()
+      series.push(nextEntry)
+      this.frontendPerformanceData = series
+      this.lastUpdatedAt = Date.now()
     },
 
     fetchLogs() {
-      return
+      const now = new Date()
+      const nextId = Number(this.logs?.[this.logs.length - 1]?.id ?? 0) + 1
+      const messagePool = [
+        '采样完成：关键指标已更新。',
+        '日志聚合：检测到轻微波动。',
+        '系统心跳：连接稳定。',
+        '缓存刷新：配置已生效。'
+      ]
+      const next = {
+        id: nextId,
+        level: 'info',
+        message: messagePool[Math.floor(Math.random() * messagePool.length)],
+        timestamp: `${now.toISOString().slice(0, 10)} ${now.toTimeString().slice(0, 8)}`
+      }
+      const logs = Array.isArray(this.logs) ? [...this.logs, next] : [next]
+      this.logs = logs.slice(-200)
+      this.lastUpdatedAt = Date.now()
     },
 
     fetchSecurityLogs() {
-      return
+      const now = new Date()
+      const nextId = Number(this.securityLogs?.[this.securityLogs.length - 1]?.id ?? 0) + 1
+      const pool = [
+        { level: 'low', source: '安全审计', message: '基线检查通过。' },
+        { level: 'medium', source: '入侵检测系统', message: '观察到异常请求峰值。' },
+        { level: 'high', source: '防火墙', message: '阻断可疑访问尝试。' }
+      ]
+      const pick = pool[Math.floor(Math.random() * pool.length)]
+      const next = {
+        id: nextId,
+        ...pick,
+        timestamp: `${now.toISOString().slice(0, 10)} ${now.toTimeString().slice(0, 8)}`
+      }
+      const logs = Array.isArray(this.securityLogs) ? [...this.securityLogs, next] : [next]
+      this.securityLogs = logs.slice(-200)
+      this.lastUpdatedAt = Date.now()
     },
 
     fetchAuditLogs() {
-      return
+      const now = new Date()
+      const nextId = Number(this.auditLogs?.[this.auditLogs.length - 1]?.id ?? 0) + 1
+      const actions = [
+        { action: 'view', message: '查看了仪表盘摘要。' },
+        { action: 'export', message: '导出了告警列表。' },
+        { action: 'update', message: '更新了偏好设置。' }
+      ]
+      const pick = actions[Math.floor(Math.random() * actions.length)]
+      const next = {
+        id: nextId,
+        username: 'admin',
+        ...pick,
+        timestamp: `${now.toISOString().slice(0, 10)} ${now.toTimeString().slice(0, 8)}`,
+        details: { traceId: `trace-${now.getTime()}` }
+      }
+      const logs = Array.isArray(this.auditLogs) ? [...this.auditLogs, next] : [next]
+      this.auditLogs = logs.slice(-200)
+      this.lastUpdatedAt = Date.now()
     },
 
     fetchIOStatistics() {
-      return
+      this.updateIOStatistics()
+      this.lastUpdatedAt = Date.now()
     },
 
     updateIOStatistics() {
@@ -172,7 +300,12 @@ export const useTelemetryStore = defineStore('telemetry', {
     },
 
     fetchProcesses() {
-      return
+      this.processes = (this.processes || []).map((process) => {
+        const cpu = clampNumber(Math.round(Number(process.cpu ?? 0) + (Math.random() * 2 - 1) * 4), 0, 100)
+        const memory = clampNumber(Math.round(Number(process.memory ?? 0) + (Math.random() * 2 - 1) * 18), 20, 2000)
+        return { ...process, cpu, memory }
+      })
+      this.lastUpdatedAt = Date.now()
     },
 
     stopProcess(pid) {
@@ -203,6 +336,19 @@ export const useTelemetryStore = defineStore('telemetry', {
 
       this.cpuTemperatureHistory = step(this.cpuTemperatureHistory, { min: 35, max: 80 })
       this.systemTemperatureHistory = step(this.systemTemperatureHistory, { min: 30, max: 75 })
+      this.lastUpdatedAt = Date.now()
+    },
+
+    refreshAll() {
+      this.fetchCpuUsage()
+      this.fetchMemoryUsage()
+      this.fetchDiskUsage()
+      this.fetchNetworkTraffic()
+      this.fetchFrontendPerformance()
+      this.fetchProcesses()
+      this.fetchIOStatistics()
+      this.fetchTemperatureData()
+      this.fetchLogs()
     }
   }
 })

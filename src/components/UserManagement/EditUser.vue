@@ -85,9 +85,7 @@ export default {
           role: formData.role
         })
         uiStore.pushToast({ type: 'success', message: '用户信息已更新' })
-        setTimeout(() => {
-          router.push({ name: 'UserManagementParent' })
-        }, 600)
+        router.push({ name: 'UserManagementParent' })
       } catch (err) {
         uiStore.pushToast({ type: 'error', message: '更新用户失败，请稍后重试' })
       } finally {

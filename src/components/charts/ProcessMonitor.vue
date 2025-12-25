@@ -63,7 +63,6 @@
 <script>
 import { computed } from 'vue'
 import { useTelemetryStore } from '@/stores/telemetry'
-import { usePolling } from '@/composables/usePolling'
 import ChartComponent from './ChartComponent.vue'
 import StatusIndicator from '../StatusIndicator.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
@@ -138,7 +137,7 @@ export default {
           type: 'linear',
           position: 'right',
           beginAtZero: true,
-          max: 500, // 根据实际内存使用调整
+          max: 7000, // 与演示内存数据范围保持一致
           title: {
             display: true,
             text: '内存使用 (MB)'
@@ -153,8 +152,6 @@ export default {
     const handleProcessAction = (pid) => {
       store.stopProcess(pid)
     }
-
-    usePolling(() => store.fetchProcesses(), 5000)
 
     return {
       processes,
@@ -171,55 +168,15 @@ export default {
   padding: 1rem;
 }
 
-.card {
-  background: var(--card-bg);
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
 .card-title {
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 1rem;
-  color: var(--text-primary);
+  color: var(--text-0);
 }
 
 .process-list {
   overflow-x: auto;
-}
-
-table {
-  border-collapse: separate;
-  border-spacing: 0;
-  width: 100%;
-}
-
-th, td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid var(--border-color);
-}
-
-th {
-  background-color: var(--bg-secondary);
-  font-weight: 600;
-}
-
-.status-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.875rem;
-}
-
-.status-badge.running {
-  background-color: var(--success-bg);
-  color: var(--success-text);
-}
-
-.status-badge.stopped {
-  background-color: var(--danger-bg);
-  color: var(--danger-text);
 }
 
 .chart-container {

@@ -1,28 +1,8 @@
 // src/composables/useUserGroups.js
 import { ref } from 'vue'
+import { safeStorage } from '@/utils/storage'
 
 const STORAGE_KEY = 'monitoring-dashboard:userGroups'
-const isBrowser = typeof window !== 'undefined'
-
-const safeStorage = {
-  get(key, fallback) {
-    if (!isBrowser) return fallback
-    try {
-      const raw = localStorage.getItem(key)
-      return raw === null ? fallback : JSON.parse(raw)
-    } catch (error) {
-      return fallback
-    }
-  },
-  set(key, value) {
-    if (!isBrowser) return
-    try {
-      localStorage.setItem(key, JSON.stringify(value))
-    } catch (error) {
-      // 忽略写入失败
-    }
-  }
-}
 
 export function useUserGroups() {
   const groups = ref([])
@@ -40,7 +20,6 @@ export function useUserGroups() {
       groups.value = response
       safeStorage.set(STORAGE_KEY, groups.value)
     } catch (error) {
-      console.error('Failed to fetch user groups:', error)
       throw error
     } finally {
       loading.value = false
@@ -55,7 +34,6 @@ export function useUserGroups() {
       safeStorage.set(STORAGE_KEY, groups.value)
       return newGroup
     } catch (error) {
-      console.error('Failed to add user group:', error)
       throw error
     } finally {
       loading.value = false
@@ -73,7 +51,6 @@ export function useUserGroups() {
       safeStorage.set(STORAGE_KEY, groups.value)
       return updatedGroup
     } catch (error) {
-      console.error('Failed to update user group:', error)
       throw error
     } finally {
       loading.value = false
@@ -87,7 +64,6 @@ export function useUserGroups() {
       groups.value = groups.value.filter(g => g.id !== groupId)
       safeStorage.set(STORAGE_KEY, groups.value)
     } catch (error) {
-      console.error('Failed to delete user group:', error)
       throw error
     } finally {
       loading.value = false

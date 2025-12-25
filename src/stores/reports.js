@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { safeStorage } from '@/utils/storage'
 import { downloadText } from '@/utils/download'
+import { demoSleep } from '@/utils/sleep'
 
 const STORAGE_KEY = 'reports'
 
@@ -39,7 +40,7 @@ export const useReportStore = defineStore('report', {
   actions: {
     async fetchReports() {
       try {
-        await new Promise(resolve => setTimeout(resolve, 800))
+        await demoSleep()
         if (!this.reports.length) {
           this.reports = seedReports()
           safeStorage.set(STORAGE_KEY, this.reports)
@@ -51,7 +52,7 @@ export const useReportStore = defineStore('report', {
 
     async generateReport(payload) {
       try {
-        await new Promise(resolve => setTimeout(resolve, 1200))
+        await demoSleep()
         const nextId = this.reports.length ? Math.max(...this.reports.map(r => r.id)) + 1 : 1
         const typeLabel = payload.type === 'summary'
           ? '概要'
@@ -83,7 +84,7 @@ export const useReportStore = defineStore('report', {
 
     async downloadReport(reportId) {
       try {
-        await new Promise(resolve => setTimeout(resolve, 600))
+        await demoSleep()
         const report = this.reports.find(r => r.id === reportId)
         if (!report) {
           throw new Error('报告未找到')

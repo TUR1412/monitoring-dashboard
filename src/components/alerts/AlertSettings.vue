@@ -401,9 +401,8 @@ export default {
     },
 
     loadSettings() {
-      const savedSettings = localStorage.getItem('alertSettings')
-      if (savedSettings) {
-        const parsed = JSON.parse(savedSettings)
+      const parsed = safeStorage.get('alertSettings', null)
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
         this.settings = {
           ...this.settings,
           ...parsed,
@@ -422,14 +421,9 @@ export default {
         return
       }
 
-      try {
-        localStorage.setItem('alertSettings', JSON.stringify(this.settings))
-        this.$emit('settings-saved', this.settings)
-        this.uiStore?.pushToast({ type: 'success', message: '设置已成功保存' })
-      } catch (error) {
-        console.error('保存设置失败:', error)
-        this.uiStore?.pushToast({ type: 'error', message: '保存设置失败，请稍后重试' })
-      }
+      safeStorage.set('alertSettings', this.settings)
+      this.$emit('settings-saved', this.settings)
+      this.uiStore?.pushToast({ type: 'success', message: '设置已成功保存' })
     },
 
     resetSettings() {

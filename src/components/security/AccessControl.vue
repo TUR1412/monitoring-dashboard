@@ -180,6 +180,7 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import { exportCsv, exportJson, formatDateTime, getLatestDate, sortByTimestamp } from '@/utils/logs'
 import { safeStorage } from '@/utils/storage'
+import { demoSleep } from '@/utils/sleep'
 
 const STORAGE_KEY = 'monitoring-dashboard:access-control:filters'
 
@@ -340,7 +341,7 @@ const terminateSession = (id) => {
 }
 
 const refreshSessions = async () => {
-  await new Promise(resolve => setTimeout(resolve, 600))
+  await demoSleep()
   lastRefreshAt.value = Date.now()
 }
 

@@ -7,8 +7,8 @@ flowchart TD
   UI[Views / Components] --> Router[Vue Router]
   UI --> Stores[Pinia Stores]
   Stores --> Utils[Utils & Infra]
-  Stores --> API[Service Layer]
-  API --> Utils
+  Stores --> Runtime[runtime store]
+  Runtime --> Stores
 ```
 
 ---
@@ -35,16 +35,17 @@ flowchart TD
 - `users`：用户与 CRUD
 - `alerts`：告警闭环 + 持久化
 - `telemetry`：演示遥测（CPU/内存/进程/日志等）
+- `runtime`：全局刷新编排（实时开关/间隔/最后刷新时间）
 - `ui`：toast/confirm 等交互反馈
 
 ### 4) Utils（基础设施层）
 
 原则：**能用原生能力就不用依赖**，把重复逻辑收拢为可复用工具。
 
-- `http`：Fetch client（超时/解析/错误结构）
 - `storage`：安全 localStorage 访问（SSR 兼容、容错）
 - `datetime`：基于 Intl 的格式化（减少日期工具依赖）
 - `download`：原生下载封装（替代 file-saver）
+- `sleep`：可控演示延迟（默认 0ms）
 
 ---
 

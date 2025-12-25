@@ -50,9 +50,7 @@ export default {
       try {
         usersStore.addUser(formData)
         uiStore.pushToast({ type: 'success', message: '用户已添加' })
-        setTimeout(() => {
-          router.push({ name: 'UserManagementParent' })
-        }, 600)
+        router.push({ name: 'UserManagementParent' })
       } catch (err) {
         uiStore.pushToast({ type: 'error', message: '添加用户失败，请稍后重试' })
       } finally {

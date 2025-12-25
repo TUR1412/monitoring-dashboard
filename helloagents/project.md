@@ -23,8 +23,8 @@
 - `src/components/`：页面级与领域组件
 - `src/components/base/`：基础组件（按钮、输入、图标等）
 - `src/stores/`：Pinia 领域 Store（按业务域拆分）
-- `src/utils/`：无依赖工具集（存储、下载、时间、HTTP 等）
-- `src/api/`：服务层（封装数据源；演示环境可为 mock）
+- `src/utils/`：无依赖工具集（存储、下载、时间、演示延迟等）
+- `src/types/`：领域类型（用于 TS 组件/类型收敛）
 
 ### 命名与风格
 
@@ -37,8 +37,9 @@
 
 ## 错误与日志
 
-- 统一使用 `src/utils/http.js` 的错误结构（尽量避免散落的 `fetch/try/catch` 重复）
 - 用户可感知的错误统一通过 `src/stores/ui.js` 的 toast/confirm 输出（避免 console-only）
+- 存储与偏好统一走 `src/utils/storage.js`（JSON 容错、SSR 兼容）
+- 演示延迟统一走 `src/utils/sleep.js`（默认 0ms，按需用 env 变量模拟）
 
 ---
 

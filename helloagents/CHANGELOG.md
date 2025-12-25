@@ -5,6 +5,21 @@
 
 ## [Unreleased]
 
+## [1.3.0] - 2025-12-25
+
+### 新增
+- 引入全局运行时编排 `runtime` store：统一实时刷新开关/间隔/最后刷新时间，并由 Header 提供可视化控制。
+- 新增 `src/utils/sleep.js`：演示可控延迟（默认 0ms），支持通过 `VITE_DEMO_LATENCY_MS` 在本地模拟 loading。
+- 遥测数据 `telemetry` 支持动态刷新（滑窗更新 CPU/内存/网络/温度/I/O/日志/进程等），增强“实时看板”体验。
+
+### 变更
+- 全站偏好/筛选/缓存统一走 `safeStorage`（替代散落的 localStorage + JSON.parse），提升容错与一致性。
+- 用户可感知错误统一通过 UI toast 呈现，移除多处 console-only 错误处理。
+- 移除多处重复轮询，关键数据刷新由 `runtime` store 统一调度，降低运行时开销。
+
+### 移除
+- 删除未被引用的 service/http 死代码（`src/api/alertService.js`、`src/utils/http.js`），保持工程极简与真实一致。
+
 ## [1.2.1] - 2025-12-24
 
 ### 变更
